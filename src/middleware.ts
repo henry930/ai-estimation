@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import { getToken } from 'next-auth/jwt'
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
     // Add CORS headers for API routes
     if (request.nextUrl.pathname.startsWith('/api/')) {
         const response = NextResponse.next()
@@ -11,9 +12,18 @@ export function middleware(request: NextRequest) {
         return response
     }
 
+    // Protect dashboard routes
+    if (request.nextUrl.pathname.startsWith('/dashboard')) {
+        const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET })
+
+        if (!token) {
+            return NextResponse.redirect(new URL('/login', request.url))
+        }
+    }
+
     return NextResponse.next()
 }
 
 export const config = {
-    matcher: '/api/:path*',
+    matcher: ['/api/:path*', '/dashboard/:path*'],
 }
