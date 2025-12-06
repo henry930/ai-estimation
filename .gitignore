@@ -1,0 +1,17 @@
+node_modules/
+.next/
+.env
+.env.local
+.env.production
+.DS_Store
+dist/
+build/
+*.log
+.vercel
+.turbo
+coverage/
+.idea/
+.vscode/
+*.swp
+*.swo
+.cache/
