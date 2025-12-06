@@ -101,6 +101,15 @@ Backend API (68 hours):
 
 - **[PROJECT_PLAN.md](PROJECT_PLAN.md)** - Comprehensive project plan with detailed task breakdown and estimations (312 hours total)
 - **[TASKS.md](TASKS.md)** - Concise task checklist for tracking progress (67 tasks across 6 phases)
+- **[UPDATING_PLAN.md](UPDATING_PLAN.md)** - Guide for maintaining PROJECT_PLAN.md as a living document
+
+> [!NOTE]
+> PROJECT_PLAN.md is a **living document** that gets updated when:
+> - More concrete requirements are gathered
+> - Tasks are completed (with actual hours tracked)
+> - User requests changes
+> - Scope changes occur
+> - Blockers are encountered
 
 ---
 
