@@ -97,14 +97,28 @@ Backend API (68 hours):
 
 ---
 
+## 📚 Project Documentation
+
+- **[PROJECT_PLAN.md](PROJECT_PLAN.md)** - Comprehensive project plan with detailed task breakdown and estimations (312 hours total)
+- **[TASKS.md](TASKS.md)** - Concise task checklist for tracking progress (67 tasks across 6 phases)
+
+---
+
 ## 📦 Project Status
 
 **Current Phase**: Planning & Design  
-**Next Steps**: 
-- Finalize technology stack
-- Set up development environment
-- Implement core features
-- Deploy MVP
+**Total Estimated Effort**: 312 man-hours (8-10 weeks)  
+**Progress**: 0/67 tasks completed
+
+### Roadmap
+- [x] Project planning and estimation
+- [x] Repository setup
+- [ ] Phase 1: Foundation & Setup (40 hours)
+- [ ] Phase 2: Authentication & Subscription (48 hours)
+- [ ] Phase 3: Frontend Development (72 hours)
+- [ ] Phase 4: Backend API & AI Integration (88 hours)
+- [ ] Phase 5: GitHub Integration (44 hours)
+- [ ] Phase 6: Testing & Deployment (20 hours)
 
 ---
 
