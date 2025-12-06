@@ -1,0 +1,577 @@
+# AI Estimation System - Project Plan & Task Estimation
+
+> **Project**: AI-Powered Estimation Platform with GitHub Integration  
+> **Total Estimated Man-Hours**: **312 hours**  
+> **Estimated Duration**: 8-10 weeks (1 senior developer)  
+> **Generated**: 2025-12-06
+
+---
+
+## 📊 Executive Summary
+
+This document provides a complete task breakdown and time estimation for building the AI Estimation System. The system allows users to get AI-powered project estimations through a chatbot interface, with automatic GitHub repository creation and issue generation.
+
+### Total Estimation by Phase
+
+| Phase | Man-Hours | Percentage |
+|-------|-----------|------------|
+| Phase 1: Foundation & Setup | 40 | 13% |
+| Phase 2: Authentication & Subscription | 48 | 15% |
+| Phase 3: Frontend Development | 72 | 23% |
+| Phase 4: Backend API & AI Integration | 88 | 28% |
+| Phase 5: GitHub Integration | 44 | 14% |
+| Phase 6: Testing & Deployment | 20 | 6% |
+| **TOTAL** | **312** | **100%** |
+
+---
+
+## Phase 1: Foundation & Setup (40 hours)
+
+### 1.1 Project Initialization (8 hours)
+
+| Task | Description | Man-Hours |
+|------|-------------|-----------|
+| Next.js Setup | Initialize Next.js 14 with App Router, TypeScript, ESLint | 3 |
+| Package Configuration | Install and configure all dependencies (Prisma, NextAuth, Octokit, OpenAI SDK) | 3 |
+| Environment Setup | Create .env.example, configure environment variables | 2 |
+
+**Acceptance Criteria:**
+- Next.js project runs successfully on localhost:3000
+- All dependencies installed and configured
+- TypeScript compilation works without errors
+- Environment variables documented
+
+---
+
+### 1.2 Database Schema Design (12 hours)
+
+| Task | Description | Man-Hours |
+|------|-------------|-----------|
+| Schema Definition | Design Prisma schema for User, Subscription, Project, Estimation, ChatHistory models | 4 |
+| Relationships Setup | Configure foreign keys and relations between models | 3 |
+| Migration Creation | Create and test initial database migration | 3 |
+| Seed Data | Create seed script with sample data for development | 2 |
+
+**Database Models:**
+- **User**: id, email, name, passwordHash, githubToken, createdAt
+- **Subscription**: id, userId, plan, status, startDate, endDate, stripeCustomerId
+- **Project**: id, userId, name, description, githubUrl, githubRepoId, createdAt
+- **Estimation**: id, projectId, tasks (JSON), totalHours, minHours, maxHours, status, createdAt
+- **ChatHistory**: id, projectId, messages (JSON), context (JSON), createdAt
+
+**Acceptance Criteria:**
+- Database schema compiles without errors
+- All relationships properly defined
+- Migration runs successfully
+- Seed data populates database
+
+---
+
+### 1.3 Base UI Components (12 hours)
+
+| Task | Description | Man-Hours |
+|------|-------------|-----------|
+| Design System | Create CSS variables, color palette, typography system | 4 |
+| Core Components | Build Button, Input, Card, Modal, Loading components | 6 |
+| Layout Components | Create Header, Footer, Sidebar, Container components | 2 |
+
+**Acceptance Criteria:**
+- Reusable component library created
+- Premium design with modern aesthetics
+- Dark mode support (optional)
+- Components are responsive
+
+---
+
+### 1.4 Project Configuration (8 hours)
+
+| Task | Description | Man-Hours |
+|------|-------------|-----------|
+| API Route Structure | Set up API route organization and middleware | 3 |
+| Error Handling | Implement global error handling and logging | 3 |
+| Type Definitions | Create TypeScript types for all data models | 2 |
+
+**Acceptance Criteria:**
+- API routes properly organized
+- Error handling catches and logs errors
+- TypeScript types defined for all entities
+
+---
+
+## Phase 2: Authentication & Subscription (48 hours)
+
+### 2.1 Authentication System (24 hours)
+
+| Task | Description | Man-Hours |
+|------|-------------|-----------|
+| NextAuth Setup | Configure NextAuth.js with credentials provider | 6 |
+| User Registration | Build sign-up flow with email/password | 6 |
+| Login System | Implement login with session management | 4 |
+| GitHub OAuth | Add GitHub OAuth provider for repository access | 6 |
+| Protected Routes | Implement middleware for route protection | 2 |
+
+**API Endpoints:**
+- `POST /api/auth/signup` - User registration
+- `POST /api/auth/signin` - User login
+- `GET /api/auth/session` - Get current session
+- `POST /api/auth/signout` - Logout
+
+**Acceptance Criteria:**
+- Users can register with email/password
+- Users can login and maintain session
+- GitHub OAuth connects successfully
+- Protected routes redirect unauthenticated users
+- Session persists across page refreshes
+
+---
+
+### 2.2 Subscription Management (24 hours)
+
+| Task | Description | Man-Hours |
+|------|-------------|-----------|
+| Payment Integration | Integrate with payment system (Stripe or custom) | 10 |
+| Subscription API | Build subscription CRUD endpoints | 6 |
+| Subscription UI | Create pricing page and subscription management UI | 6 |
+| Webhook Handler | Implement webhook for payment events | 2 |
+
+**API Endpoints:**
+- `POST /api/subscription/create` - Create subscription
+- `GET /api/subscription/status` - Get subscription status
+- `POST /api/subscription/cancel` - Cancel subscription
+- `POST /api/webhooks/payment` - Handle payment webhooks
+
+**Subscription Tiers:**
+- **Free**: 3 estimations/month
+- **Pro**: Unlimited estimations, GitHub integration ($29/month)
+- **Team**: Multiple users, shared projects ($99/month)
+
+**Acceptance Criteria:**
+- Users can subscribe to plans
+- Payment processing works correctly
+- Subscription status tracked in database
+- Webhooks update subscription status
+- Usage limits enforced
+
+---
+
+## Phase 3: Frontend Development (72 hours)
+
+### 3.1 Landing Page (16 hours)
+
+| Task | Description | Man-Hours |
+|------|-------------|-----------|
+| Hero Section | Create compelling hero with CTA buttons | 4 |
+| Features Section | Showcase key features with icons and descriptions | 4 |
+| Pricing Cards | Build interactive pricing comparison | 4 |
+| Testimonials | Add social proof section (optional) | 2 |
+| Footer | Create footer with links and information | 2 |
+
+**Acceptance Criteria:**
+- Premium, modern design that "wows" users
+- Smooth animations and transitions
+- Responsive on all devices
+- Clear CTAs for sign up
+- Fast page load time
+
+---
+
+### 3.2 Dashboard (14 hours)
+
+| Task | Description | Man-Hours |
+|------|-------------|-----------|
+| Dashboard Layout | Create main dashboard structure | 4 |
+| Project List | Display user's projects and estimations | 4 |
+| Subscription Status | Show current plan and usage | 3 |
+| Quick Actions | Add buttons for new estimation, settings | 3 |
+
+**Acceptance Criteria:**
+- Dashboard shows all user projects
+- Subscription status clearly displayed
+- Quick access to create new estimation
+- Recent activity visible
+
+---
+
+### 3.3 Chat Interface (20 hours)
+
+| Task | Description | Man-Hours |
+|------|-------------|-----------|
+| Chat UI Layout | Build chat container with message list | 6 |
+| Message Components | Create user/AI message bubbles | 4 |
+| Input System | Build message input with file upload | 4 |
+| Streaming Support | Implement real-time AI response streaming | 4 |
+| Context Display | Show GitHub files and requirements in sidebar | 2 |
+
+**Acceptance Criteria:**
+- Chat interface is intuitive and responsive
+- Messages display in real-time
+- AI responses stream as they generate
+- File upload works correctly
+- Context sidebar shows relevant information
+
+---
+
+### 3.4 Estimation Results Display (14 hours)
+
+| Task | Description | Man-Hours |
+|------|-------------|-----------|
+| Results Layout | Create hierarchical task breakdown display | 6 |
+| Man-Hour Display | Show ranges and concrete hours clearly | 3 |
+| Export Functionality | Add PDF/JSON export options | 3 |
+| GitHub Creation Button | Add button to create GitHub repo from estimation | 2 |
+
+**Acceptance Criteria:**
+- Task breakdown displays hierarchically
+- Man-hours shown clearly (ranges vs concrete)
+- Export to PDF works
+- "Create GitHub Repo" button functional
+- Results are easy to read and understand
+
+---
+
+### 3.5 GitHub Connection UI (8 hours)
+
+| Task | Description | Man-Hours |
+|------|-------------|-----------|
+| Repository Selector | Build UI to select GitHub repositories | 4 |
+| File Tree Viewer | Display repository file structure | 3 |
+| Connection Status | Show GitHub connection status | 1 |
+
+**Acceptance Criteria:**
+- Users can browse their GitHub repos
+- File tree displays repository structure
+- Connection status clearly indicated
+- Repository selection works smoothly
+
+---
+
+## Phase 4: Backend API & AI Integration (88 hours)
+
+### 4.1 AI Integration Setup (16 hours)
+
+| Task | Description | Man-Hours |
+|------|-------------|-----------|
+| AI Client Setup | Configure OpenAI SDK or custom AI client | 4 |
+| Prompt Engineering | Design prompts for estimation and requirement gathering | 8 |
+| Response Parsing | Build parser for AI responses into structured data | 4 |
+
+**Acceptance Criteria:**
+- AI client connects successfully
+- Prompts generate quality estimations
+- Responses parsed into structured format
+- Error handling for AI failures
+
+---
+
+### 4.2 Estimation Engine (28 hours)
+
+| Task | Description | Man-Hours |
+|------|-------------|-----------|
+| Requirement Analysis | Build AI logic to analyze user requirements | 8 |
+| Task Breakdown Generator | Create algorithm to generate task hierarchy | 10 |
+| Man-Hour Calculation | Implement estimation logic (ranges and concrete) | 6 |
+| Confidence Scoring | Add confidence metrics based on requirement clarity | 4 |
+
+**API Endpoints:**
+- `POST /api/estimate/create` - Start new estimation
+- `POST /api/estimate/refine` - Refine estimation with more details
+- `GET /api/estimate/[id]` - Get estimation details
+- `PUT /api/estimate/[id]/confirm` - Confirm task breakdown
+
+**Estimation Logic:**
+- Phase 1: Generate high-level categories with hour ranges
+- Phase 2: Break down into specific tasks with concrete hours
+- Consider: complexity, dependencies, tech stack
+- Assume senior developer effort level
+
+**Acceptance Criteria:**
+- AI generates reasonable task breakdowns
+- Man-hour estimates are realistic
+- Ranges convert to concrete hours after confirmation
+- Confidence scores reflect requirement clarity
+
+---
+
+### 4.3 Chat API (20 hours)
+
+| Task | Description | Man-Hours |
+|------|-------------|-----------|
+| Chat Endpoint | Build streaming chat endpoint | 8 |
+| Context Management | Manage conversation context and history | 6 |
+| Requirement Extraction | Extract structured requirements from chat | 4 |
+| File Processing | Handle uploaded files and documents | 2 |
+
+**API Endpoints:**
+- `POST /api/chat` - Send message and get AI response (streaming)
+- `GET /api/chat/[projectId]` - Get chat history
+- `POST /api/chat/upload` - Upload files for context
+
+**Acceptance Criteria:**
+- Chat responses stream in real-time
+- Context maintained across conversation
+- Requirements extracted accurately
+- File uploads processed correctly
+
+---
+
+### 4.4 Project Management API (12 hours)
+
+| Task | Description | Man-Hours |
+|------|-------------|-----------|
+| Project CRUD | Build create, read, update, delete for projects | 8 |
+| Project Listing | Implement filtering and pagination | 4 |
+
+**API Endpoints:**
+- `POST /api/projects` - Create project
+- `GET /api/projects` - List user projects
+- `GET /api/projects/[id]` - Get project details
+- `PUT /api/projects/[id]` - Update project
+- `DELETE /api/projects/[id]` - Delete project
+
+**Acceptance Criteria:**
+- All CRUD operations work correctly
+- Projects associated with correct user
+- Pagination works for large lists
+- Soft delete implemented
+
+---
+
+### 4.5 Usage Tracking (12 hours)
+
+| Task | Description | Man-Hours |
+|------|-------------|-----------|
+| Usage Counter | Track estimation usage per user | 6 |
+| Limit Enforcement | Enforce subscription tier limits | 4 |
+| Analytics | Track usage metrics for admin | 2 |
+
+**Acceptance Criteria:**
+- Usage counted accurately
+- Free tier limited to 3 estimations/month
+- Pro tier has unlimited access
+- Usage resets monthly
+
+---
+
+## Phase 5: GitHub Integration (44 hours)
+
+### 5.1 GitHub API Integration (16 hours)
+
+| Task | Description | Man-Hours |
+|------|-------------|-----------|
+| Octokit Setup | Configure GitHub API client | 3 |
+| Repository Fetching | Fetch user repositories and details | 5 |
+| File Analysis | Analyze repository files and structure | 6 |
+| Tech Stack Detection | Detect technologies from repository | 2 |
+
+**API Endpoints:**
+- `GET /api/github/repos` - List user repositories
+- `GET /api/github/repos/[id]` - Get repository details
+- `GET /api/github/repos/[id]/files` - Get file tree
+- `POST /api/github/analyze` - Analyze repository for estimation
+
+**Acceptance Criteria:**
+- GitHub OAuth provides correct permissions
+- Repositories fetched successfully
+- File structure analyzed correctly
+- Tech stack detected accurately
+
+---
+
+### 5.2 Repository Creation (14 hours)
+
+| Task | Description | Man-Hours |
+|------|-------------|-----------|
+| Repo Creation Logic | Build logic to create GitHub repository | 6 |
+| Repository Settings | Configure repository settings (visibility, features) | 3 |
+| Error Handling | Handle naming conflicts and errors | 3 |
+| Confirmation Flow | Add user confirmation before creation | 2 |
+
+**API Endpoints:**
+- `POST /api/github/repos/create` - Create new repository
+
+**Acceptance Criteria:**
+- Repository created with correct settings
+- Naming conflicts handled gracefully
+- User confirms before creation
+- Repository URL returned
+
+---
+
+### 5.3 README Generation (8 hours)
+
+| Task | Description | Man-Hours |
+|------|-------------|-----------|
+| README Template | Create comprehensive README template | 4 |
+| Content Generation | Generate README from estimation data | 3 |
+| Commit to Repo | Commit README.md to repository | 1 |
+
+**README Sections:**
+- Project Overview
+- Requirements Summary
+- Task Breakdown (with man-hours)
+- Total Estimation
+- Technology Stack
+- Assumptions
+- Getting Started
+
+**Acceptance Criteria:**
+- README generated with all sections
+- Markdown formatted correctly
+- Tables display task breakdown
+- Committed to repository successfully
+
+---
+
+### 5.4 GitHub Issues Creation (6 hours)
+
+| Task | Description | Man-Hours |
+|------|-------------|-----------|
+| Issue Generator | Convert tasks to GitHub issues | 3 |
+| Label Creation | Create custom labels (hours, category) | 2 |
+| Milestone Setup | Organize issues into milestones | 1 |
+
+**Issue Format:**
+- Title: Task name
+- Body: Description, acceptance criteria, man-hours
+- Labels: Category, hours estimate, priority
+- Milestone: Project phase
+
+**Acceptance Criteria:**
+- All tasks created as issues
+- Labels applied correctly
+- Milestones organize phases
+- Issues link to each other (dependencies)
+
+---
+
+## Phase 6: Testing & Deployment (20 hours)
+
+### 6.1 Testing (12 hours)
+
+| Task | Description | Man-Hours |
+|------|-------------|-----------|
+| Unit Tests | Test critical functions and utilities | 4 |
+| API Testing | Test all API endpoints | 4 |
+| E2E Testing | Test complete user flows | 4 |
+
+**Test Coverage:**
+- Authentication flow
+- Subscription creation
+- Estimation generation
+- GitHub repository creation
+- Chat functionality
+
+**Acceptance Criteria:**
+- All critical paths tested
+- API endpoints return correct responses
+- E2E tests pass for main flows
+- Edge cases handled
+
+---
+
+### 6.2 Deployment (8 hours)
+
+| Task | Description | Man-Hours |
+|------|-------------|-----------|
+| Vercel Setup | Configure Vercel deployment | 2 |
+| Database Setup | Set up production database (Supabase/Railway) | 2 |
+| Environment Variables | Configure production environment | 2 |
+| Domain & SSL | Set up custom domain and SSL | 1 |
+| Monitoring | Set up error tracking and monitoring | 1 |
+
+**Acceptance Criteria:**
+- Application deployed to production
+- Database connected and migrated
+- Environment variables configured
+- Custom domain working with SSL
+- Error monitoring active
+
+---
+
+## 📈 Summary & Assumptions
+
+### Total Estimation
+
+| Category | Tasks | Man-Hours |
+|----------|-------|-----------|
+| Foundation & Setup | 4 | 40 |
+| Authentication & Subscription | 2 | 48 |
+| Frontend Development | 5 | 72 |
+| Backend API & AI Integration | 5 | 88 |
+| GitHub Integration | 4 | 44 |
+| Testing & Deployment | 2 | 20 |
+| **TOTAL** | **22** | **312** |
+
+### Key Assumptions
+
+1. **Developer Experience**: Senior full-stack developer with experience in:
+   - React, Next.js, TypeScript
+   - PostgreSQL and Prisma
+   - AI/LLM integration
+   - GitHub API
+
+2. **Technology Stack**:
+   - Next.js 14 with App Router
+   - PostgreSQL database
+   - OpenAI GPT-4 (or custom AI model)
+   - Stripe for payments (or custom payment system)
+   - Vercel for hosting
+
+3. **Scope Boundaries**:
+   - No mobile app (web only)
+   - Basic admin dashboard (not included in estimate)
+   - Standard Stripe integration (no complex billing)
+   - English language only
+   - No advanced analytics
+
+4. **External Dependencies**:
+   - OpenAI API access
+   - GitHub OAuth app configured
+   - Payment system API access
+   - Database hosting service
+
+5. **Not Included**:
+   - Advanced team collaboration features
+   - Real-time collaboration
+   - Custom AI model training
+   - Mobile applications
+   - Advanced analytics dashboard
+   - Multi-language support
+
+### Timeline Estimate
+
+- **Full-time (40 hrs/week)**: 8 weeks
+- **Part-time (20 hrs/week)**: 16 weeks
+- **With buffer (20%)**: 10 weeks full-time
+
+### Risk Factors
+
+- AI API reliability and response quality
+- GitHub API rate limits
+- Payment system integration complexity
+- Estimation accuracy (AI-generated)
+
+---
+
+## 🚀 Next Steps
+
+1. **Immediate**:
+   - Confirm technology stack
+   - Set up development environment
+   - Create project board with these tasks
+
+2. **Short-term**:
+   - Begin Phase 1: Foundation & Setup
+   - Set up CI/CD pipeline
+   - Create design mockups
+
+3. **Long-term**:
+   - Beta testing with real users
+   - Iterate based on feedback
+   - Add advanced features
+
+---
+
+**Document Version**: 1.0  
+**Last Updated**: 2025-12-06  
+**Status**: Ready for Implementation
