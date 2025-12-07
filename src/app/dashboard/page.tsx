@@ -1,58 +1,40 @@
-import { getServerSession } from 'next-auth'
-import { redirect } from 'next/navigation'
-import { authOptions } from '@/app/api/auth/[...nextauth]/route'
+'use client';
 
-export default async function DashboardPage() {
-    const session = await getServerSession(authOptions)
+import DashboardLayout from '@/components/dashboard/DashboardLayout';
+import ProjectList from '@/components/dashboard/ProjectList';
+import QuickActions from '@/components/dashboard/QuickActions';
+import SubscriptionStatus from '@/components/dashboard/SubscriptionStatus';
 
-    if (!session) {
-        redirect('/login')
-    }
+export default function DashboardPage() {
+    const user = { name: 'Henry' }; // Mock user
 
     return (
-        <div className="min-h-screen bg-gray-50 p-8">
-            <div className="max-w-7xl mx-auto">
-                <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-                    <p className="text-gray-600 mt-2">
-                        Welcome back, {session.user?.name || session.user?.email}!
-                    </p>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="bg-white rounded-lg shadow p-6">
-                        <h3 className="text-lg font-semibold mb-2">Projects</h3>
-                        <p className="text-3xl font-bold text-blue-600">0</p>
-                        <p className="text-sm text-gray-500 mt-2">Total projects</p>
+        <DashboardLayout>
+            <div className="space-y-8">
+                {/* Header */}
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h1 className="text-3xl font-bold">Welcome back, {user.name}</h1>
+                        <p className="text-gray-400 mt-1">Here&apos;s what&apos;s happening with your projects.</p>
                     </div>
-
-                    <div className="bg-white rounded-lg shadow p-6">
-                        <h3 className="text-lg font-semibold mb-2">Estimations</h3>
-                        <p className="text-3xl font-bold text-purple-600">0</p>
-                        <p className="text-sm text-gray-500 mt-2">This month</p>
-                    </div>
-
-                    <div className="bg-white rounded-lg shadow p-6">
-                        <h3 className="text-lg font-semibold mb-2">Subscription</h3>
-                        <p className="text-lg font-semibold text-green-600">Free</p>
-                        <p className="text-sm text-gray-500 mt-2">3/3 estimations remaining</p>
+                    <div className="text-sm text-gray-400">
+                        {new Date().toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                     </div>
                 </div>
 
-                <div className="mt-8 bg-white rounded-lg shadow p-6">
-                    <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
-                    <div className="space-y-3">
-                        <button className="w-full text-left px-4 py-3 bg-blue-50 hover:bg-blue-100 rounded-lg transition">
-                            <span className="font-medium text-blue-900">+ New Estimation</span>
-                            <p className="text-sm text-blue-600">Start a new project estimation</p>
-                        </button>
-                        <button className="w-full text-left px-4 py-3 bg-purple-50 hover:bg-purple-100 rounded-lg transition">
-                            <span className="font-medium text-purple-900">Connect GitHub</span>
-                            <p className="text-sm text-purple-600">Link your GitHub account</p>
-                        </button>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    {/* Main Content Area (Projects) - spans 2 cols */}
+                    <div className="lg:col-span-2 space-y-8">
+                        <ProjectList />
+                    </div>
+
+                    {/* Sidebar Area (Quick Actions & Stats) - spans 1 col */}
+                    <div className="space-y-6">
+                        <QuickActions />
+                        <SubscriptionStatus />
                     </div>
                 </div>
             </div>
-        </div>
-    )
+        </DashboardLayout>
+    );
 }
