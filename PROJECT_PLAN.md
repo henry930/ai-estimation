@@ -439,7 +439,7 @@ This document provides a complete task breakdown and time estimation for buildin
 
 ### 4.6 Usage Tracking (12 hours)
 
-> **Do you want to kickstart?** [YES - Start Usage Tracking](#kickstart-4-5)  
+> **Do you want to kickstart?** [YES - Start Usage Tracking](#kickstart-4-6)  
 > ⚠️ *Warning: 12 credits will be deducted from your account*
 
 | Task | Description | Man-Hours |
@@ -738,7 +738,7 @@ This section will track:
 | Phase 1: Foundation & Setup | 40 | 28 | -12 (-30%) | ✅ Complete |
 | Phase 2: Authentication & Subscription | 48 | - | - | Not Started |
 | Phase 3: Frontend Development | 72 | 72 | - | ✅ Complete |
-| Phase 4: Backend API & AI Integration | 88 | 12 | - | In Progress |
+| Phase 4: Backend API & AI Integration | 88 | 20 | - | In Progress |
 | Phase 5: GitHub Integration | 44 | - | - | Not Started |
 | Phase 6: Testing & Deployment | 20 | - | - | Not Started |
 | **TOTAL** | **312** | **58** | **-12** | **18% Complete** |
