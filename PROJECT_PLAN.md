@@ -336,16 +336,16 @@ This document provides a complete task breakdown and time estimation for buildin
 
 ## Phase 4: Backend API & AI Integration (88 hours)
 
-### 4.1 AI Integration Setup (16 hours)
+### 4.3 AI Service Integration (16 hours)
 
 > **Do you want to kickstart?** [YES - Start AI Integration Setup](#kickstart-4-1)  
 > ⚠️ *Warning: 16 credits will be deducted from your account*
 
-| Task | Description | Man-Hours |
-|------|-------------|-----------|
-| AI Client Setup | Configure OpenAI SDK or custom AI client | 4 |
-| Prompt Engineering | Design prompts for estimation and requirement gathering | 8 |
-| Response Parsing | Build parser for AI responses into structured data | 4 |
+| Task | Description | Man-Hours | Status |
+|------|-------------|-----------|--------|
+| AI Client Setup | Configure OpenAI SDK or custom AI client | 4 | [x] |
+| Prompt Engineering | Design prompts for estimation and requirement gathering | 8 | [x] |
+| Response Parsing | Build parser for AI responses into structured data | 4 | [x] |
 
 **Acceptance Criteria:**
 - AI client connects successfully
@@ -738,7 +738,7 @@ This section will track:
 | Phase 1: Foundation & Setup | 40 | 28 | -12 (-30%) | ✅ Complete |
 | Phase 2: Authentication & Subscription | 48 | - | - | Not Started |
 | Phase 3: Frontend Development | 72 | 72 | - | ✅ Complete |
-| Phase 4: Backend API & AI Integration | 88 | 20 | - | In Progress |
+| Phase 4: Backend API & AI Integration | 88 | 36 | - | In Progress |
 | Phase 5: GitHub Integration | 44 | - | - | Not Started |
 | Phase 6: Testing & Deployment | 20 | - | - | Not Started |
 | **TOTAL** | **312** | **58** | **-12** | **18% Complete** |
