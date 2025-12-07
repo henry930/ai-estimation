@@ -41,3 +41,19 @@ export const mockFileTree = [
     { path: 'src/app', type: 'tree', sha: 'abc4' },
     { path: 'src/app/page.tsx', type: 'blob', sha: 'abc5' },
 ];
+
+export const createIssue = async (octokit: Octokit, owner: string, repo: string, title: string, body: string, labels: string[] = []) => {
+    try {
+        const { data } = await octokit.issues.create({
+            owner,
+            repo,
+            title,
+            body,
+            labels
+        });
+        return data;
+    } catch (error) {
+        console.error('Error creating issue:', error);
+        throw error;
+    }
+};
