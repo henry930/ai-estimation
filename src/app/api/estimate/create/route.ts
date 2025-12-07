@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { successResponse, errorResponse } from '@/lib/api-response';
 import { openai, isAIConfigured } from '@/lib/openai';
 import { SYSTEM_Prompt, ESTIMATION_PROMPT } from '@/lib/prompts';
+import { checkUsage } from '@/lib/subscription';
 
 export async function POST(req: NextRequest) {
     try {
@@ -23,6 +24,13 @@ export async function POST(req: NextRequest) {
             // OR return error. Let's return error to be strict, but User should ensure project exists.
             // For this phase, we assume the frontend sends a valid ID or we handle it gracefully.
             return errorResponse('Project not found', 404);
+        }
+
+        // Check Usage Limit (Phase 4.5)
+        // Note: project.userId is guaranteed if project exists, but let's be safe
+        const canCreate = await checkUsage(project.userId);
+        if (!canCreate) {
+            return errorResponse('Monthly estimation limit reached. Please upgrade your plan.', 403);
         }
 
         let estimationData;
