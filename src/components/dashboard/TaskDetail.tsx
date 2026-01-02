@@ -62,6 +62,45 @@ export default function TaskDetail({ taskId }: { taskId: string }) {
         fetchTask();
     }, [taskId]);
 
+    const handleToggleSubtask = async (subtaskId: string, currentStatus: boolean) => {
+        try {
+            const res = await fetch(`/api/admin/tasks/${taskId}/subtasks`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ subtaskId, isCompleted: !currentStatus })
+            });
+            const data = await res.json();
+            if (data.success) {
+                setTask(prev => prev ? {
+                    ...prev,
+                    subtasks: prev.subtasks.map(s => s.id === subtaskId ? { ...s, isCompleted: !currentStatus } : s)
+                } : null);
+            }
+        } catch (err) {
+            console.error('Failed to toggle subtask:', err);
+        }
+    };
+
+    const handleCreateSubtask = async (title: string) => {
+        if (!title.trim()) return;
+        try {
+            const res = await fetch(`/api/admin/tasks/${taskId}/subtasks`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title })
+            });
+            const data = await res.json();
+            if (data.success) {
+                setTask(prev => prev ? {
+                    ...prev,
+                    subtasks: [...prev.subtasks, data.data]
+                } : null);
+            }
+        } catch (err) {
+            console.error('Failed to create subtask:', err);
+        }
+    };
+
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-[400px]">
@@ -118,8 +157,8 @@ export default function TaskDetail({ taskId }: { taskId: string }) {
                 </div>
 
                 <div className={`px-4 py-1.5 rounded-full text-xs font-bold border ${task.status === 'DONE' ? 'bg-green-500/10 text-green-500 border-green-500/20' :
-                        task.status === 'IN PROGRESS' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
-                            'bg-white/5 text-gray-400 border-white/10'
+                    task.status === 'IN PROGRESS' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
+                        'bg-white/5 text-gray-400 border-white/10'
                     }`}>
                     {task.status}
                 </div>
@@ -132,8 +171,8 @@ export default function TaskDetail({ taskId }: { taskId: string }) {
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
                         className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === tab.id
-                                ? 'bg-white/10 text-white shadow-lg'
-                                : 'text-gray-500 hover:text-gray-300 hover:bg-white/[0.02]'
+                            ? 'bg-white/10 text-white shadow-lg'
+                            : 'text-gray-500 hover:text-gray-300 hover:bg-white/[0.02]'
                             }`}
                     >
                         <tab.icon className="w-4 h-4" />
@@ -209,18 +248,48 @@ export default function TaskDetail({ taskId }: { taskId: string }) {
 
                 {activeTab === 'todo' && (
                     <div className="space-y-4">
-                        <h3 className="text-white text-lg font-semibold mb-6">Task Breakdown</h3>
+                        <div className="flex items-center justify-between mb-6">
+                            <h3 className="text-white text-lg font-semibold">Task Breakdown</h3>
+                            <div className="text-xs text-gray-500">
+                                {task.subtasks.filter(s => s.isCompleted).length} / {task.subtasks.length} Completed
+                            </div>
+                        </div>
+
+                        {/* New Subtask Input */}
+                        <div className="mb-6 relative">
+                            <input
+                                type="text"
+                                placeholder="Add a new sub-task..."
+                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500/50 transition-all pr-12"
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                        handleCreateSubtask(e.currentTarget.value);
+                                        e.currentTarget.value = '';
+                                    }
+                                }}
+                            />
+                            <div className="absolute right-4 top-3.5 text-[10px] text-gray-600 font-mono">ENTER</div>
+                        </div>
+
                         {task.subtasks && task.subtasks.length > 0 ? (
                             <div className="space-y-2">
                                 {task.subtasks.map((sub) => (
-                                    <div key={sub.id} className="flex items-center gap-4 p-4 bg-white/[0.02] border border-white/5 rounded-xl group hover:bg-white/[0.04] transition-all">
-                                        <div className={`p-1 rounded border ${sub.isCompleted ? 'bg-green-500/20 border-green-500/40 text-green-400' : 'bg-white/5 border-white/10 text-gray-600'}`}>
+                                    <button
+                                        key={sub.id}
+                                        onClick={() => handleToggleSubtask(sub.id, sub.isCompleted)}
+                                        className="w-full flex items-center gap-4 p-4 bg-white/[0.02] border border-white/5 rounded-xl group hover:bg-white/[0.04] hover:border-white/10 transition-all text-left"
+                                    >
+                                        <div className={`p-1 rounded border transition-all ${sub.isCompleted
+                                                ? 'bg-green-500 border-green-500 text-white'
+                                                : 'bg-white/5 border-white/10 text-transparent group-hover:text-gray-600'
+                                            }`}>
                                             <CheckSquareIcon className="w-4 h-4" />
                                         </div>
-                                        <span className={`text-sm ${sub.isCompleted ? 'text-gray-500 line-through' : 'text-gray-200'}`}>
+                                        <span className={`text-sm transition-all ${sub.isCompleted ? 'text-gray-500 line-through' : 'text-gray-200'
+                                            }`}>
                                             {sub.title}
                                         </span>
-                                    </div>
+                                    </button>
                                 ))}
                             </div>
                         ) : (

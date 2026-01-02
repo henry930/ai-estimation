@@ -150,9 +150,15 @@ export default function ManagementDashboard() {
                                     <div className="flex flex-col gap-3">
                                         {/* Row 1: Title & Description */}
                                         <div className="flex items-baseline gap-3">
-                                            <h3 className="font-semibold text-sm text-white/90 shrink-0">
-                                                {task.title}
-                                            </h3>
+                                            <Link
+                                                href={`/dashboard/management/${task.id}`}
+                                                className="group/title flex items-center gap-1.5"
+                                            >
+                                                <h3 className="font-semibold text-sm text-white/90 shrink-0 group-hover/title:text-blue-400 transition-colors">
+                                                    {task.title}
+                                                </h3>
+                                                <ChevronRightIcon className="w-3 h-3 text-white/0 group-hover/title:text-blue-400/50 -translate-x-1 group-hover/title:translate-x-0 transition-all" />
+                                            </Link>
                                             <p className="text-[11px] text-gray-500 truncate italic">
                                                 {task.description}
                                             </p>
