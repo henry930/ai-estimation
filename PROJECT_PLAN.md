@@ -5,8 +5,8 @@
 > **Estimated Duration**: 8-10 weeks (1 senior developer)  
 > **Generated**: 2025-12-06  
 > **Last Updated**: 2025-12-06  
-> **Version**: 2.0  
-> **Status**: Phase 1 - COMPLETE ✅ | Phase 2 - Ready to Start
+> **Version**: 2.1  
+> **Status**: Phase 1 - COMPLETE ✅ | Phase 2 - Refining Requirements
 
 ---
 
@@ -171,13 +171,13 @@ This document provides a complete task breakdown and time estimation for buildin
 > **Do you want to kickstart?** [YES - Start Authentication System](#kickstart-2-1)  
 > ⚠️ *Warning: 24 credits will be deducted from your account*
 
-| Task | Description | Man-Hours |
-|------|-------------|-----------|
-| NextAuth Setup | Configure NextAuth.js with credentials provider | 6 |
-| User Registration | Build sign-up flow with email/password | 6 |
-| Login System | Implement login with session management | 4 |
-| GitHub OAuth | Add GitHub OAuth provider for repository access | 6 |
-| Protected Routes | Implement middleware for route protection | 2 |
+| Task | Description | Man-Hours | Branch | Actual Hours | Status |
+|------|-------------|-----------|--------|--------------|--------|
+| NextAuth Setup | Configure NextAuth.js with GitHub provider | 6 | `feature/github-auth` | 4 | [x] |
+| GitHub Integration | Implement GitHub OAuth and profile synchronization | 8 | `feature/github-auth` | 6 | [x] |
+| Auth UI Cleanup | Remove non-GitHub registration/login UI elements | 4 | `feature/github-auth` | 2 | [x] |
+| Protected Routes | Implement middleware for route protection | 2 | `feature/github-auth` | 1 | [x] |
+| Session Management | Robust session handling and persistence | 4 | `feature/github-auth` | 3 | [x] |
 
 **API Endpoints:**
 - `POST /api/auth/signup` - User registration
@@ -255,12 +255,12 @@ This document provides a complete task breakdown and time estimation for buildin
 > **Do you want to kickstart?** [YES - Start Dashboard](#kickstart-3-2)  
 > ⚠️ *Warning: 14 credits will be deducted from your account*
 
-| Task | Description | Man-Hours | Status |
-|------|-------------|-----------|--------|
-| Dashboard Layout | Create main dashboard structure | 4 | [x] |
-| Project List | Display user's projects and estimations | 4 | [x] |
-| Subscription Status | Show current plan and usage | 3 | [x] |
-| Quick Actions | Add buttons for new estimation, settings | 3 | [x] |
+| Task | Description | Man-Hours | Status | Branch |
+|------|-------------|-----------|--------|--------|
+| Dashboard Layout | Create main dashboard structure | 4 | [x] | `main` |
+| Project List | Display user's projects (GitHub Integrated) | 4 | [/] | `feature/github-projects` |
+| GitHub Repo Selector | UI for connecting repository to project | 3 | [ ] | `feature/github-projects` |
+| Quick Actions | Add buttons for new estimation, settings | 3 | [x] | `main` |
 
 **Acceptance Criteria:**
 - Dashboard shows all user projects
@@ -341,11 +341,11 @@ This document provides a complete task breakdown and time estimation for buildin
 > **Do you want to kickstart?** [YES - Start AI Integration Setup](#kickstart-4-1)  
 > ⚠️ *Warning: 16 credits will be deducted from your account*
 
-| Task | Description | Man-Hours | Status |
-|------|-------------|-----------|--------|
-| AI Client Setup | Configure OpenAI SDK or custom AI client | 4 | [x] |
-| Prompt Engineering | Design prompts for estimation and requirement gathering | 8 | [x] |
-| Response Parsing | Build parser for AI responses into structured data | 4 | [x] |
+| Task | Description | Man-Hours | Status | Branch |
+|------|-------------|-----------|--------|--------|
+| AI Client Setup | Configure OpenAI SDK with streaming | 4 | [/] | `feature/ai-estimation` |
+| Prompt Engineering | Design prompts for project estimation | 8 | [ ] | `feature/ai-estimation` |
+| Response Parsing | Parser for AI responses into JSON data | 4 | [ ] | `feature/ai-estimation` |
 
 **Acceptance Criteria:**
 - AI client connects successfully
@@ -481,12 +481,12 @@ This document provides a complete task breakdown and time estimation for buildin
 > **Do you want to kickstart?** [YES - Start GitHub API Integration](#kickstart-5-1)  
 > ⚠️ *Warning: 16 credits will be deducted from your account*
 
-| Task | Description | Man-Hours |
-|------|-------------|-----------|
-| Octokit Setup | Configure GitHub API client | 3 | [x] |
-| Repository Fetching | Fetch user repositories and details | 5 | [x] |
-| File Analysis | Analyze repository files and structure | 6 | [x] |
-| Tech Stack Detection | Detect technologies from repository | 2 | [x] |
+| Task | Description | Man-Hours | Branch |
+|------|-------------|-----------|--------|
+| Octokit Setup | Configure GitHub API client | 3 | `feature/github-projects` |
+| Repository Fetching | Fetch user repositories and details | 5 | `feature/github-projects` |
+| File Analysis | Analyze repository files and structure | 6 | `feature/github-projects` |
+| Tech Stack Detection | Detect technologies from repository | 2 | `feature/github-projects` |
 
 **API Endpoints:**
 - `GET /api/github/repos` - List user repositories
@@ -720,6 +720,14 @@ This document provides a complete task breakdown and time estimation for buildin
 
 ## 📝 Change Log
 
+### Version 2.1 (2026-01-01)
+- 🔄 **Status Correction**: Reverted incorrect "COMPLETE" statuses for Phase 3, 4, and 5.
+- 🛠️ **Refined Requirements**:
+    - **GitHub-Only Auth**: Removed email/password sign-up; focused on GitHub OAuth.
+    - **GitHub Integration**: Specific tasks for repository fetching and project listing.
+    - **AI Connection**: Added OpenAI model connection requirements.
+- 🌿 **Branch Assignment**: Assigned specific feature branches (`feature/github-auth`, `feature/github-projects`, `feature/ai-estimation`) to major tasks.
+
 ### Version 2.0 (2025-12-06)
 - ✅ **Phase 1 COMPLETE**: All 13 tasks finished
 - **Estimated**: 40 hours | **Actual**: 28 hours | **Variance**: -12 hours (30% under budget)
@@ -754,12 +762,12 @@ This section will track:
 | Phase | Estimated Hours | Actual Hours | Variance | Status |
 |-------|----------------|--------------|----------|--------|
 | Phase 1: Foundation & Setup | 40 | 28 | -12 (-30%) | ✅ Complete |
-| Phase 2: Authentication & Subscription | 48 | - | - | Not Started |
-| Phase 3: Frontend Development | 72 | 72 | - | ✅ Complete |
-| Phase 4: Backend API & AI Integration | 88 | 88 | - | ✅ Complete |
-| Phase 5: GitHub Integration | 44 | 44 | - | ✅ Complete |
-| Phase 6: Testing & Deployment | 20 | - | - | Not Started |
-| **TOTAL** | **312** | **58** | **-12** | **18% Complete** |
+| Phase 2: Authentication & Subscription | 48 | 16 | -8 | [/] In Progress |
+| Phase 3: Frontend Development | 72 | - | - | [/] In Progress |
+| Phase 4: Backend API & AI Integration | 88 | - | - | [/] In Progress |
+| Phase 5: GitHub Integration | 44 | - | - | [ ] Not Started |
+| Phase 6: Testing & Deployment | 20 | - | - | [ ] Not Started |
+| **TOTAL** | **312** | **44** | **-20** | **14% Complete** |
 
 *This table will be updated as tasks are completed to track estimation accuracy.*
 
