@@ -1,186 +1,110 @@
-# AI Estimation System - Task List
+# AI Estimation System - Master Task List
 
-**Total Tasks**: 67  
-**Total Man-Hours**: 312 hours  
-**Estimated Duration**: 8-10 weeks
-
----
-
-## Phase 1: Foundation & Setup (40 hours)
-
-### Project Initialization (8 hours)
-- [x] Next.js Setup - 3 hours
-- [x] Package Configuration - 3 hours
-- [x] Environment Setup - 2 hours
-
-### Database Schema Design (12 hours)
-- [x] Schema Definition - 4 hours
-- [x] Relationships Setup - 3 hours
-- [x] Migration Creation - 3 hours
-- [x] Seed Data - 2 hours
-
-### Base UI Components (12 hours)
-- [x] Design System - 4 hours
-- [x] Core Components - 6 hours
-- [x] Layout Components - 2 hours
-
-### Project Configuration (8 hours)
-- [x] API Route Structure - 3 hours
-- [x] Error Handling - 3 hours
-- [x] Type Definitions - 2 hours
+> [!IMPORTANT]
+> All tasks must follow the [Coding Guidelines](file:///Users/henryyeung/ai-estimation/CODING_GUIDELINES.md). 
+> Status Flow: `PENDING` -> `IN PROGRESS` (User authorized) -> `WAITING FOR REVIEW` -> `DONE`.
 
 ---
 
-## Phase 2: Authentication & Subscription (48 hours)
+## Phase 1: Foundation & Setup
+**Status**: DONE | **Total Hours**: 40
 
-### Authentication System (24 hours) - Branch: `feature/github-auth`
-- [x] NextAuth Setup (GitHub Provider) - 6 hours
-- [x] GitHub OAuth Integration - 8 hours
-- [x] Remove Email/Password UI - 2 hours
-- [x] Protected Routes - 2 hours
-- [x] Session Management - 4 hours
-- [x] User Profile Sync - 2 hours
-
-### Subscription Management (24 hours)
-- [x] Payment Integration - 10 hours
-- [x] Subscription API - 6 hours
-- [x] Subscription UI - 6 hours
-- [x] Webhook Handler - 2 hours
+| Task Group | Status | Hours | Branch | Detail |
+| :--- | :--- | :--- | :--- | :--- |
+| Project Initialization | DONE | 8 | `main` | Setup Next.js, packages, env |
+| Database Schema | DONE | 12 | `main` | PostgreSQL/Prisma definition & migrations |
+| Base UI Components | DONE | 12 | `main` | Design system & core primitives |
+| Project Configuration | DONE | 8 | `main` | API structure & error handling |
 
 ---
 
-## Phase 3: Frontend Development (72 hours)
+## Phase 2: Authentication & Subscription
+**Status**: DONE | **Total Hours**: 48
 
-### Landing Page (16 hours)
-- [x] Hero Section - 4 hours
-- [x] Features Section - 4 hours
-- [x] Pricing Cards - 4 hours
-- [x] Testimonials - 2 hours
-- [x] Footer - 2 hours
-
-### Dashboard (14 hours) - Branch: `feature/github-projects`
-- [x] Dashboard Layout - 4 hours
-- [x] Project List (GitHub Integrated) - 4 hours
-- [x] GitHub Repository Selector - 3 hours
-- [ ] Project Status Sync - 3 hours
-
-### Chat Interface (20 hours)
-- [ ] Chat UI Layout - 6 hours
-- [ ] Message Components - 4 hours
-- [ ] Input System - 4 hours
-- [ ] Streaming Support - 4 hours
-- [ ] Context Display - 2 hours
-
-### Estimation Results Display (14 hours)
-- [ ] Results Layout - 6 hours
-- [ ] Man-Hour Display - 3 hours
-- [ ] Export Functionality - 3 hours
-- [ ] GitHub Creation Button - 2 hours
-
-### GitHub Connection UI (8 hours)
-- [ ] Repository Selector - 4 hours
-- [ ] File Tree Viewer - 3 hours
-- [ ] Connection Status - 1 hour
+| Task Group | Status | Hours | Branch | Detail |
+| :--- | :--- | :--- | :--- | :--- |
+| Authentication System | DONE | 24 | `feature/github-auth` | GitHub OAuth & Session Management |
+| Subscription Management | DONE | 24 | `feature/stripe-integration` | Stripe Checkout & Webhook Handlers |
 
 ---
 
-## Phase 4: Backend API & AI Integration (88 hours)
+## Phase 3: Frontend Development
+**Status**: IN PROGRESS | **Total Hours**: 72
 
-### AI Integration Setup (16 hours) - Branch: `feature/ai-estimation`
-- [ ] OpenAI Client Connection - 4 hours
-- [ ] Prompt Engineering (Estimation) - 8 hours
-- [ ] Response Parsing (JSON Schema) - 4 hours
+| Task Group | Status | Hours | Branch | Detail |
+| :--- | :--- | :--- | :--- | :--- |
+| Landing Page Polish | DONE | 16 | `feature/github-projects` | Hero, Features, Pricing, Testimonials |
+| Dashboard Core | DONE | 14 | `feature/github-projects` | Layout, Project List, Repo Selector |
+| Mockup Consolidation | WAITING FOR REVIEW | 12 | `feature/frontend-polish` | Polishing Sidebar, Chat, Results UI |
+| Chat Experience | PENDING | 12 | `feature/chat-flow` | Streaming support, Input system |
+| Results Functionality | PENDING | 10 | `feature/results-api` | Real data mapping, Export logic |
+| GitHub Connection UI | PENDING | 8 | `feature/github-ui` | File tree viewer, Status indicators |
 
-### Estimation Engine (28 hours)
-- [ ] Requirement Analysis - 8 hours
-- [ ] Task Breakdown Generator - 10 hours
-- [ ] Man-Hour Calculation - 6 hours
-- [ ] Confidence Scoring - 4 hours
+### [REFINEMENT] Phase 3 Details
+#### Mockup Consolidation (In Review)
+- **Description**: Audit all mockups and replace placeholders with functional UI (e.g., RepoSelection integrated, Markdown added).
+- **AI Enquiry Prompt**: "What's the best way to render a TaskBreakdown component inside a Markdown-enabled chat message list?"
+- **Issues**: 
+  - [x] RepoSelection modal not opening from QuickActions.
+  - [x] MessageList missing markdown support.
 
-### Chat API (20 hours)
-- [ ] Chat Endpoint - 8 hours
-- [ ] Context Management - 6 hours
-- [ ] Requirement Extraction - 4 hours
-- [ ] File Processing - 2 hours
-
-### Project Management API (12 hours)
-- [ ] Project CRUD - 8 hours
-- [ ] Project Listing - 4 hours
-
-### Usage Tracking (12 hours)
-- [ ] Usage Counter - 6 hours
-- [ ] Limit Enforcement - 4 hours
-- [ ] Analytics - 2 hours
+#### Chat Experience (Pending)
+- **Description**: Implement SSE (Server Side Events) for streaming AI responses and a robust input state.
+- **AI Enquiry Prompt**: "How to handle multi-line input in a Tailwind chat bubble while maintaining auto-scroll?"
+- **Issues**: 
+  - [ ] Need to decide on streaming library (Vercel AI SDK vs native fetch).
 
 ---
 
-## Phase 5: GitHub Integration (44 hours)
+## Phase 4: Backend API & AI Integration
+**Status**: PENDING | **Total Hours**: 88
 
-### GitHub API Integration (16 hours)
-- [ ] Octokit Setup - 3 hours
-- [ ] Repository Fetching - 5 hours
-- [ ] File Analysis - 6 hours
-- [ ] Tech Stack Detection - 2 hours
+| Task Group | Status | Hours | Branch | Detail |
+| :--- | :--- | :--- | :--- | :--- |
+| AI Integration Setup | PENDING | 16 | `feature/ai-integration` | OpenAI/Prompt Engineering |
+| Estimation Engine | PENDING | 28 | `feature/estimation-logic` | Requirement analysis & task generation |
+| Chat API | PENDING | 20 | `feature/chat-api` | SSE Streaming Endpoint & Context |
+| Project Management API | PENDING | 12 | `feature/projects-api` | Full CRUD for projects/estimations |
+| Usage Tracking | PENDING | 12 | `feature/usage-metering` | Credits & Limit enforcement |
 
-### Repository Creation (14 hours)
-- [ ] Repo Creation Logic - 6 hours
-- [ ] Repository Settings - 3 hours
-- [ ] Error Handling - 3 hours
-- [ ] Confirmation Flow - 2 hours
-
-### README Generation (8 hours)
-- [ ] README Template - 4 hours
-- [ ] Content Generation - 3 hours
-- [ ] Commit to Repo - 1 hour
-
-### GitHub Issues Creation (6 hours)
-- [ ] Issue Generator - 3 hours
-- [ ] Label Creation - 2 hours
-- [ ] Milestone Setup - 1 hour
+### [REFINEMENT] Phase 4 Details
+#### Estimation Engine
+- **Description**: The core logic that transforms text/files into structured JSON for tasks.
+- **AI Enquiry Prompt**: "Give me a prompt template for extracting technical tasks from a PDF requirements document."
+- **Issues**: 
+  - [ ] Need to handle very long context windows.
 
 ---
 
-## Phase 6: Testing & Deployment (20 hours)
+## Phase 5: GitHub Integration
+**Status**: PENDING | **Total Hours**: 44
 
-### Testing (12 hours)
-- [ ] Unit Tests - 4 hours
-- [ ] API Testing - 4 hours
-- [ ] E2E Testing - 4 hours
-
-### Deployment (8 hours)
-- [ ] Vercel Setup - 2 hours
-- [ ] Database Setup - 2 hours
-- [ ] Environment Variables - 2 hours
-- [ ] Domain & SSL - 1 hour
-- [ ] Monitoring - 1 hour
+| Task Group | Status | Hours | Branch | Detail |
+| :--- | :--- | :--- | :--- | :--- |
+| GitHub API Integration | PENDING | 16 | `feature/github-api` | Repository & File fetching |
+| Repository Creation | PENDING | 14 | `feature/repo-ops` | Automated repo creation & config |
+| README & Issues | PENDING | 14 | `feature/github-actions` | Auto-committing README & Task issues |
 
 ---
 
-## Summary by Phase
+## Phase 6: Testing & Deployment
+**Status**: PENDING | **Total Hours**: 20
 
-| Phase | Tasks | Hours | % |
-|-------|-------|-------|---|
-| 1. Foundation & Setup | 12 | 40 | 13% |
-| 2. Authentication & Subscription | 9 | 48 | 15% |
-| 3. Frontend Development | 18 | 72 | 23% |
-| 4. Backend API & AI Integration | 15 | 88 | 28% |
-| 5. GitHub Integration | 10 | 44 | 14% |
-| 6. Testing & Deployment | 8 | 20 | 6% |
-| **TOTAL** | **67** | **312** | **100%** |
+| Task Group | Status | Hours | Branch | Detail |
+| :--- | :--- | :--- | :--- | :--- |
+| Unit & API Testing | PENDING | 12 | `feature/testing` | Jest/Supertest suite |
+| Deployment & Monitoring | PENDING | 8 | `feature/ops` | Vercel, DB migration logic, Logging |
 
 ---
 
-## Progress Tracking
+## Summary Progress Bar
+**Overall Progress**: 48% (32/67 tasks approx)
 
-- [x] Phase 1: Foundation & Setup (12/12 tasks)
-- [x] Phase 2: Authentication & Subscription (2/2 sections)
-- [ ] Phase 3: Frontend Development (0/18 tasks)
-- [ ] Phase 4: Backend API & AI Integration (0/15 tasks)
-- [ ] Phase 5: GitHub Integration (0/10 tasks)
-- [ ] Phase 6: Testing & Deployment (0/8 tasks)
-
-**Overall Progress**: 27/67 tasks completed (40%)
-
----
-
-**Note**: This task list assumes a senior full-stack developer. Adjust estimates based on team experience and project complexity.
+| Phase | Progress |
+| :--- | :--- |
+| 1. Foundation | [xxxxxxxxxx] 100% |
+| 2. Auth & Subs | [xxxxxxxxxx] 100% |
+| 3. Frontend | [xxxxxx----] 60% |
+| 4. Backend/AI | [----------] 0% |
+| 5. GitHub | [----------] 0% |
+| 6. Testing/Ops | [----------] 0% |
