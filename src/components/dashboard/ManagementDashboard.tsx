@@ -106,91 +106,116 @@ export default function ManagementDashboard() {
     }
 
     return (
-        <div className="space-y-10 pb-20">
+        <div className="space-y-8 pb-20">
             {/* Header */}
             <div className="flex flex-col gap-1">
-                <h1 className="text-2xl font-bold tracking-tight text-white">Project Management</h1>
-                <p className="text-gray-400 text-xs">
-                    Manage task activation, review pull requests, and monitor branching strategy.
+                <h1 className="text-xl font-bold tracking-tight text-white/90">Project Management</h1>
+                <p className="text-gray-500 text-[11px]">
+                    Manage task activation, review, and scope refinement from this overview.
                 </p>
             </div>
 
             {/* Task Groups */}
-            <div className="space-y-10">
+            <div className="space-y-8">
                 {groups.map((group) => (
-                    <div key={group.id} className="space-y-4">
-                        <div className="flex items-center justify-between border-b border-white/5 pb-2">
-                            <h2 className="text-lg font-semibold text-white/90 flex items-center gap-2">
-                                <ChevronRightIcon className="w-4 h-4 text-blue-500" />
+                    <div key={group.id} className="space-y-3">
+                        <div className="flex items-center gap-2 border-b border-white/5 pb-2">
+                            <ChevronRightIcon className="w-4 h-4 text-blue-500/70" />
+                            <h2 className="text-sm font-bold text-white/70 uppercase tracking-widest">
                                 {group.title}
-                                <span className="text-[9px] uppercase tracking-widest text-gray-500 font-bold ml-1">
-                                    {group.tasks.length}
-                                </span>
                             </h2>
+                            <span className="text-[10px] text-gray-600 font-mono">
+                                ({group.tasks.length})
+                            </span>
                         </div>
 
-                        <div className="grid gap-2">
+                        <div className="space-y-2">
                             {group.tasks.map((task) => (
                                 <div
                                     key={task.id}
-                                    className={`relative group rounded-xl bg-[#080808] border border-white/5 p-4 hover:bg-white/[0.03] transition-all duration-200 ${updatingId === task.id ? 'opacity-50 pointer-events-none' : ''
+                                    className={`relative rounded-lg bg-[#050505] border border-white/5 p-3 hover:bg-white/[0.02] transition-all duration-200 ${updatingId === task.id ? 'opacity-50 pointer-events-none' : ''
                                         }`}
                                 >
-                                    <div className="flex items-center justify-between gap-4">
-                                        <div className="flex-1 min-w-0 pr-4">
-                                            <div className="flex items-center gap-3 mb-1">
-                                                <div className={`px-2 py-0.5 rounded-full text-[9px] font-bold border flex items-center gap-1 transition-colors ${getStatusStyles(task.status)}`}>
-                                                    {getStatusIcon(task.status)}
+                                    <div className="flex flex-col gap-3">
+                                        {/* Row 1: Title & Description */}
+                                        <div className="flex items-baseline gap-3">
+                                            <h3 className="font-semibold text-sm text-white/90 shrink-0">
+                                                {task.title}
+                                            </h3>
+                                            <p className="text-[11px] text-gray-500 truncate italic">
+                                                {task.description}
+                                            </p>
+                                        </div>
+
+                                        {/* Row 2: Status | Branch | Action */}
+                                        <div className="flex items-center justify-between border-t border-white/5 pt-2">
+                                            <div className="flex items-center gap-4 text-[10px]">
+                                                <div className={`px-2 py-0.5 rounded text-[9px] font-bold border uppercase tracking-tighter ${getStatusStyles(task.status)}`}>
                                                     {task.status}
                                                 </div>
-                                                <h3 className="font-medium text-sm text-white/90 truncate">
-                                                    {task.title}
-                                                </h3>
-                                                {task.branch && (
-                                                    <span className="text-[10px] font-mono text-blue-400/50 bg-blue-400/5 px-1.5 py-0.5 rounded">
+
+                                                <div className="h-3 w-[1px] bg-white/10" />
+
+                                                {task.branch ? (
+                                                    <div className="flex items-center gap-1.5 font-mono text-blue-400/60">
+                                                        <GitBranchIcon className="w-3 h-3" />
                                                         {task.branch}
-                                                    </span>
+                                                    </div>
+                                                ) : (
+                                                    <span className="text-gray-700 font-mono italic">no branch</span>
                                                 )}
-                                            </div>
 
-                                            <div className="flex items-center gap-4">
-                                                <p className="text-xs text-gray-500 truncate max-w-xl">
-                                                    {task.description}
-                                                </p>
                                                 {task.hours && (
-                                                    <span className="text-[10px] text-gray-600 shrink-0">
-                                                        {task.hours}h
-                                                    </span>
+                                                    <>
+                                                        <div className="h-3 w-[1px] bg-white/10" />
+                                                        <span className="text-gray-600">{task.hours}h</span>
+                                                    </>
+                                                )}
+                                            </div>
+
+                                            <div className="flex items-center gap-2">
+                                                {task.status === 'PENDING' && (
+                                                    <button
+                                                        onClick={() => handleStatusChange(task.id, 'IN PROGRESS')}
+                                                        className="px-3 py-1 rounded-md bg-white/5 hover:bg-white/10 text-white/80 text-[10px] font-bold border border-white/10 transition-all flex items-center gap-1.5"
+                                                    >
+                                                        <PlayIcon className="w-2.5 h-2.5 fill-current" />
+                                                        Activate
+                                                    </button>
+                                                )}
+                                                {task.status === 'IN PROGRESS' && (
+                                                    <button
+                                                        onClick={() => handleStatusChange(task.id, 'WAITING FOR REVIEW')}
+                                                        className="px-3 py-1 rounded-md bg-purple-500/20 hover:bg-purple-500/30 text-purple-400 text-[10px] font-bold border border-purple-500/20 transition-all flex items-center gap-1.5"
+                                                    >
+                                                        <MessageSquareIcon className="w-2.5 h-2.5" />
+                                                        Request Review
+                                                    </button>
                                                 )}
                                             </div>
                                         </div>
 
-                                        {/* Actions */}
-                                        <div className="flex items-center gap-2 shrink-0">
-                                            {task.status === 'PENDING' && (
-                                                <button
-                                                    onClick={() => handleStatusChange(task.id, 'IN PROGRESS')}
-                                                    className="px-3 py-1.5 rounded-lg bg-blue-600/90 text-white text-[10px] font-bold hover:bg-blue-500 transition-all flex items-center gap-1.5 shadow-lg shadow-blue-900/10"
-                                                >
-                                                    <PlayIcon className="w-3 h-3 fill-current" />
-                                                    Start
-                                                </button>
-                                            )}
-                                            {task.status === 'IN PROGRESS' && (
-                                                <button
-                                                    onClick={() => handleStatusChange(task.id, 'WAITING FOR REVIEW')}
-                                                    className="px-3 py-1.5 rounded-lg bg-purple-600/90 text-white text-[10px] font-bold hover:bg-purple-500 transition-all flex items-center gap-1.5 shadow-lg shadow-purple-900/10"
-                                                >
-                                                    <MessageSquareIcon className="w-3 h-3" />
-                                                    Review
-                                                </button>
-                                            )}
-                                            {task.issues && (
-                                                <div className="p-1.5 text-orange-400/80 bg-orange-400/5 rounded-lg border border-orange-400/10" title="Scope issues active">
-                                                    <AlertCircleIcon className="w-3.5 h-3.5" />
-                                                </div>
-                                            )}
-                                        </div>
+                                        {/* Row 3: Issues/Sub-tasks as Tags */}
+                                        {task.issues && (
+                                            <div className="flex flex-wrap gap-1.5 mt-1">
+                                                {task.issues.split('\n').filter(issue => issue.trim().length > 0).map((issue, idx) => {
+                                                    const isDone = issue.includes('[x]');
+                                                    const cleanIssue = issue.replace(/- \[.\]/, '').trim();
+                                                    return (
+                                                        <div
+                                                            key={idx}
+                                                            className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-medium border ${isDone
+                                                                    ? 'bg-green-500/5 text-green-500/60 border-green-500/10'
+                                                                    : 'bg-orange-500/5 text-orange-400/80 border-orange-500/10'
+                                                                }`}
+                                                        >
+                                                            {isDone ? <CheckCircleIcon className="w-2.5 h-2.5" /> : <AlertCircleIcon className="w-2.5 h-2.5" />}
+                                                            {cleanIssue}
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             ))}
@@ -199,7 +224,5 @@ export default function ManagementDashboard() {
                 ))}
             </div>
         </div>
-    );
-}
     );
 }
