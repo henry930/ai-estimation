@@ -87,8 +87,8 @@ async function syncTasks() {
             // Extract Refinement data
             const ref = refinements[groupTitle];
 
-            // Create/Update main task for the group (Simplified: one task per group in this view)
-            await prisma.task.upsert({
+            // Create/Update main task for the group
+            const task = await prisma.task.upsert({
                 where: {
                     id: (await prisma.task.findFirst({ where: { groupId: taskGroup.id, title: groupTitle } }))?.id || 'temp-id'
                 },
@@ -112,6 +112,44 @@ async function syncTasks() {
                     order: 0
                 }
             });
+
+            // Parse sub-tasks and documents if issues exist
+            if (ref?.issues) {
+                // Clear existing sub-tasks and documents to avoid duplicates
+                await prisma.subTask.deleteMany({ where: { taskId: task.id } });
+                await prisma.taskDocument.deleteMany({ where: { taskId: task.id } });
+
+                const lines = ref.issues.split('\n').filter(l => l.trim());
+                let subTaskOrder = 0;
+
+                for (const line of lines) {
+                    // Match sub-tasks: - [ ] or - [x]
+                    const subTaskMatch = line.match(/- \[( |x)\] (.*)/i);
+                    if (subTaskMatch) {
+                        await prisma.subTask.create({
+                            data: {
+                                taskId: task.id,
+                                title: subTaskMatch[2].trim(),
+                                isCompleted: subTaskMatch[1].toLowerCase() === 'x',
+                                order: subTaskOrder++
+                            }
+                        });
+                    }
+
+                    // Match document links: [Label](Link.md)
+                    const docMatch = line.match(/\[([^\]]+)\]\(([^)]+\.md)\)/);
+                    if (docMatch) {
+                        await prisma.taskDocument.create({
+                            data: {
+                                taskId: task.id,
+                                title: docMatch[1].trim(),
+                                url: docMatch[2].trim(),
+                                type: 'markdown'
+                            }
+                        });
+                    }
+                }
+            }
 
             groupOrder++;
         }

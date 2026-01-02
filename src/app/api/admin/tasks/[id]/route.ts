@@ -2,33 +2,31 @@ import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { successResponse, errorResponse } from '@/lib/api-response';
 
-export async function PATCH(
+export async function GET(
     req: NextRequest,
     { params }: { params: { id: string } }
 ) {
     try {
-        const body = await req.json();
-        const { status, branch, description, aiPrompt, issues } = body;
-
-        const updatedTask = await prisma.task.update({
+        const task = await prisma.task.findUnique({
             where: { id: params.id },
-            data: {
-                status: status || undefined,
-                branch: branch || undefined,
-                description: description || undefined,
-                aiPrompt: aiPrompt || undefined,
-                issues: issues || undefined,
+            include: {
+                group: true,
+                subtasks: {
+                    orderBy: { order: 'asc' }
+                },
+                documents: {
+                    orderBy: { createdAt: 'desc' }
+                }
             }
         });
 
-        // Special logic: If status becomes IN PROGRESS and no branch is set, 
-        // we might want to suggest one or auto-generate. 
-        // Real branch creation would happen via git commands on the server if possible, 
-        // but here it's more for tracking.
+        if (!task) {
+            return errorResponse('Task not found', 404);
+        }
 
-        return successResponse(updatedTask);
+        return successResponse(task);
     } catch (error) {
         console.error('API Error:', error);
-        return errorResponse('Failed to update task', 500);
+        return errorResponse('Failed to fetch task details', 500);
     }
 }

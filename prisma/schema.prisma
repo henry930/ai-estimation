@@ -115,21 +115,49 @@ model TaskGroup {
 }
 
 model Task {
-  id          String    @id @default(cuid())
+  id          String         @id @default(cuid())
   groupId     String
   title       String
   description String?
   hours       Int?
-  status      String    @default("PENDING") // "PENDING", "IN PROGRESS", "WAITING FOR REVIEW", "DONE"
+  status      String         @default("PENDING") // "PENDING", "IN PROGRESS", "WAITING FOR REVIEW", "DONE"
   branch      String?
-  aiPrompt    String?   // Context for AI (JSON string or text)
-  issues      String?   // List of issues (JSON string)
-  order       Int       @default(0)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  group       TaskGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  aiPrompt    String?        // Context for AI (JSON string or text)
+  issues      String?        // List of issues (JSON string)
+  order       Int            @default(0)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  group       TaskGroup      @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  subtasks    SubTask[]
+  documents   TaskDocument[]
 
   @@map("tasks")
+}
+
+model SubTask {
+  id          String   @id @default(cuid())
+  taskId      String
+  title       String
+  isCompleted Boolean  @default(false)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  task        Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@map("sub_tasks")
+}
+
+model TaskDocument {
+  id        String   @id @default(cuid())
+  taskId    String
+  title     String
+  url       String   // Relative or absolute path/link
+  type      String   @default("markdown") // "markdown", "link", "pdf"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@map("task_documents")
 }
 
 model Estimation {
