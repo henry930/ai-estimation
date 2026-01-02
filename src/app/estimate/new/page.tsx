@@ -82,9 +82,25 @@ function ChatInterface() {
 
             const data = await response.json();
 
+            // Format phases for TaskBreakdown visualization
+            const formattedPhases: TaskCategory[] = (JSON.parse(data.estimation.tasks) || []).map((phase: any, idx: number) => ({
+                id: (idx + 1).toString(),
+                title: phase.name,
+                tasks: phase.tasks.map((task: any, tIdx: number) => ({
+                    id: `${idx}-${tIdx}`,
+                    title: task.name,
+                    description: task.description,
+                    hours: task.hours,
+                    completed: false,
+                    branch: null
+                }))
+            }));
+
             const aiResponse: Message = {
                 id: (Date.now() + 1).toString(),
                 role: 'assistant',
+                type: 'estimation',
+                data: formattedPhases,
                 content: `### Estimation Generated! \n\n${data.summary}\n\n**Total Hours:** ${data.estimation.totalHours}h\n**Recommended Stack:** ${data.recommendedStack.join(', ')}\n\nI've saved this estimation to your project. You can view the details back on the project page.`,
                 timestamp: new Date()
             };
