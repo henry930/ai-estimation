@@ -1,38 +1,37 @@
-import { NextRequest } from 'next/server';
-import { successResponse, errorResponse } from '@/lib/api-response';
-import { getOctokit, mockRepos } from '@/lib/github';
-// import { getServerSession } from 'next-auth'; // Commented out until Auth is fully ready
-// import { authOptions } from '@/lib/auth';
+import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import { Octokit } from '@octokit/rest';
 
 export async function GET(req: NextRequest) {
     try {
-        // const session = await getServerSession(authOptions);
-        // const token = session?.user?.githubToken;
+        const session = await getServerSession(authOptions);
 
-        // TEMPORARY: Use env var or mock for now since Phase 2 is pending/incomplete
-        const token = process.env.GITHUB_ACCESS_TOKEN;
-
-        const octokit = getOctokit(token);
-
-        if (!octokit) {
-            // Return Mock Data if no token
-            return successResponse(mockRepos);
+        if (!session || !session.accessToken) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        try {
-            const { data } = await octokit.repos.listForAuthenticatedUser({
-                sort: 'updated',
-                per_page: 20
-            });
-            return successResponse(data);
-        } catch (apiError) {
-            console.error('GitHub API Error:', apiError);
-            // Fallback to mock on error (optional, maybe better to return error, but for dev smoothness we fallback)
-            return successResponse(mockRepos);
-        }
+        const octokit = new Octokit({
+            auth: session.accessToken
+        });
 
+        // Fetch user repositories
+        const { data: repos } = await octokit.repos.listForAuthenticatedUser({
+            sort: 'updated',
+            per_page: 50
+        });
+
+        const formattedRepos = repos.map(repo => ({
+            id: repo.id,
+            name: repo.name,
+            private: repo.private,
+            updated: new Date(repo.updated_at || '').toLocaleDateString(),
+            html_url: repo.html_url
+        }));
+
+        return NextResponse.json({ success: true, data: formattedRepos });
     } catch (error) {
-        console.error('Repos List Error:', error);
-        return errorResponse('Internal Server Error', 500);
+        console.error('GitHub API Error:', error);
+        return NextResponse.json({ error: 'Failed to fetch repositories' }, { status: 500 });
     }
 }

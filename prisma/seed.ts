@@ -70,7 +70,7 @@ async function main() {
     const estimation1 = await prisma.estimation.create({
         data: {
             projectId: project1.id,
-            tasks: {
+            tasks: JSON.stringify({
                 phases: [
                     {
                         name: 'Frontend Development',
@@ -83,7 +83,7 @@ async function main() {
                         tasks: ['Product API', 'Order Management', 'Payment Integration'],
                     },
                 ],
-            },
+            }),
             totalHours: 247,
             minHours: 200,
             maxHours: 290,
@@ -94,7 +94,7 @@ async function main() {
     const estimation2 = await prisma.estimation.create({
         data: {
             projectId: project2.id,
-            tasks: {
+            tasks: JSON.stringify({
                 phases: [
                     {
                         name: 'Phase 1: Foundation',
@@ -107,7 +107,7 @@ async function main() {
                         tasks: ['NextAuth Setup', 'Subscription Management'],
                     },
                 ],
-            },
+            }),
             totalHours: 312,
             minHours: 280,
             maxHours: 350,
@@ -121,15 +121,15 @@ async function main() {
     const chat1 = await prisma.chatHistory.create({
         data: {
             projectId: project1.id,
-            messages: [
+            messages: JSON.stringify([
                 { role: 'user', content: 'I need an e-commerce platform with payment integration' },
                 { role: 'assistant', content: 'I can help estimate that project. What features do you need?' },
                 { role: 'user', content: 'Product catalog, shopping cart, checkout, and Stripe payments' },
-            ],
-            context: {
+            ]),
+            context: JSON.stringify({
                 techStack: ['Next.js', 'PostgreSQL', 'Stripe'],
                 requirements: ['Product management', 'Shopping cart', 'Payment processing'],
-            },
+            }),
         },
     })
 
