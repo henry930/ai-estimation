@@ -18,6 +18,11 @@ export async function GET(req: NextRequest) {
             where: { projectId: project.id },
             include: {
                 tasks: {
+                    include: {
+                        subtasks: {
+                            orderBy: { order: 'asc' }
+                        }
+                    },
                     orderBy: { order: 'asc' }
                 }
             },
