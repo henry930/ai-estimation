@@ -1,27 +1,72 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
-// Mock Data
-const mockRepos = [
-    { id: 1, name: 'ai-estimation', private: true, updated: '2 hours ago' },
-    { id: 2, name: 'nextjs-starter', private: false, updated: '1 day ago' },
-    { id: 3, name: 'finance-dashboard', private: true, updated: '5 days ago' },
-    { id: 4, name: 'portfolio-v2', private: false, updated: '1 week ago' },
-];
+interface Repo {
+    id: number;
+    name: string;
+    private: boolean;
+    updated: string;
+    html_url: string;
+}
 
-export default function RepoSelector({ onSelect }: { onSelect: (repoId: number) => void }) {
+export default function RepoSelector({ onSelect }: { onSelect: (fullName: string) => void }) {
+    const [repos, setRepos] = useState<Repo[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const [search, setSearch] = useState('');
     const [selected, setSelected] = useState<number | null>(null);
 
-    const filteredRepos = mockRepos.filter(repo =>
+    useEffect(() => {
+        const fetchRepos = async () => {
+            try {
+                const res = await fetch('/api/github/repos');
+                const data = await res.json();
+                if (data.success) {
+                    setRepos(data.data);
+                } else {
+                    setError(data.error || 'Failed to fetch repositories');
+                }
+            } catch (err) {
+                setError('Failed to connect to GitHub API');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchRepos();
+    }, []);
+
+    const filteredRepos = repos.filter(repo =>
         repo.name.toLowerCase().includes(search.toLowerCase())
     );
 
-    const handleSelect = (id: number) => {
+    const handleSelect = (id: number, fullName: string) => {
         setSelected(id);
-        onSelect(id);
+        onSelect(fullName);
     };
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center p-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="p-8 text-center text-red-400 text-sm bg-red-500/5 rounded-xl border border-red-500/10">
+                {error}
+                <button
+                    onClick={() => window.location.reload()}
+                    className="block mx-auto mt-4 text-white hover:underline"
+                >
+                    Try again
+                </button>
+            </div>
+        );
+    }
 
     return (
         <div className="bg-[#111] border border-white/10 rounded-xl overflow-hidden">
@@ -39,14 +84,14 @@ export default function RepoSelector({ onSelect }: { onSelect: (repoId: number) 
                 {filteredRepos.map(repo => (
                     <button
                         key={repo.id}
-                        onClick={() => handleSelect(repo.id)}
+                        onClick={() => handleSelect(repo.id, repo.html_url.split('github.com/')[1])}
                         className={`w-full flex items-center justify-between p-4 hover:bg-white/5 transition-colors border-l-4 ${selected === repo.id ? 'bg-white/5 border-blue-500' : 'border-transparent'}`}
                     >
                         <div className="flex items-center gap-3">
                             <RepoIcon isPrivate={repo.private} />
                             <div className="text-left">
                                 <div className="font-medium text-white">{repo.name}</div>
-                                <div className="text-xs text-gray-500">{repo.updated}</div>
+                                <div className="text-xs text-gray-500">Updated {repo.updated}</div>
                             </div>
                         </div>
                         {selected === repo.id && (

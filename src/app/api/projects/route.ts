@@ -1,7 +1,7 @@
-import { getServerSession } from 'next-auth';
-import { authOptions } from '../auth/[...nextauth]/route';
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 
 export async function POST(req: Request) {
     const session = await getServerSession(authOptions);
@@ -45,25 +45,28 @@ export async function POST(req: Request) {
     }
 }
 
-export async function GET() {
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.id) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
+export async function GET(req: NextRequest) {
     try {
+        const session = await getServerSession(authOptions);
+        const userId = session?.user?.id;
+
+        if (!userId) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
         const projects = await prisma.project.findMany({
-            where: {
-                userId: session.user.id,
-            },
-            orderBy: {
-                updatedAt: 'desc',
-            },
+            where: { userId },
+            orderBy: { updatedAt: 'desc' },
+            include: {
+                _count: {
+                    select: { taskGroups: true }
+                }
+            }
         });
 
         return NextResponse.json(projects);
     } catch (error: any) {
+        console.error('API Error:', error);
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
