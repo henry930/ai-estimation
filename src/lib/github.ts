@@ -1,59 +1,64 @@
-import { Octokit } from '@octokit/rest';
+import { prisma } from './prisma';
 
-export const getOctokit = (token?: string) => {
-    if (!token) {
-        console.warn('No GitHub token provided. Usage might rely on Mock Data.');
-        return null;
-    }
+export interface GitHubRepo {
+    id: number;
+    name: string;
+    full_name: string;
+    description: string | null;
+    html_url: string;
+    stargazers_count: number;
+    language: string | null;
+    updated_at: string;
+}
 
-    return new Octokit({
-        auth: token,
+export interface GitHubBranch {
+    name: string;
+    commit: {
+        sha: string;
+        url: string;
+    };
+    protected: boolean;
+}
+
+export async function getGitHubAccessToken(userId: string): Promise<string | null> {
+    const account = await prisma.account.findFirst({
+        where: {
+            userId,
+            provider: 'github',
+        },
     });
-};
 
-export const mockRepos = [
-    {
-        id: 1,
-        name: 'ai-estimation',
-        full_name: 'henry930/ai-estimation',
-        private: true,
-        description: 'AI-powered project estimation tool',
-        html_url: 'https://github.com/henry930/ai-estimation',
-        language: 'TypeScript',
-        updated_at: new Date().toISOString(),
-    },
-    {
-        id: 2,
-        name: 'portfolio-v2',
-        full_name: 'henry930/portfolio-v2',
-        private: false,
-        description: 'Personal portfolio website',
-        html_url: 'https://github.com/henry930/portfolio-v2',
-        language: 'JavaScript',
-        updated_at: new Date(Date.now() - 86400000).toISOString(),
+    return account?.access_token || null;
+}
+
+export async function getUserRepositories(accessToken: string): Promise<GitHubRepo[]> {
+    const response = await fetch('https://api.github.com/user/repos?sort=updated&per_page=100', {
+        headers: {
+            Authorization: `token ${accessToken}`,
+            Accept: 'application/vnd.github.v3+json',
+        },
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to fetch repositories from GitHub');
     }
-];
 
-export const mockFileTree = [
-    { path: 'package.json', type: 'blob', sha: 'abc1' },
-    { path: 'tsconfig.json', type: 'blob', sha: 'abc2' },
-    { path: 'src', type: 'tree', sha: 'abc3' },
-    { path: 'src/app', type: 'tree', sha: 'abc4' },
-    { path: 'src/app/page.tsx', type: 'blob', sha: 'abc5' },
-];
+    return response.json();
+}
 
-export const createIssue = async (octokit: Octokit, owner: string, repo: string, title: string, body: string, labels: string[] = []) => {
-    try {
-        const { data } = await octokit.issues.create({
-            owner,
-            repo,
-            title,
-            body,
-            labels
-        });
-        return data;
-    } catch (error) {
-        console.error('Error creating issue:', error);
-        throw error;
+export async function getProjectBranches(accessToken: string, fullName: string): Promise<GitHubBranch[]> {
+    const response = await fetch(`https://api.github.com/repos/${fullName}/branches`, {
+        headers: {
+            Authorization: `token ${accessToken}`,
+            Accept: 'application/vnd.github.v3+json',
+        },
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to fetch branches from GitHub');
     }
-};
+
+    return response.json();
+}

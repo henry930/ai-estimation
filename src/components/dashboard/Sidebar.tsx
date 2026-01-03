@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useSession, signOut } from 'next-auth/react';
 
 export default function Sidebar() {
     const pathname = usePathname();
@@ -13,11 +14,15 @@ export default function Sidebar() {
         { href: '/dashboard/settings', label: 'Settings', icon: <SettingsIcon /> },
     ];
 
+    const { data: session } = useSession();
+
     return (
         <aside className="w-64 border-r border-white/10 bg-black text-white flex flex-col h-screen fixed left-0 top-0 overflow-y-auto">
             <div className="p-6 border-b border-white/10 flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center font-bold text-white">AI</div>
-                <span className="font-semibold text-lg">AI Estimation</span>
+                <Link href="/" className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center font-bold text-white">AI</div>
+                    <span className="font-semibold text-lg">AI Estimation</span>
+                </Link>
             </div>
 
             <nav className="flex-1 p-4 space-y-2">
@@ -28,8 +33,8 @@ export default function Sidebar() {
                             key={link.href}
                             href={link.href}
                             className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${isActive
-                                    ? 'bg-white/10 text-white'
-                                    : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                                ? 'bg-white/10 text-white'
+                                : 'text-gray-400 hover:bg-white/5 hover:text-white'
                                 }`}
                         >
                             {link.icon}
@@ -39,16 +44,40 @@ export default function Sidebar() {
                 })}
             </nav>
 
-            <div className="p-4 border-t border-white/10">
-                <div className="flex items-center gap-3 px-4 py-3">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500" />
+            <div className="p-4 border-t border-white/10 space-y-4">
+                <div className="flex items-center gap-3 px-4 py-2 group cursor-default">
+                    {session?.user?.image ? (
+                        <img
+                            src={session.user.image}
+                            alt={session.user.name || 'User'}
+                            className="w-10 h-10 rounded-full border border-white/10 group-hover:scale-105 transition-transform duration-300 shadow-lg shadow-white/5"
+                        />
+                    ) : (
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 group-hover:scale-105 transition-transform duration-300" />
+                    )}
                     <div className="overflow-hidden">
-                        <div className="font-medium text-sm truncate">User Name</div>
-                        <div className="text-xs text-gray-400 truncate">user@example.com</div>
+                        <div className="font-medium text-sm truncate text-white/90 group-hover:text-white transition-colors">{session?.user?.name || 'User Name'}</div>
+                        <div className="text-[11px] text-gray-500 truncate">{session?.user?.email || 'user@example.com'}</div>
                     </div>
                 </div>
+
+                <button
+                    onClick={() => signOut({ callbackUrl: '/' })}
+                    className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-sm font-medium text-red-400/80 hover:text-red-400 hover:bg-red-400/5 transition-all border border-transparent hover:border-red-400/10"
+                >
+                    <LogoutIcon />
+                    Sign Out
+                </button>
             </div>
         </aside>
+    );
+}
+
+function LogoutIcon() {
+    return (
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75" />
+        </svg>
     );
 }
 

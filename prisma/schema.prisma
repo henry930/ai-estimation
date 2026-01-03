@@ -11,18 +11,60 @@ datasource db {
 }
 
 model User {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  name         String?
-  passwordHash String?
-  githubToken  String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  passwordHash  String?
+  githubToken   String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  accounts      Account[]
+  sessions      Session[]
   subscriptions Subscription[]
   projects      Project[]
 
   @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
 }
 
 model Subscription {
@@ -48,14 +90,42 @@ model Project {
   description  String?
   githubUrl    String?
   githubRepoId String?
+  status       String   @default("active") // "active", "archived", "syncing"
+  lastSync     DateTime @default(now())
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
   user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   estimations Estimation[]
   chatHistory ChatHistory[]
+  taskGroups  TaskGroup[]
 
   @@map("projects")
+}
+
+model TaskGroup {
+  id        String   @id @default(cuid())
+  projectId String
+  title     String
+  order     Int      @default(0)
+  tasks     Task[]
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("task_groups")
+}
+
+model Task {
+  id          String    @id @default(cuid())
+  groupId     String
+  title       String
+  description String?
+  hours       Int?
+  completed   Boolean   @default(false)
+  branch      String?
+  order       Int       @default(0)
+  group       TaskGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@map("tasks")
 }
 
 model Estimation {

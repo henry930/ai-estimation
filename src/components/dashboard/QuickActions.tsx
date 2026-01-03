@@ -2,7 +2,11 @@
 
 import Link from 'next/link';
 
-export default function QuickActions() {
+interface QuickActionsProps {
+    onConnectGitHub?: () => void;
+}
+
+export default function QuickActions({ onConnectGitHub }: QuickActionsProps) {
     return (
         <div className="grid grid-cols-2 gap-4">
             <Link
@@ -16,10 +20,10 @@ export default function QuickActions() {
             </Link>
 
             <button
-                className="flex flex-col items-center justify-center p-6 bg-[#111] border border-white/10 rounded-2xl hover:bg-white/5 transition-all text-gray-300 hover:text-white"
-                onClick={() => alert('GitHub Integration coming soon!')}
+                className="flex flex-col items-center justify-center p-6 bg-[#111] border border-white/10 rounded-2xl hover:bg-white/5 transition-all text-gray-300 hover:text-white group"
+                onClick={onConnectGitHub}
             >
-                <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center mb-3">
+                <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center mb-3 group-hover:bg-white/10 transition-colors">
                     <GitHubIcon />
                 </div>
                 <span className="font-medium">Connect GitHub</span>

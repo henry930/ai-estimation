@@ -1,6 +1,4 @@
-'use client';
-
-import { useEffect, useRef } from "react";
+import ReactMarkdown from 'react-markdown';
 
 export type Role = 'user' | 'assistant' | 'system';
 
@@ -23,30 +21,31 @@ export default function MessageList({ messages }: { messages: Message[] }) {
     }, [messages]);
 
     return (
-        <div className="flex-1 overflow-y-auto p-8 space-y-6">
+        <div className="flex-1 overflow-y-auto p-8 space-y-8 scrollbar-thin scrollbar-thumb-white/10">
             {messages.map((message) => (
                 <div
                     key={message.id}
-                    className={`flex w-full ${message.role === 'user' ? 'justify-end' : 'justify-start'
-                        }`}
+                    className={`flex w-full ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
                     <div
-                        className={`max-w-[75%] rounded-2xl px-6 py-4 ${message.role === 'user'
-                                ? 'bg-blue-600 text-white rounded-br-none'
-                                : message.role === 'assistant'
-                                    ? 'bg-[#1a1a1a] text-gray-200 border border-white/10 rounded-bl-none shadow-sm'
-                                    : 'bg-transparent text-gray-500 text-sm justify-center w-full text-center border-none shadow-none'
+                        className={`max-w-[85%] rounded-3xl px-6 py-4 transition-all duration-300 ${message.role === 'user'
+                            ? 'bg-blue-600 text-white rounded-br-sm shadow-lg shadow-blue-900/20'
+                            : message.role === 'assistant'
+                                ? 'bg-[#121212] text-gray-200 border border-white/10 rounded-bl-sm shadow-xl'
+                                : 'bg-transparent text-gray-500 text-sm justify-center w-full text-center border-none shadow-none'
                             }`}
                     >
                         {/* Role Label */}
                         {message.role !== 'system' && (
-                            <div className={`text-xs font-semibold mb-2 ${message.role === 'user' ? 'text-blue-200' : 'text-purple-400'}`}>
-                                {message.role === 'user' ? 'You' : 'AI Architect'}
+                            <div className={`text-[10px] uppercase tracking-widest font-bold mb-3 ${message.role === 'user' ? 'text-blue-200/60' : 'text-purple-400/60'}`}>
+                                {message.role === 'user' ? 'User' : 'AI Architect'}
                             </div>
                         )}
 
-                        <div className="whitespace-pre-wrap leading-relaxed">
-                            {message.content}
+                        <div className="prose prose-invert prose-sm max-w-none leading-relaxed prose-headings:font-bold prose-headings:text-white prose-p:text-gray-300 prose-strong:text-white prose-code:text-blue-400 prose-pre:bg-black/50 prose-pre:border prose-pre:border-white/5">
+                            <ReactMarkdown>
+                                {message.content}
+                            </ReactMarkdown>
                         </div>
                     </div>
                 </div>

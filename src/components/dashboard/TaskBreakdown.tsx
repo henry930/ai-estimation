@@ -1,0 +1,84 @@
+'use client';
+
+import { useState } from 'react';
+
+export interface TaskItem {
+    id: string;
+    title: string;
+    description?: string;
+    hours: number;
+    completed: boolean;
+    branch?: string;
+}
+
+export interface TaskCategory {
+    id: string;
+    title: string;
+    tasks: TaskItem[];
+}
+
+interface TaskBreakdownProps {
+    categories: TaskCategory[];
+    onBranchClick: (branch: string) => void;
+}
+
+export default function TaskBreakdown({ categories, onBranchClick }: TaskBreakdownProps) {
+    if (!categories || categories.length === 0) {
+        return (
+            <div className="text-center py-20 border-2 border-dashed border-white/5 rounded-xl">
+                <p className="text-gray-500">No tasks defined for this project.</p>
+            </div>
+        );
+    }
+
+    return (
+        <div className="space-y-8">
+            {categories.map((category) => (
+                <div key={category.id} className="space-y-4">
+                    <h3 className="text-lg font-semibold text-gray-200 border-b border-white/10 pb-2 flex justify-between items-center">
+                        {category.title}
+                        <span className="text-xs font-normal text-gray-500">
+                            {category.tasks.reduce((acc, t) => acc + t.hours, 0)} hours
+                        </span>
+                    </h3>
+                    <div className="space-y-3">
+                        {category.tasks.map((task) => (
+                            <div
+                                key={task.id}
+                                className="group flex items-start gap-4 p-3 rounded-xl hover:bg-white/5 transition-all border border-transparent hover:border-white/5"
+                            >
+                                <div className={`mt-1 w-5 h-5 rounded border flex items-center justify-center shrink-0 ${task.completed
+                                        ? 'bg-blue-500 border-blue-500'
+                                        : 'border-white/20'
+                                    }`}>
+                                    {task.completed && (
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5 text-white">
+                                            <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clipRule="evenodd" />
+                                        </svg>
+                                    )}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <div className="flex items-center justify-between gap-2">
+                                        <h4 className={`text-sm font-medium transition-colors ${task.completed ? 'text-gray-500 line-through' : 'text-gray-300 group-hover:text-white'
+                                            }`}>
+                                            {task.title}
+                                        </h4>
+                                        <span className="text-xs text-gray-500 whitespace-nowrap">{task.hours}h</span>
+                                    </div>
+                                    {task.branch && (
+                                        <button
+                                            onClick={() => onBranchClick(task.branch!)}
+                                            className="mt-1 text-[10px] bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2 py-0.5 rounded hover:bg-blue-500/20 transition-all font-mono"
+                                        >
+                                            Branch: {task.branch}
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            ))}
+        </div>
+    );
+}
