@@ -19,7 +19,7 @@ export interface TaskCategory {
 
 interface TaskBreakdownProps {
     categories: TaskCategory[];
-    onBranchClick: (branch: string) => void;
+    onBranchClick?: (branch: string) => void;
 }
 
 export default function TaskBreakdown({ categories, onBranchClick }: TaskBreakdownProps) {
@@ -48,8 +48,8 @@ export default function TaskBreakdown({ categories, onBranchClick }: TaskBreakdo
                                 className="group flex items-start gap-4 p-3 rounded-xl hover:bg-white/5 transition-all border border-transparent hover:border-white/5"
                             >
                                 <div className={`mt-1 w-5 h-5 rounded border flex items-center justify-center shrink-0 ${task.completed
-                                        ? 'bg-blue-500 border-blue-500'
-                                        : 'border-white/20'
+                                    ? 'bg-blue-500 border-blue-500'
+                                    : 'border-white/20'
                                     }`}>
                                     {task.completed && (
                                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5 text-white">
@@ -67,7 +67,7 @@ export default function TaskBreakdown({ categories, onBranchClick }: TaskBreakdo
                                     </div>
                                     {task.branch && (
                                         <button
-                                            onClick={() => onBranchClick(task.branch!)}
+                                            onClick={() => onBranchClick?.(task.branch!)}
                                             className="mt-1 text-[10px] bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2 py-0.5 rounded hover:bg-blue-500/20 transition-all font-mono"
                                         >
                                             Branch: {task.branch}

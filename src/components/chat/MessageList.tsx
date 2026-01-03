@@ -1,4 +1,6 @@
+import { useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
+import TaskBreakdown, { TaskCategory } from '../dashboard/TaskBreakdown';
 
 export type Role = 'user' | 'assistant' | 'system';
 
@@ -7,6 +9,8 @@ export interface Message {
     role: Role;
     content: string;
     timestamp: Date;
+    type?: 'text' | 'estimation';
+    data?: any;
 }
 
 export default function MessageList({ messages }: { messages: Message[] }) {
@@ -28,7 +32,7 @@ export default function MessageList({ messages }: { messages: Message[] }) {
                     className={`flex w-full ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
                     <div
-                        className={`max-w-[85%] rounded-3xl px-6 py-4 transition-all duration-300 ${message.role === 'user'
+                        className={`max-w-[90%] rounded-3xl px-6 py-4 transition-all duration-300 ${message.role === 'user'
                             ? 'bg-blue-600 text-white rounded-br-sm shadow-lg shadow-blue-900/20'
                             : message.role === 'assistant'
                                 ? 'bg-[#121212] text-gray-200 border border-white/10 rounded-bl-sm shadow-xl'
@@ -47,6 +51,15 @@ export default function MessageList({ messages }: { messages: Message[] }) {
                                 {message.content}
                             </ReactMarkdown>
                         </div>
+
+                        {message.type === 'estimation' && message.data && (
+                            <div className="mt-8 pt-8 border-t border-white/10">
+                                <h4 className="text-sm font-semibold mb-4 text-white">Visual Task Breakdown</h4>
+                                <div className="bg-black/20 rounded-2xl border border-white/5 p-4 overflow-hidden">
+                                    <TaskBreakdown categories={message.data} />
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             ))}
