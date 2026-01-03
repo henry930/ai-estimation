@@ -9,6 +9,7 @@ export default function Sidebar() {
 
     const links = [
         { href: '/dashboard', label: 'Overview', icon: <HomeIcon /> },
+        { href: '/dashboard/management', label: 'Manage Tasks', icon: <LayoutIcon /> },
         { href: '/estimate/new', label: 'New Estimation', icon: <PlusIcon /> },
         { href: '/dashboard/projects', label: 'My Projects', icon: <FolderIcon /> },
         { href: '/dashboard/settings', label: 'Settings', icon: <SettingsIcon /> },
@@ -101,6 +102,14 @@ function FolderIcon() {
     return (
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
             <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z" />
+        </svg>
+    );
+}
+
+function LayoutIcon() {
+    return (
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9.504 11.625 12 14.121l2.496-2.496M12 14.121V3m9 9.004V15m0 0v1.5a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 17.25V15m0 0v-2.996m0 0V3a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 3v9.004Z" />
         </svg>
     );
 }
