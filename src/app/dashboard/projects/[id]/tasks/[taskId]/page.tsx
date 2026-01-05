@@ -60,6 +60,26 @@ export default function TaskDetailPage() {
         }
     };
 
+    const handleCreateBranch = async () => {
+        if (!task) return;
+
+        // Sanitize task title to create a valid branch name
+        const sanitizedTitle = task.title
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-+|-+$/g, '');
+
+        // Assuming a simpler naming convention for now, can be improved to be hierarchical
+        const branchName = `feature/${sanitizedTitle}`;
+
+        const confirmCreate = window.confirm(`Create branch '${branchName}' for this task?`);
+        if (!confirmCreate) return;
+
+        // In a real implementation, you would call an API here to create the branch
+        // await fetch('/api/github/branches/create', { ... });
+        alert(`Request to create branch '${branchName}' initiated! (API Integration Pending)`);
+    };
+
     if (loading) {
         return (
             <DashboardLayout>
@@ -106,11 +126,36 @@ export default function TaskDetailPage() {
                         </div>
                         <h1 className="text-3xl font-bold">{task.title}</h1>
                     </div>
-                    <div className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${task.status === 'DONE' ? 'bg-green-500/10 text-green-500' :
+                    <div className="flex items-center gap-3">
+                        {task.branch ? (
+                            <a
+                                href={`https://github.com/henry930/ai-estimation/tree/${task.branch}`} // URL should ideally be dynamic from project
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="px-3 py-1.5 rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/20 text-xs font-mono flex items-center gap-2 hover:bg-blue-500/20 transition-all"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0 0a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Zm0-12.814a2.25 2.25 0 1 0 3.933-2.185 2.25 2.25 0 0 0-3.933 2.185Z" />
+                                </svg>
+                                {task.branch}
+                            </a>
+                        ) : (
+                            <button
+                                onClick={handleCreateBranch}
+                                className="px-3 py-1.5 rounded-lg bg-white/5 text-gray-400 border border-white/10 text-xs hover:bg-white/10 hover:text-white transition-all flex items-center gap-2"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                                </svg>
+                                Create Branch
+                            </button>
+                        )}
+                        <div className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${task.status === 'DONE' ? 'bg-green-500/10 text-green-500' :
                             task.status === 'IN PROGRESS' ? 'bg-blue-500/10 text-blue-500' :
                                 'bg-white/10 text-gray-500'
-                        }`}>
-                        {task.status}
+                            }`}>
+                            {task.status}
+                        </div>
                     </div>
                 </div>
 
@@ -122,8 +167,8 @@ export default function TaskDetailPage() {
                                 key={tab}
                                 onClick={() => setActiveTab(tab as any)}
                                 className={`pb-3 text-sm font-medium transition-colors border-b-2 ${activeTab === tab
-                                        ? 'border-blue-500 text-blue-500'
-                                        : 'border-transparent text-gray-500 hover:text-gray-300'
+                                    ? 'border-blue-500 text-blue-500'
+                                    : 'border-transparent text-gray-500 hover:text-gray-300'
                                     } capitalize`}
                             >
                                 {tab === 'subtasks' ? 'Sub Task List' : tab}
