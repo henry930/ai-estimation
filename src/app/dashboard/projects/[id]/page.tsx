@@ -23,6 +23,7 @@ export default function ProjectDetailsPage() {
     const [taskGroups, setTaskGroups] = useState<TaskCategory[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [activeTab, setActiveTab] = useState<'objective' | 'issues' | 'documents' | 'tasks'>('tasks');
     const [showBranches, setShowBranches] = useState(false);
     const [highlightedBranch, setHighlightedBranch] = useState<string | null>(null);
 
@@ -64,10 +65,8 @@ export default function ProjectDetailsPage() {
     const handleBranchClick = (branchName: string) => {
         setHighlightedBranch(branchName);
         setShowBranches(true);
-        // Scroll to branches section
-        setTimeout(() => {
-            document.getElementById('branches-section')?.scrollIntoView({ behavior: 'smooth' });
-        }, 100);
+        setActiveTab('tasks');
+        // Scroll to branches section logic can remain if needed
     };
 
     if (loading) {
@@ -96,17 +95,21 @@ export default function ProjectDetailsPage() {
 
     return (
         <DashboardLayout>
-            <div className="space-y-8">
+            <div className="max-w-6xl mx-auto space-y-6">
                 {/* Header */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
                     <div>
-                        <div className="flex items-center gap-3 mb-2">
-                            <Link href="/dashboard" className="text-gray-500 hover:text-white transition-colors">
+                        <div className="flex items-center gap-2 mb-2">
+                            <Link
+                                href="/dashboard"
+                                className="text-gray-500 hover:text-white transition-colors"
+                            >
                                 <BackIcon />
                             </Link>
-                            <h1 className="text-3xl font-bold">{project.name}</h1>
+                            <span className="text-sm text-gray-500 font-mono">Project</span>
                         </div>
-                        <p className="text-gray-400 max-w-2xl">{project.description || 'No description provided.'}</p>
+                        <h1 className="text-3xl font-bold">{project.name}</h1>
+                        <p className="text-gray-400 max-w-2xl mt-1">{project.description}</p>
                     </div>
                     <div className="flex items-center gap-3">
                         <a
@@ -127,102 +130,163 @@ export default function ProjectDetailsPage() {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    {/* Tasks Section */}
-                    <div className="lg:col-span-2 space-y-6">
-                        <div className="p-8 rounded-2xl bg-white/5 border border-white/10">
-                            <h2 className="text-xl font-semibold mb-8 flex items-center justify-between">
-                                Estimation Tasks
-                                <span className="text-xs font-normal text-gray-500 px-2 py-1 rounded bg-white/5">
-                                    {taskGroups.reduce((acc, c) => acc + c.tasks.length, 0)} total
-                                </span>
-                            </h2>
-
-                            <TaskBreakdown
-                                categories={taskGroups}
-                                onBranchClick={handleBranchClick}
-                            />
-                        </div>
+                {/* Tabs */}
+                <div className="border-b border-white/10">
+                    <div className="flex gap-6">
+                        {['objective', 'issues', 'documents', 'tasks'].map((tab) => (
+                            <button
+                                key={tab}
+                                onClick={() => setActiveTab(tab as any)}
+                                className={`pb-3 text-sm font-medium transition-colors border-b-2 ${activeTab === tab
+                                        ? 'border-blue-500 text-blue-500'
+                                        : 'border-transparent text-gray-500 hover:text-gray-300'
+                                    } capitalize`}
+                            >
+                                {tab === 'tasks' ? 'Task List' : tab}
+                            </button>
+                        ))}
                     </div>
+                </div>
 
-                    {/* Sidebar Side */}
-                    <div className="space-y-6">
-                        {/* Actions Button Card */}
-                        <div className="p-6 rounded-2xl bg-white/5 border border-white/10 space-y-3">
-                            <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-widest mb-4">Project Actions</h2>
-                            <button
-                                onClick={() => alert('PDF Exporting feature coming in Phase 5')}
-                                className="w-full py-3 px-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all flex items-center gap-3 text-sm font-medium"
-                            >
-                                <div className="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center text-red-500">
-                                    <FilePdfIcon />
+                {/* Tab Content */}
+                <div className="min-h-[400px]">
+                    {activeTab === 'objective' && (
+                        <div className="space-y-4 animate-in fade-in duration-300 max-w-4xl">
+                            <div className="p-6 rounded-2xl bg-white/5 border border-white/10">
+                                <h3 className="text-lg font-semibold mb-4 text-white">Project Objective & Description</h3>
+                                <p className="text-gray-300 leading-relaxed font-light text-lg">
+                                    {project.description || 'No detailed description available.'}
+                                </p>
+                            </div>
+                            {/* Can add more project-level details/stats here */}
+                            <div className="p-6 rounded-2xl bg-white/5 border border-white/10">
+                                <h3 className="text-lg font-semibold mb-4">Project Stats</h3>
+                                <div className="space-y-4">
+                                    <div className="flex justify-between items-center text-sm">
+                                        <span className="text-gray-500">Connected</span>
+                                        <span>{new Date(project.createdAt).toLocaleDateString()}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center text-sm">
+                                        <span className="text-gray-500">Last Synced</span>
+                                        <span>{new Date(project.updatedAt).toLocaleTimeString()}</span>
+                                    </div>
                                 </div>
-                                Export to PDF
-                            </button>
-                            <button
-                                onClick={() => alert('Repository Initialization feature coming in Phase 5')}
-                                className="w-full py-3 px-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all flex items-center gap-3 text-sm font-medium"
-                            >
-                                <div className="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center text-green-500">
-                                    <InitializeIcon />
-                                </div>
-                                Initialize Repository
-                            </button>
+                            </div>
                         </div>
-                        {/* Branches Section - Visible only when requested */}
-                        {showBranches && (
-                            <div id="branches-section" className="p-6 rounded-2xl bg-white/5 border border-blue-500/30 animate-in fade-in slide-in-from-top-4 duration-500">
-                                <div className="flex items-center justify-between mb-4">
-                                    <h2 className="text-xl font-semibold">Repository Branches</h2>
+                    )}
+
+                    {activeTab === 'issues' && (
+                        <div className="py-20 text-center animate-in fade-in duration-300 bg-white/5 rounded-2xl border border-white/10 dashed">
+                            <div className="flex flex-col items-center gap-4">
+                                <div className="p-3 bg-white/5 rounded-full">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 text-gray-400">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+                                    </svg>
+                                </div>
+                                <div className="text-gray-400">Project-level issues view coming soon.</div>
+                                <p className="text-sm text-gray-500">Please view issues within individual tasks.</p>
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'documents' && (
+                        <div className="py-20 text-center animate-in fade-in duration-300 bg-white/5 rounded-2xl border border-white/10 dashed">
+                            <div className="flex flex-col items-center gap-4">
+                                <div className="p-3 bg-white/5 rounded-full">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 text-gray-400">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                                    </svg>
+                                </div>
+                                <div className="text-gray-400">Project-level documents view coming soon.</div>
+                                <p className="text-sm text-gray-500">Documents are currently linked within specific tasks.</p>
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'tasks' && (
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-in fade-in duration-300">
+                            {/* Tasks Section */}
+                            <div className="lg:col-span-2 space-y-6">
+                                <div className="p-8 rounded-2xl bg-white/5 border border-white/10">
+                                    <h2 className="text-xl font-semibold mb-8 flex items-center justify-between">
+                                        Estimation Tasks
+                                        <span className="text-xs font-normal text-gray-500 px-2 py-1 rounded bg-white/5">
+                                            {taskGroups.reduce((acc, c) => acc + c.tasks.length, 0)} total
+                                        </span>
+                                    </h2>
+
+                                    <TaskBreakdown
+                                        categories={taskGroups}
+                                        onBranchClick={handleBranchClick}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Sidebar Side */}
+                            <div className="space-y-6">
+                                {/* Actions Button Card */}
+                                <div className="p-6 rounded-2xl bg-white/5 border border-white/10 space-y-3">
+                                    <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-widest mb-4">Project Actions</h2>
                                     <button
-                                        onClick={() => setShowBranches(false)}
-                                        className="text-gray-500 hover:text-white transition-colors text-xs"
+                                        onClick={() => alert('PDF Exporting feature coming in Phase 5')}
+                                        className="w-full py-3 px-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all flex items-center gap-3 text-sm font-medium"
                                     >
-                                        Hide
+                                        <div className="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center text-red-500">
+                                            <FilePdfIcon />
+                                        </div>
+                                        Export to PDF
+                                    </button>
+                                    <button
+                                        onClick={() => alert('Repository Initialization feature coming in Phase 5')}
+                                        className="w-full py-3 px-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all flex items-center gap-3 text-sm font-medium"
+                                    >
+                                        <div className="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center text-green-500">
+                                            <InitializeIcon />
+                                        </div>
+                                        Initialize Repository
                                     </button>
                                 </div>
-                                <div className="space-y-2">
-                                    {branches.map((branch) => (
-                                        <div
-                                            key={branch.name}
-                                            className={`flex items-center justify-between p-3 rounded-lg border transition-all ${highlightedBranch === branch.name
-                                                ? 'bg-blue-500/10 border-blue-500/50'
-                                                : 'bg-white/5 border-white/5 hover:border-white/10'
-                                                }`}
-                                        >
-                                            <div className="flex items-center gap-3 min-w-0">
-                                                <BranchIcon />
-                                                <span className={`text-sm font-medium truncate ${highlightedBranch === branch.name ? 'text-blue-400' : ''
-                                                    }`}>
-                                                    {branch.name}
-                                                </span>
-                                            </div>
-                                            {branch.protected && (
-                                                <span className="px-1.5 py-0.5 rounded text-[10px] bg-red-500/10 text-red-500 border border-red-500/20">
-                                                    Protected
-                                                </span>
-                                            )}
+                                {/* Branches Section - Visible only when requested */}
+                                {showBranches && (
+                                    <div id="branches-section" className="p-6 rounded-2xl bg-white/5 border border-blue-500/30 animate-in fade-in slide-in-from-top-4 duration-500">
+                                        <div className="flex items-center justify-between mb-4">
+                                            <h2 className="text-xl font-semibold">Repository Branches</h2>
+                                            <button
+                                                onClick={() => setShowBranches(false)}
+                                                className="text-gray-500 hover:text-white transition-colors text-xs"
+                                            >
+                                                Hide
+                                            </button>
                                         </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Stats Placeholder */}
-                        <div className="p-6 rounded-2xl bg-white/5 border border-white/10">
-                            <h2 className="text-xl font-semibold mb-4">Project Stats</h2>
-                            <div className="space-y-4">
-                                <div className="flex justify-between items-center text-sm">
-                                    <span className="text-gray-500">Connected</span>
-                                    <span>{new Date(project.createdAt).toLocaleDateString()}</span>
-                                </div>
-                                <div className="flex justify-between items-center text-sm">
-                                    <span className="text-gray-500">Last Synced</span>
-                                    <span>{new Date(project.updatedAt).toLocaleTimeString()}</span>
-                                </div>
+                                        <div className="space-y-2">
+                                            {branches.map((branch) => (
+                                                <div
+                                                    key={branch.name}
+                                                    className={`flex items-center justify-between p-3 rounded-lg border transition-all ${highlightedBranch === branch.name
+                                                        ? 'bg-blue-500/10 border-blue-500/50'
+                                                        : 'bg-white/5 border-white/5 hover:border-white/10'
+                                                        }`}
+                                                >
+                                                    <div className="flex items-center gap-3 min-w-0">
+                                                        <BranchIcon />
+                                                        <span className={`text-sm font-medium truncate ${highlightedBranch === branch.name ? 'text-blue-400' : ''
+                                                            }`}>
+                                                            {branch.name}
+                                                        </span>
+                                                    </div>
+                                                    {branch.protected && (
+                                                        <span className="px-1.5 py-0.5 rounded text-[10px] bg-red-500/10 text-red-500 border border-red-500/20">
+                                                            Protected
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
-                    </div>
+                    )}
                 </div>
             </div>
         </DashboardLayout>
