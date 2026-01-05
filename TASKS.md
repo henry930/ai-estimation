@@ -23,8 +23,8 @@
 
 | Task Group | Status | Hours | Branch | Detail |
 | :--- | :--- | :--- | :--- | :--- |
-| Authentication System | DONE | 24 | `feature/github-auth` | GitHub OAuth & Session Management |
-| Subscription Management | DONE | 24 | `feature/stripe-integration` | Stripe Checkout & Webhook Handlers |
+| Authentication System | DONE | 24 | `feature/phase-2-1-auth-system` | GitHub OAuth & Session Management |
+| Subscription Management | DONE | 24 | `feature/phase-2-2-subscription` | Stripe Checkout & Webhook Handlers |
 
 #### [REFINEMENT] Phase 2 Details
 - **Issue #3 (Auto-redirect)**: ✅ Redirect authenticated users from `/` and `/login` to `/dashboard`.
