@@ -11,10 +11,10 @@
 
 | Task Group | Status | Hours | Branch | Detail |
 | :--- | :--- | :--- | :--- | :--- |
-| Project Initialization | DONE | 8 | `main` | Setup Next.js, packages, env |
-| Database Schema | DONE | 12 | `main` | PostgreSQL/Prisma definition & migrations |
-| Base UI Components | DONE | 12 | `main` | Design system & core primitives |
-| Project Configuration | DONE | 8 | `main` | API structure & error handling |
+| Project Initialization | DONE | 8 | `main` | Initialize Next.js 14 app, configure TypeScript, ESLint, Prettier, install dependencies (Tailwind, Lucide), and set up environment variables (.env). |
+| Database Schema | DONE | 12 | `main` | Define Prisma schema for User, Project, Task, TaskGroup models. Configure PostgreSQL connection. Create and run initial migration. |
+| Base UI Components | DONE | 12 | `main` | Create reusable UI components (Button, Card, Input, Modal, Sidebar) using Tailwind CSS. Establish 'dashboard' layout with navigation. |
+| Project Configuration | DONE | 8 | `main` | Set up NextAuth.js structure, API route handlers architecture (GET/POST/PATCH/DELETE), and global error handling utilities. |
 
 ---
 
@@ -23,8 +23,8 @@
 
 | Task Group | Status | Hours | Branch | Detail |
 | :--- | :--- | :--- | :--- | :--- |
-| Authentication System | DONE | 24 | `feature/phase-2-1-auth-system` | GitHub OAuth & Session Management |
-| Subscription Management | DONE | 24 | `feature/phase-2-2-subscription` | Stripe Checkout & Webhook Handlers |
+| Authentication System | DONE | 24 | `feature/phase-2-1-auth-system` | Implement GitHub OAuth provider via NextAuth. Allow users to sign in/up. Protect dashboard routes. Persist user sessions in DB. |
+| Subscription Management | DONE | 24 | `feature/phase-2-2-subscription` | Integrate Stripe Checkout. Create pricing tiers (Free, Pro). Handle webhooks for checkout_completed and subscription_updated events to update user status. |
 
 #### [REFINEMENT] Phase 2 Details
 - **Issue #3 (Auto-redirect)**: ✅ Redirect authenticated users from `/` and `/login` to `/dashboard`.
@@ -36,24 +36,24 @@
 
 | Task Group | Status | Hours | Branch | Detail |
 | :--- | :--- | :--- | :--- | :--- |
-| Landing Page Polish | DONE | 16 | `feature/github-projects` | Hero, Features, Pricing, Testimonials |
-| Dashboard Core | DONE | 14 | `feature/github-projects` | Layout, Project List, Repo Selector |
-| Mockup Consolidation | WAITING FOR REVIEW | 12 | `feature/frontend-polish` | Polishing Sidebar, Chat, Results UI |
-| Dashboard Refinement | DONE | 12 | `feature/dashboard-refinement` | Sidebar cleanup, toggle logic, project sync |
-| Chat Experience | PENDING | 12 | `feature/chat-flow` | Streaming support, Input system |
-| Results Functionality | PENDING | 10 | `feature/results-api` | Real data mapping, Export logic |
-| GitHub Connection UI | PENDING | 8 | `feature/github-ui` | File tree viewer, Status indicators |
-| Sidebar Link Cleanup | DONE | 4 | `feature/sidebar-cleanup` | Remove dead links and Manage Tasks |
-| Right Sidebar Toggle | DONE | 6 | `feature/sidebar-toggle` | Show/hide right sidebar via icon |
-| Seed AI Estimation Project| DONE | 4 | `feature/seed-project` | Sync current git repo to DB |
-| Project Uniqueness Fix | DONE | 6 | `fix/project-uniqueness` | Prevent duplicate projects for same repo |
-| Schema Alignment | DONE | 8 | `feature/schema-alignment` | Group tasks by Phase, Sync Objectives |
-| Task Detail View | DONE | 8 | `feature/task-detail-view` | Individual pages with tabs for tasks |
-| Project Detail View | DONE | 8 | `feature/project-detail-view` | Project page tabs: Obj, Issues, Docs, Tasks |
-| Task Status & Progress | DONE | 6 | `feature/task-progress` | Display status and subtask % completion |
-| Phase Progress Bars | DONE | 6 | `feature/phase-progress` | Aggregated progress for Task Groups |
-| Branch Creation UI | DONE | 4 | `feature/branch-creation-ui` | Button to create branch from Task Detail |
-| Dashboard Task Management | DONE | 8 | `feature/dashboard-task-mgmt` | Edit tasks/objectives directly in UI |
+| Landing Page Polish | DONE | 16 | `feature/github-projects` | Refine Landing Page with distinct sections: Hero (CTA), Features, Testimonials, Pricing. Ensure responsive design and smooth scrolling. |
+| Dashboard Core | DONE | 14 | `feature/github-projects` | Build main Dashboard layout with Sidebar. Implement 'My Projects' grid view. Add 'New Project' modal with GitHub Repo selection/creation. |
+| Mockup Consolidation | WAITING FOR REVIEW | 12 | `feature/frontend-polish` | Unify fonts, colors, and spacing across all pages. Ensure consistent Sidebar navigation. Polish UI for 'Chat' and 'Results' placeholders. |
+| Dashboard Refinement | DONE | 12 | `feature/dashboard-refinement` | Clean up sidebar links. Add right sidebar toggle. Implement GitHub Project Sync button to refreshing repo data manually. |
+| Chat Experience | PENDING | 12 | `feature/chat-flow` | Build 'Talk to Task' interface. Implement sliding panel for AI chat. Handle streaming text responses. Support multi-line user input. |
+| Results Functionality | PENDING | 10 | `feature/results-api` | Create view to display AI estimation results (JSON). Map API data to UI tables. Implement 'Export to CSV/PDF' logic. |
+| GitHub Connection UI | PENDING | 8 | `feature/github-ui` | Add visual indicators for GitHub sync status (Repo connected, Last synced time). Add generic file tree viewer/browser. |
+| Sidebar Link Cleanup | DONE | 4 | `feature/sidebar-cleanup` | Remove non-functional links. Restructure navigation to prioritize Projects, Tasks, and Settings. |
+| Right Sidebar Toggle | DONE | 6 | `feature/sidebar-toggle` | Add collapsible functional right sidebar for context/help/chat, controlled by header icon. |
+| Seed AI Estimation Project| DONE | 4 | `feature/seed-project` | Create a script/API to parse current repo's TASKS.md and seed the DB with this project's own tasks for dogfooding. |
+| Project Uniqueness Fix | DONE | 6 | `fix/project-uniqueness` | Add database constraints or logic to prevent duplicate Projects for the same GitHub Repository URL. |
+| Schema Alignment | DONE | 8 | `feature/schema-alignment` | Update Prisma schema to match Phase/Task hierarchy. Add 'Objective' field to Task model. Sync logic to populate these fields. |
+| Task Detail View | DONE | 8 | `feature/task-detail-view` | Create `/projects/[id]/tasks/[taskId]` page. Implement tabs: Objective, Issues, Documents, Subtasks. |
+| Project Detail View | DONE | 8 | `feature/project-detail-view` | Refactor Project page to match Task Detail layout. Tabs: Objective (Project Summary), Issues (Repo Issues), Docs, Tasks (Phase Tree). |
+| Task Status & Progress | DONE | 6 | `feature/task-progress` | Add visual status badges (TODO/IN PROGRESS/DONE). Calculate and display progress bar % based on subtask completion. |
+| Phase Progress Bars | DONE | 6 | `feature/phase-progress` | Implement aggregate progress bars on Phase headers, calculating % completion of all tasks within that phase. |
+| Branch Creation UI | DONE | 4 | `feature/branch-creation-ui` | Add logic to check if Task has a linked branch. If not, show 'Create Branch' button. If yes, show link to GitHub branch. |
+| Dashboard Task Management | DONE | 8 | `feature/dashboard-task-mgmt` | Enable 'Edit Mode' on Task Detail page. Allow updating Title, Objective, Status, and Description directly via UI (PATCH API). |
 
 #### [REFINEMENT] Phase 3 Details
 - **Issue #1 (Landing Page CTA)**: ✅ Route "Start Estimation" to `/login`.
@@ -76,11 +76,11 @@
 
 | Task Group | Status | Hours | Branch | Detail |
 | :--- | :--- | :--- | :--- | :--- |
-| AI Integration Setup | PENDING | 16 | `feature/ai-integration` | OpenAI/Prompt Engineering |
-| Estimation Engine | PENDING | 28 | `feature/estimation-logic` | Requirement analysis & task generation |
-| Chat API | PENDING | 20 | `feature/chat-api` | SSE Streaming Endpoint & Context |
-| Project Management API | PENDING | 12 | `feature/projects-api` | Full CRUD for projects/estimations |
-| Usage Tracking | PENDING | 12 | `feature/usage-metering` | Credits & Limit enforcement |
+| AI Integration Setup | PENDING | 16 | `feature/ai-integration` | Configure OpenAI SDK/Google Gemini API. Set up system prompts for 'Estimation' and 'Chat' personas. Create shared AI utility functions. |
+| Estimation Engine | PENDING | 28 | `feature/estimation-logic` | Develop core logic to analyze project documents (Readme, Issues) and generate a structured JSON task breakdown with hours and phases. |
+| Chat API | PENDING | 20 | `feature/chat-api` | Create Next.js API route for chat. Implement Server-Sent Events (SSE) for streaming responses. Manage chat history/context in DB. |
+| Project Management API | PENDING | 12 | `feature/projects-api` | Build robust CRUD endpoints for Projects and Tasks. Ensure proper validation and authorization loops for all mutation operations. |
+| Usage Tracking | PENDING | 12 | `feature/usage-metering` | Implement logic to track token usage/costs per user. Enforce subscription limits (Free vs Pro) on AI requests. |
 
 ### [REFINEMENT] Phase 4 Details
 #### Estimation Engine
@@ -96,9 +96,9 @@
 
 | Task Group | Status | Hours | Branch | Detail |
 | :--- | :--- | :--- | :--- | :--- |
-| GitHub API Integration | DONE | 16 | `feature/github-api` | Repository, Issue & File fetching |
-| Repository Creation | DONE | 14 | `feature/repo-ops` | Automated repo creation & config |
-| README & Issues | PENDING | 14 | `feature/github-actions` | Auto-committing README & Task issues |
+| GitHub API Integration | DONE | 16 | `feature/github-api` | Set up Octokit client. Create generic fetching functions for Repos, Issues, Pull Requests, and file contents (README/TASKS.md). |
+| Repository Creation | DONE | 14 | `feature/repo-ops` | Implement flow to create new GitHub repositories via API on behalf of the user. Include template initialization (gitignore, readme). |
+| README & Issues | PENDING | 14 | `feature/github-actions` | Develop logic to auto-generate markdown content (README/TASKS). Commit these files to the user's repo. Auto-create GitHub Issues from tasks. |
 
 #### [REFINEMENT] Phase 5 Details
 - **Issue #2 (Data Sync)**: ✅ Expanded sync to fetch repository metadata (Issues & Documents).
@@ -111,8 +111,8 @@
 
 | Task Group | Status | Hours | Branch | Detail |
 | :--- | :--- | :--- | :--- | :--- |
-| Unit & API Testing | PENDING | 12 | `feature/testing` | Jest/Supertest suite |
-| Deployment & Monitoring | PENDING | 8 | `feature/ops` | Vercel, DB migration logic, Logging |
+| Unit & API Testing | PENDING | 12 | `feature/testing` | Set up Jest and Supertest. Write unit tests for core utilities and integration tests for critical API routes (Auth, Projects, Tasks). |
+| Deployment & Monitoring | PENDING | 8 | `feature/ops` | configure Vercel deployment. Set up production PostgreSQL database. Implement logging (Sentry/LogRocket) and basic uptime monitoring. |
 
 ---
 
