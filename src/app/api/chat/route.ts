@@ -1,4 +1,4 @@
-import { streamText } from 'ai';
+import { streamText, pipeDataStreamToResponse } from 'ai';
 import { bedrock } from '@ai-sdk/amazon-bedrock';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
@@ -77,7 +77,9 @@ Be concise and actionable.`;
             messages,
         });
 
-        return result.toAIStreamResponse();
+        const response = new Response(result.textStream);
+        pipeDataStreamToResponse(result, response);
+        return response;
     } catch (error: any) {
         console.error('Bedrock error:', error);
         return NextResponse.json({
