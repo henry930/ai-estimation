@@ -96,22 +96,39 @@ export async function POST(req: NextRequest) {
             };
         }
 
-        // 5. Parse Phases
+        // 6. Fetch live GitHub Issues and Documents
+        const { data: githubIssues } = await octokit.issues.listForRepo({
+            owner,
+            repo,
+            state: 'all',
+            per_page: 100
+        });
+
+        let githubDocs: any[] = [];
+        try {
+            const { data: docsContent } = await octokit.repos.getContent({
+                owner,
+                repo,
+                path: 'docs'
+            });
+            githubDocs = Array.isArray(docsContent) ? docsContent : [];
+        } catch (e) {
+            console.log('[Sync] No docs folder found');
+        }
+
+        // 7. Process Phases and Tasks
         const phases = mainContent.split(/## Phase \d+:/).slice(1);
         let groupOrder = 0;
 
         for (let i = 0; i < phases.length; i++) {
             const phaseContent = phases[i];
-            // Split into lines and find the table
             const lines = phaseContent.split('\n');
             const tableRows = lines.filter(l =>
                 l.includes('|') &&
                 !l.includes('---') &&
                 !l.toLowerCase().includes('task group') &&
-                !l.toLowerCase().includes('progress') // Avoid summary table if it leaked in
+                !l.toLowerCase().includes('progress')
             );
-
-            console.log(`[Sync] Phase ${i + 1} has ${tableRows.length} rows`);
 
             for (const row of tableRows) {
                 const cols = row.split('|').map(c => c.trim()).filter(Boolean);
@@ -122,8 +139,6 @@ export async function POST(req: NextRequest) {
                 const hours = parseInt(cols[2]) || 0;
                 const branch = cols[3]?.replace(/`/g, '') || null;
                 const detail = cols[4] || '';
-
-                console.log(`[Sync] Processing Group: ${groupTitle}`);
 
                 // Upsert TaskGroup
                 const existingGroup = await prisma.taskGroup.findFirst({
@@ -140,7 +155,7 @@ export async function POST(req: NextRequest) {
                     }
                 });
 
-                // Upsert Task (linked to group)
+                // Upsert Task
                 const ref = refinements[groupTitle];
                 const existingTask = await prisma.task.findFirst({
                     where: { groupId: taskGroup.id, title: groupTitle }
@@ -154,7 +169,6 @@ export async function POST(req: NextRequest) {
                         branch: branch,
                         description: ref?.description || detail,
                         aiPrompt: ref?.prompt || null,
-                        issues: ref?.issues || null,
                     },
                     create: {
                         groupId: taskGroup.id,
@@ -164,56 +178,98 @@ export async function POST(req: NextRequest) {
                         branch: branch,
                         description: ref?.description || detail,
                         aiPrompt: ref?.prompt || null,
-                        issues: ref?.issues || null,
                         order: 0
                     }
                 });
 
+                // Link GitHub Issues to Task
+                // We match issues that have a label matching the branch or title
+                const matchedIssues = githubIssues.filter(issue =>
+                    issue.labels.some((l: any) => l.name === branch || l.name === groupTitle) ||
+                    issue.title.includes(groupTitle)
+                );
+
                 // Clear/Update Subtasks and Documents
-                const issuesText = ref?.issues || '';
-                const docsText = ref?.documents || '';
+                await prisma.subTask.deleteMany({ where: { taskId: task.id } });
+                await prisma.taskDocument.deleteMany({ where: { taskId: task.id } });
 
-                if (issuesText || docsText) {
-                    await prisma.subTask.deleteMany({ where: { taskId: task.id } });
-                    await prisma.taskDocument.deleteMany({ where: { taskId: task.id } });
-
-                    if (issuesText) {
-                        const subLines = issuesText.split('\n').filter((l: string) => l.trim());
-                        let subOrder = 0;
-                        for (const sl of subLines) {
-                            const subMatch = sl.match(/- \[( |x|X)\] (.*)/);
-                            if (subMatch) {
-                                await prisma.subTask.create({
-                                    data: {
-                                        taskId: task.id,
-                                        title: subMatch[2].trim(),
-                                        isCompleted: subMatch[1].toLowerCase() === 'x',
-                                        order: subOrder++
-                                    }
-                                });
-                            }
-                        }
-                    }
-
-                    if (docsText) {
-                        const docLines = docsText.split('\n').filter((l: string) => l.trim());
-                        for (const dl of docLines) {
-                            const docMatch = dl.match(/\[([^\]]+)\]\(([^)]+)\)/);
-                            if (docMatch) {
-                                const rawUrl = docMatch[2].trim();
-                                const convertedUrl = convertToGitHubUrl(rawUrl, githubBaseUrl);
-                                await prisma.taskDocument.create({
-                                    data: {
-                                        taskId: task.id,
-                                        title: docMatch[1].trim(),
-                                        url: convertedUrl,
-                                        type: convertedUrl.endsWith('.md') ? 'markdown' : 'link'
-                                    }
-                                });
-                            }
+                // 1. Add subtasks from TASKS.md
+                const issuesFromMd = ref?.issues || '';
+                if (issuesFromMd) {
+                    const subLines = issuesFromMd.split('\n').filter((l: string) => l.trim());
+                    let subOrder = 0;
+                    for (const sl of subLines) {
+                        const subMatch = sl.match(/- \[( |x|X)\] (.*)/);
+                        if (subMatch) {
+                            await prisma.subTask.create({
+                                data: {
+                                    taskId: task.id,
+                                    title: subMatch[2].trim(),
+                                    isCompleted: subMatch[1].toLowerCase() === 'x',
+                                    order: subOrder++
+                                }
+                            });
                         }
                     }
                 }
+
+                // 2. Add matched real GitHub Issues as subtasks (if not already there)
+                for (const gitIssue of matchedIssues) {
+                    const issueTitle = `GitHub Issue #${gitIssue.number}: ${gitIssue.title}`;
+                    const alreadyExists = issuesFromMd.includes(gitIssue.title);
+                    if (!alreadyExists) {
+                        await prisma.subTask.create({
+                            data: {
+                                taskId: task.id,
+                                title: issueTitle,
+                                isCompleted: gitIssue.state === 'closed',
+                                order: 999 // Put github issues at the end
+                            }
+                        });
+                    }
+                }
+
+                // 3. Add documents from TASKS.md
+                const docsFromMd = ref?.documents || '';
+                if (docsFromMd) {
+                    const docLines = docsFromMd.split('\n').filter((l: string) => l.trim());
+                    for (const dl of docLines) {
+                        const docMatch = dl.match(/\[([^\]]+)\]\(([^)]+)\)/);
+                        if (docMatch) {
+                            const rawUrl = docMatch[2].trim();
+                            const convertedUrl = convertToGitHubUrl(rawUrl, githubBaseUrl);
+                            await prisma.taskDocument.create({
+                                data: {
+                                    taskId: task.id,
+                                    title: docMatch[1].trim(),
+                                    url: convertedUrl,
+                                    type: convertedUrl.endsWith('.md') ? 'markdown' : 'link'
+                                }
+                            });
+                        }
+                    }
+                }
+
+                // 4. Add documents from docs folder that match task keywords
+                const matchedDocs = githubDocs.filter(doc =>
+                    doc.name.toLowerCase().includes(groupTitle.toLowerCase().replace(/\s+/g, '-')) ||
+                    (branch && doc.name.toLowerCase().includes(branch.split('/')[1] || branch))
+                );
+
+                for (const gitDoc of matchedDocs) {
+                    const alreadyExists = docsFromMd.includes(gitDoc.name);
+                    if (!alreadyExists) {
+                        await prisma.taskDocument.create({
+                            data: {
+                                taskId: task.id,
+                                title: gitDoc.name,
+                                url: gitDoc.html_url,
+                                type: 'markdown'
+                            }
+                        });
+                    }
+                }
+
                 groupOrder++;
             }
         }
@@ -222,6 +278,7 @@ export async function POST(req: NextRequest) {
             where: { id: project.id },
             data: { lastSync: new Date() }
         });
+
 
         console.log('[Sync] Sync completed successfully.');
         return successResponse({ project, message: 'Project synced successfully' });
