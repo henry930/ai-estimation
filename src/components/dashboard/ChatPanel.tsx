@@ -1,8 +1,6 @@
-
 'use client';
 
-import { useChat } from '@ai-sdk/react';
-import { useRef, useEffect, useState } from 'react';
+import { useState } from 'react';
 
 interface ChatPanelProps {
     taskId?: string;
@@ -10,76 +8,81 @@ interface ChatPanelProps {
 }
 
 export default function ChatPanel({ taskId, onTaskUpdate }: ChatPanelProps) {
-    const { messages, input, setInput, handleSubmit, isLoading } = useChat({
-        api: '/api/chat',
-        body: { taskId },
-        initialInput: ''
-    });
-    const messagesEndRef = useRef<HTMLDivElement>(null);
+    const [messages, setMessages] = useState<Array<{ role: string, content: string }>>([]);
+    const [input, setInput] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setInput(e.target.value);
-    };
-
-    const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        console.log('Form submitted with input:', input);
-        if (input?.trim()) {
-            handleSubmit(e);
-        }
-    };
+        if (!input.trim()) return;
 
-    const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    };
+        const userMessage = { role: 'user', content: input };
+        setMessages(prev => [...prev, userMessage]);
+        setInput('');
+        setIsLoading(true);
 
-    useEffect(() => {
-        scrollToBottom();
+        try {
+            const response = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    messages: [...messages, userMessage],
+                    taskId
+                })
+            });
 
-        // Check last AI message for task updates
-        const lastMessage = messages[messages.length - 1];
-        if (lastMessage && lastMessage.role === 'assistant') {
-            try {
-                // Look for JSON in code blocks
-                const jsonMatch = lastMessage.content.match(/```json\n([\s\S]*?)\n```/);
-                if (jsonMatch) {
-                    const data = JSON.parse(jsonMatch[1]);
-                    if (data.action === 'update_task' && data.updates && onTaskUpdate) {
-                        onTaskUpdate(data.updates);
-                    }
+            if (!response.ok) throw new Error('Failed to get response');
+
+            const reader = response.body?.getReader();
+            const decoder = new TextDecoder();
+            let aiContent = '';
+
+            if (reader) {
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    aiContent += decoder.decode(value);
                 }
-            } catch (e) {
-                // Not a JSON update, ignore
             }
+
+            setMessages(prev => [...prev, { role: 'assistant', content: aiContent }]);
+        } catch (error) {
+            console.error('Chat error:', error);
+            setMessages(prev => [...prev, {
+                role: 'assistant',
+                content: 'Sorry, I encountered an error. Please try again.'
+            }]);
+        } finally {
+            setIsLoading(false);
         }
-    }, [messages, onTaskUpdate]);
+    };
 
     return (
         <div className="flex flex-col h-[calc(100vh-8rem)]">
             {/* Header */}
             <div className="mb-4">
                 <h3 className="font-semibold text-lg text-white">AI Assistant</h3>
-                <p className="text-xs text-gray-500">Ask for help with estimation or breakdown</p>
+                <p className="text-xs text-gray-500">Ask for help with this task</p>
             </div>
 
-            {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto space-y-4 mb-4 pr-2 custom-scrollbar">
+            {/* Messages */}
+            <div className="flex-1 overflow-y-auto space-y-4 mb-4">
                 {messages.length === 0 && (
                     <div className="text-center py-10 text-gray-500 text-sm">
                         <p>No messages yet.</p>
-                        <p className="mt-2">Try asking: "Break down the authentication task"</p>
+                        <p className="mt-2">Try: "Help me break down this task"</p>
                     </div>
                 )}
 
-                {messages.map(m => (
-                    <div key={m.id} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                        <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${m.role === 'user'
-                            ? 'bg-blue-600 text-white rounded-br-none'
-                            : 'bg-white/10 text-gray-200 rounded-bl-none'
+                {messages.map((m, i) => (
+                    <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                        <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm ${m.role === 'user'
+                                ? 'bg-blue-600 text-white'
+                                : 'bg-white/10 text-gray-200'
                             }`}>
-                            <span className="font-bold text-[10px] opacity-50 block mb-1 uppercase tracking-wider">
-                                {m.role === 'user' ? 'You' : 'AI'}
-                            </span>
+                            <div className="font-bold text-[10px] opacity-50 mb-1">
+                                {m.role === 'user' ? 'YOU' : 'AI'}
+                            </div>
                             {m.content}
                         </div>
                     </div>
@@ -87,36 +90,30 @@ export default function ChatPanel({ taskId, onTaskUpdate }: ChatPanelProps) {
 
                 {isLoading && (
                     <div className="flex justify-start">
-                        <div className="bg-white/10 text-gray-200 rounded-2xl rounded-bl-none px-4 py-3 text-sm max-w-[85%]">
-                            <span className="flex gap-1">
-                                <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                                <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                                <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-                            </span>
+                        <div className="bg-white/10 rounded-2xl px-4 py-3">
+                            <span className="text-gray-400">Thinking...</span>
                         </div>
                     </div>
                 )}
-                <div ref={messagesEndRef} />
             </div>
 
-            {/* Input Area */}
-            <form onSubmit={onSubmit} className="mt-auto pt-4 border-t border-white/10">
-                <div className="relative">
+            {/* Input */}
+            <form onSubmit={handleSubmit} className="border-t border-white/10 pt-4">
+                <div className="flex gap-2">
                     <input
-                        className="w-full bg-black/50 border border-white/10 rounded-xl pl-4 pr-10 py-3 text-sm text-white focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all placeholder:text-gray-600"
+                        type="text"
                         value={input}
-                        onChange={handleInputChange}
+                        onChange={(e) => setInput(e.target.value)}
                         placeholder="Type a message..."
+                        className="flex-1 bg-black/50 border border-white/10 rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-blue-500"
+                        disabled={isLoading}
                     />
                     <button
                         type="submit"
-                        disabled={isLoading || !input?.trim()}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-30 disabled:bg-gray-600 transition-colors"
-                        title="Send message"
+                        disabled={isLoading || !input.trim()}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 transform rotate-90">
-                            <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
-                        </svg>
+                        Send
                     </button>
                 </div>
             </form>
