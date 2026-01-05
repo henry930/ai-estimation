@@ -39,20 +39,20 @@
 | Landing Page Polish | DONE | 16 | `feature/github-projects` | Hero, Features, Pricing, Testimonials |
 | Dashboard Core | DONE | 14 | `feature/github-projects` | Layout, Project List, Repo Selector |
 | Mockup Consolidation | WAITING FOR REVIEW | 12 | `feature/frontend-polish` | Polishing Sidebar, Chat, Results UI |
-| Dashboard Refinement | IN PROGRESS | 12 | `feature/dashboard-refinement` | Sidebar cleanup, toggle logic, project sync |
+| Dashboard Refinement | DONE | 12 | `feature/dashboard-refinement` | Sidebar cleanup, toggle logic, project sync |
 | Chat Experience | PENDING | 12 | `feature/chat-flow` | Streaming support, Input system |
 | Results Functionality | PENDING | 10 | `feature/results-api` | Real data mapping, Export logic |
 | GitHub Connection UI | PENDING | 8 | `feature/github-ui` | File tree viewer, Status indicators |
-| Sidebar Link Cleanup | PENDING | 4 | `feature/sidebar-cleanup` | Remove dead links and Manage Tasks |
-| Right Sidebar Toggle | PENDING | 6 | `feature/sidebar-toggle` | Show/hide right sidebar via icon |
-| Seed AI Estimation Project| PENDING | 4 | `feature/seed-project` | Sync current git repo to DB |
+| Sidebar Link Cleanup | DONE | 4 | `feature/sidebar-cleanup` | Remove dead links and Manage Tasks |
+| Right Sidebar Toggle | DONE | 6 | `feature/sidebar-toggle` | Show/hide right sidebar via icon |
+| Seed AI Estimation Project| DONE | 4 | `feature/seed-project` | Sync current git repo to DB |
 
 #### [REFINEMENT] Phase 3 Details
 - **Issue #1 (Landing Page CTA)**: ✅ Route "Start Estimation" to `/login`.
 - **Issue #4 (Dashboard Refinement)**:
-  - [/] Remove "Manage Tasks" and dead links from left sidebar.
-  - [/] Implement toggle icon for right sidebar.
-  - [/] Ensure `ai-estimation` project is in "My Projects" list.
+  - [x] Remove "Manage Tasks" and dead links from left sidebar.
+  - [x] Implement toggle icon for right sidebar.
+  - [x] Ensure `ai-estimation` project is in "My Projects" list.
 
 #### Chat Experience (Pending)
 - **Description**: Implement SSE (Server Side Events) for streaming AI responses and a robust input state.
@@ -114,7 +114,7 @@
 | :--- | :--- |
 | 1. Foundation | [xxxxxxxxxx] 100% |
 | 2. Auth & Subs | [xxxxxxxxxx] 100% |
-| 3. Frontend | [xxxxxx----] 60% |
+| 3. Frontend | [xxxxxxx---] 70% |
 | 4. Backend/AI | [----------] 0% |
 | 5. GitHub | [xxxxxxx---] 70% |
 | 6. Testing/Ops | [----------] 0% |
