@@ -77,7 +77,7 @@ Be concise and actionable.`;
             messages,
         });
 
-        return result.toDataStreamResponse();
+        return result.toAIStreamResponse();
     } catch (error: any) {
         console.error('Bedrock error:', error);
         return NextResponse.json({
