@@ -10,10 +10,14 @@ interface ChatPanelProps {
 }
 
 export default function ChatPanel({ taskId, onTaskUpdate }: ChatPanelProps) {
-    const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
+    const { messages, input, setInput, handleSubmit, isLoading } = useChat({
         body: { taskId }
     });
     const messagesEndRef = useRef<HTMLDivElement>(null);
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setInput(e.target.value);
+    };
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -96,7 +100,7 @@ export default function ChatPanel({ taskId, onTaskUpdate }: ChatPanelProps) {
                     />
                     <button
                         type="submit"
-                        disabled={isLoading || !input.trim()}
+                        disabled={isLoading || !input?.trim()}
                         className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg bg-white/10 text-white hover:bg-blue-600 hover:text-white disabled:opacity-50 disabled:hover:bg-white/10 transition-colors"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 transform rotate-90">
