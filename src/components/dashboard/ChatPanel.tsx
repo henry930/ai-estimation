@@ -12,7 +12,8 @@ interface ChatPanelProps {
 export default function ChatPanel({ taskId, onTaskUpdate }: ChatPanelProps) {
     const { messages, input, setInput, handleSubmit, isLoading } = useChat({
         api: '/api/chat',
-        body: { taskId }
+        body: { taskId },
+        initialInput: ''
     });
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -110,7 +111,8 @@ export default function ChatPanel({ taskId, onTaskUpdate }: ChatPanelProps) {
                     <button
                         type="submit"
                         disabled={isLoading || !input?.trim()}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg bg-white/10 text-white hover:bg-blue-600 hover:text-white disabled:opacity-50 disabled:hover:bg-white/10 transition-colors"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-30 disabled:bg-gray-600 transition-colors"
+                        title="Send message"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 transform rotate-90">
                             <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
