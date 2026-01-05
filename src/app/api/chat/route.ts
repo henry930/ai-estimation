@@ -57,41 +57,31 @@ Be concise and actionable.`;
     }
 
     // Check if AWS credentials are configured
-    console.log('AWS Check:', {
-        hasAccessKey: !!process.env.AWS_ACCESS_KEY_ID,
-        hasSecretKey: !!process.env.AWS_SECRET_ACCESS_KEY,
-        region: process.env.AWS_REGION
-    });
-
     if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
-        // Return mock response
-        const mockMessage = "🤖 Mock AI Response\n\nI am a mock AI assistant. AWS credentials are not configured.\n\nTo enable real Claude Sonnet 4.5 responses, add these to your .env file:\n- AWS_ACCESS_KEY_ID\n- AWS_SECRET_ACCESS_KEY\n- AWS_REGION\n\nThen restart the dev server.\n\nFor now, I can still help you think through your task!";
-
-        return new Response(mockMessage, {
-            headers: {
-                'Content-Type': 'text/plain; charset=utf-8',
-            }
-        });
+        return new Response("🤖 Mock AI Response: AWS Credentials missing", { headers: { 'Content-Type': 'text/plain' } });
     }
 
     try {
+        const modelId = 'eu.anthropic.claude-3-5-sonnet-20240620-v1:0';
+
+        console.log('Bedrock Request:', {
+            model: modelId,
+            region: process.env.AWS_REGION
+        });
+
         const result = await streamText({
-            model: bedrock('anthropic.claude-3-5-sonnet-20241022-v2:0'),
+            model: bedrock(modelId),
             system: systemPrompt,
             messages,
         });
 
-        // Return the text stream directly
-        return new Response(result.textStream, {
-            headers: {
-                'Content-Type': 'text/plain; charset=utf-8',
-            }
-        });
+        return result.toTextStreamResponse();
     } catch (error: any) {
-        console.error('Bedrock error:', error);
+        console.error('Detailed Bedrock Error:', error);
         return NextResponse.json({
-            error: 'Failed to get AI response',
-            details: error.message
+            error: 'AI response failed',
+            details: error.message,
+            stack: error.stack
         }, { status: 500 });
     }
 }
