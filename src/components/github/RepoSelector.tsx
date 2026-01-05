@@ -16,6 +16,36 @@ export default function RepoSelector({ onSelect }: { onSelect: (fullName: string
     const [error, setError] = useState<string | null>(null);
     const [search, setSearch] = useState('');
     const [selected, setSelected] = useState<number | null>(null);
+    const [mode, setMode] = useState<'select' | 'create'>('select');
+    const [newRepoName, setNewRepoName] = useState('');
+    const [isPrivate, setIsPrivate] = useState(true);
+    const [creating, setCreating] = useState(false);
+
+    const handleCreateRepo = async () => {
+        if (!newRepoName) return;
+        setCreating(true);
+        try {
+            const res = await fetch('/api/github/repos/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    repoName: newRepoName,
+                    isPrivate,
+                    description: `Project repository for ${newRepoName}`
+                })
+            });
+            const data = await res.json();
+            if (data.success) {
+                onSelect(data.data.repoUrl.split('github.com/')[1]);
+            } else {
+                alert(data.error || 'Failed to create repository');
+            }
+        } catch (err) {
+            alert('Error creating repository');
+        } finally {
+            setCreating(false);
+        }
+    };
 
     useEffect(() => {
         const fetchRepos = async () => {
@@ -70,41 +100,100 @@ export default function RepoSelector({ onSelect }: { onSelect: (fullName: string
 
     return (
         <div className="bg-[#111] border border-white/10 rounded-xl overflow-hidden">
-            <div className="p-4 border-b border-white/10">
-                <input
-                    type="text"
-                    placeholder="Search repositories..."
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    className="w-full bg-[#050505] border border-white/10 rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-blue-500 transition-colors"
-                />
+            {/* Mode Toggle */}
+            <div className="flex border-b border-white/10 bg-white/5 p-1 gap-1">
+                <button
+                    onClick={() => setMode('select')}
+                    className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${mode === 'select' ? 'bg-blue-600 text-white shadow-lg' : 'text-gray-500 hover:text-gray-300 hover:bg-white/5'}`}
+                >
+                    SELECT REPO
+                </button>
+                <button
+                    onClick={() => setMode('create')}
+                    className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${mode === 'create' ? 'bg-blue-600 text-white shadow-lg' : 'text-gray-500 hover:text-gray-300 hover:bg-white/5'}`}
+                >
+                    CREATE NEW
+                </button>
             </div>
 
-            <div className="max-h-[300px] overflow-y-auto">
-                {filteredRepos.map(repo => (
-                    <button
-                        key={repo.id}
-                        onClick={() => handleSelect(repo.id, repo.html_url.split('github.com/')[1])}
-                        className={`w-full flex items-center justify-between p-4 hover:bg-white/5 transition-colors border-l-4 ${selected === repo.id ? 'bg-white/5 border-blue-500' : 'border-transparent'}`}
-                    >
-                        <div className="flex items-center gap-3">
-                            <RepoIcon isPrivate={repo.private} />
-                            <div className="text-left">
-                                <div className="font-medium text-white">{repo.name}</div>
-                                <div className="text-xs text-gray-500">Updated {repo.updated}</div>
-                            </div>
-                        </div>
-                        {selected === repo.id && (
-                            <CheckIcon />
-                        )}
-                    </button>
-                ))}
-                {filteredRepos.length === 0 && (
-                    <div className="p-8 text-center text-gray-500 text-sm">
-                        No repositories found.
+            {mode === 'select' ? (
+                <>
+                    <div className="p-4 border-b border-white/10">
+                        <input
+                            type="text"
+                            placeholder="Search repositories..."
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            className="w-full bg-[#050505] border border-white/10 rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-blue-500 transition-colors"
+                        />
                     </div>
-                )}
-            </div>
+
+                    <div className="max-h-[300px] overflow-y-auto">
+                        {filteredRepos.map(repo => (
+                            <button
+                                key={repo.id}
+                                onClick={() => handleSelect(repo.id, repo.html_url.split('github.com/')[1])}
+                                className={`w-full flex items-center justify-between p-4 hover:bg-white/5 transition-colors border-l-4 ${selected === repo.id ? 'bg-white/5 border-blue-500' : 'border-transparent'}`}
+                            >
+                                <div className="flex items-center gap-3">
+                                    <RepoIcon isPrivate={repo.private} />
+                                    <div className="text-left">
+                                        <div className="font-medium text-white text-sm">{repo.name}</div>
+                                        <div className="text-xs text-gray-500">Updated {repo.updated}</div>
+                                    </div>
+                                </div>
+                                {selected === repo.id && (
+                                    <CheckIcon />
+                                )}
+                            </button>
+                        ))}
+                        {filteredRepos.length === 0 && (
+                            <div className="p-8 text-center text-gray-500 text-sm">
+                                No repositories found.
+                            </div>
+                        )}
+                    </div>
+                </>
+            ) : (
+                <div className="p-6 space-y-4">
+                    <div className="space-y-2">
+                        <label className="text-xs font-bold text-gray-400 uppercase tracking-widest">Repo Name</label>
+                        <input
+                            type="text"
+                            placeholder="e.g. my-awesome-project"
+                            value={newRepoName}
+                            onChange={(e) => setNewRepoName(e.target.value)}
+                            className="w-full bg-[#050505] border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500 transition-colors"
+                        />
+                    </div>
+
+                    <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/10">
+                        <div>
+                            <div className="text-sm font-medium text-white">Private Repository</div>
+                            <div className="text-xs text-gray-500">Only you and authorized users can see this repo</div>
+                        </div>
+                        <button
+                            onClick={() => setIsPrivate(!isPrivate)}
+                            className={`w-12 h-6 rounded-full transition-colors relative ${isPrivate ? 'bg-blue-600' : 'bg-gray-700'}`}
+                        >
+                            <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${isPrivate ? 'right-1' : 'left-1'}`} />
+                        </button>
+                    </div>
+
+                    <button
+                        onClick={handleCreateRepo}
+                        disabled={creating || !newRepoName}
+                        className="w-full py-3 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl text-sm font-bold transition-all shadow-lg shadow-blue-900/40"
+                    >
+                        {creating ? (
+                            <div className="flex items-center justify-center gap-2">
+                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                Initializing...
+                            </div>
+                        ) : 'Create & Connect Repository'}
+                    </button>
+                </div>
+            )}
         </div>
     );
 }

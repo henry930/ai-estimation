@@ -2,27 +2,24 @@ import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { successResponse, errorResponse } from '@/lib/api-response';
 import { getOctokit } from '@/lib/github';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 
 export async function POST(req: NextRequest) {
     try {
+        const session = await getServerSession(authOptions) as any;
+        if (!session?.user?.id) {
+            return errorResponse('Unauthorized', 401);
+        }
+
         const body = await req.json();
-        const { projectId, repoName, isPrivate = true } = body;
+        const { projectId, repoName, isPrivate = true, description } = body;
 
-        if (!projectId || !repoName) {
-            return errorResponse('Missing projectId or repoName', 400);
+        if (!repoName) {
+            return errorResponse('Missing repoName', 400);
         }
 
-        // Verify project owner
-        const project = await prisma.project.findUnique({
-            where: { id: projectId },
-        });
-
-        if (!project) {
-            return errorResponse('Project not found', 404);
-        }
-
-        // TEMPORARY: Use env var or mock
-        const token = process.env.GITHUB_ACCESS_TOKEN;
+        const token = session.accessToken || process.env.GITHUB_ACCESS_TOKEN;
         const octokit = getOctokit(token);
 
         let githubUrl = '';
@@ -33,7 +30,7 @@ export async function POST(req: NextRequest) {
                 const { data } = await octokit.repos.createForAuthenticatedUser({
                     name: repoName,
                     private: isPrivate,
-                    description: `Created via AI Estimation for project: ${project.name}`
+                    description: description || `Created via AI Estimation for project: ${repoName}`
                 });
                 githubUrl = data.html_url;
                 githubRepoId = data.id.toString();
@@ -52,18 +49,30 @@ export async function POST(req: NextRequest) {
             githubRepoId = `mock-${Date.now()}`;
         }
 
-        // Update Project
-        const updatedProject = await prisma.project.update({
-            where: { id: projectId },
-            data: {
-                githubUrl,
-                githubRepoId,
-                name: repoName // Optionally sync name if changed
-            }
-        });
+        // Project Data
+        const projectData = {
+            githubUrl,
+            githubRepoId,
+            name: repoName,
+            description: description || null,
+            userId: session.user.id,
+            status: 'active'
+        };
+
+        let resultProject;
+        if (projectId) {
+            resultProject = await prisma.project.update({
+                where: { id: projectId },
+                data: projectData
+            });
+        } else {
+            resultProject = await prisma.project.create({
+                data: projectData
+            });
+        }
 
         return successResponse({
-            project: updatedProject,
+            project: resultProject,
             repoUrl: githubUrl
         });
 
