@@ -1,39 +1,13 @@
-import { OpenAIStream, StreamingTextResponse } from 'ai';
-import OpenAI from 'openai';
+import { streamText } from 'ai';
+import { bedrock } from '@ai-sdk/amazon-bedrock';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
-
-const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY || 'sk-mock-key',
-});
 
 export const runtime = 'edge';
 
 export async function POST(req: Request) {
     const { messages, taskId } = await req.json();
-
-    // If no API key is present, return a mock streaming response
-    if (!process.env.OPENAI_API_KEY) {
-        const mockStream = new ReadableStream({
-            start(controller) {
-                const text = "I am a mock AI assistant. Please configure your OPENAI_API_KEY to get real responses.\n\nI can help you refine this task's objective, add subtasks, and suggest improvements.";
-                const encoder = new TextEncoder();
-                let i = 0;
-                const interval = setInterval(() => {
-                    if (i < text.length) {
-                        controller.enqueue(encoder.encode(text[i]));
-                        i++;
-                    } else {
-                        clearInterval(interval);
-                        controller.close();
-                    }
-                }, 20);
-            }
-        });
-        return new StreamingTextResponse(mockStream);
-    }
 
     // Build context-aware system prompt
     let systemPrompt = 'You are an expert technical project manager and software architect. Help the user refine their task objectives, break down requirements, and suggest improvements. Be concise and practical.';
@@ -41,8 +15,6 @@ export async function POST(req: Request) {
     // If taskId is provided, fetch task context
     if (taskId) {
         try {
-            // Note: In edge runtime, we can't use Prisma directly
-            // We'll need to fetch this from a separate API endpoint
             const taskRes = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/tasks/${taskId}`, {
                 headers: {
                     'Cookie': req.headers.get('cookie') || '',
@@ -86,15 +58,31 @@ Be concise and actionable.`;
         }
     }
 
-    const response = await openai.chat.completions.create({
-        model: 'gpt-4',
-        stream: true,
-        messages: [
-            { role: 'system', content: systemPrompt },
-            ...messages
-        ],
-    });
+    // Check if AWS credentials are configured
+    if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
+        // Return mock response
+        const mockText = "I am a mock AI assistant. Please configure your AWS credentials (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION) to get real Claude responses.\n\nI can help you refine this task's objective, add subtasks, and suggest improvements.";
 
-    const stream = OpenAIStream(response);
-    return new StreamingTextResponse(stream);
+        return new Response(mockText, {
+            headers: {
+                'Content-Type': 'text/plain',
+            }
+        });
+    }
+
+    try {
+        const result = await streamText({
+            model: bedrock('anthropic.claude-3-5-sonnet-20241022-v2:0'),
+            system: systemPrompt,
+            messages,
+        });
+
+        return result.toDataStreamResponse();
+    } catch (error: any) {
+        console.error('Bedrock error:', error);
+        return NextResponse.json({
+            error: 'Failed to get AI response',
+            details: error.message
+        }, { status: 500 });
+    }
 }
