@@ -57,11 +57,19 @@ Be concise and actionable.`;
     }
 
     // Check if AWS credentials are configured
+    console.log('AWS Check:', {
+        hasAccessKey: !!process.env.AWS_ACCESS_KEY_ID,
+        hasSecretKey: !!process.env.AWS_SECRET_ACCESS_KEY,
+        region: process.env.AWS_REGION
+    });
+
     if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
         // Return mock response
-        return new Response("I am a mock AI assistant. Please configure your AWS credentials (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION) to get real Claude responses.\n\nI can help you refine this task's objective, add subtasks, and suggest improvements.", {
+        const mockMessage = "🤖 Mock AI Response\n\nI am a mock AI assistant. AWS credentials are not configured.\n\nTo enable real Claude Sonnet 4.5 responses, add these to your .env file:\n- AWS_ACCESS_KEY_ID\n- AWS_SECRET_ACCESS_KEY\n- AWS_REGION\n\nThen restart the dev server.\n\nFor now, I can still help you think through your task!";
+
+        return new Response(mockMessage, {
             headers: {
-                'Content-Type': 'text/plain',
+                'Content-Type': 'text/plain; charset=utf-8',
             }
         });
     }
