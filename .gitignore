@@ -25,3 +25,4 @@ prisma/dev.db
 .env
 .env.production
 .env.local
+.dashboard/
