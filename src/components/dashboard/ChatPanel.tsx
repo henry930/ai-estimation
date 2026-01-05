@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useChat } from 'ai';
+import { useChat } from '@ai-sdk/react';
 import { useRef, useEffect, useState } from 'react';
 
 interface ChatPanelProps {
