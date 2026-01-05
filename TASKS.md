@@ -52,7 +52,8 @@
 | Project Detail View | DONE | 8 | `feature/project-detail-view` | Project page tabs: Obj, Issues, Docs, Tasks |
 | Project Detail View | DONE | 8 | `feature/project-detail-view` | Project page tabs: Obj, Issues, Docs, Tasks |
 | Task Status & Progress | DONE | 6 | `feature/task-progress` | Display status and subtask % completion |
-| Phase Progress Bars | IN PROGRESS | 6 | `feature/phase-progress` | Aggregated progress for Task Groups |
+| Task Status & Progress | DONE | 6 | `feature/task-progress` | Display status and subtask % completion |
+| Phase Progress Bars | DONE | 6 | `feature/phase-progress` | Aggregated progress for Task Groups |
 
 #### [REFINEMENT] Phase 3 Details
 - **Issue #1 (Landing Page CTA)**: ✅ Route "Start Estimation" to `/login`.
