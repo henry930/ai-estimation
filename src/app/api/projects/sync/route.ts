@@ -48,15 +48,53 @@ export async function POST(req: NextRequest) {
             return errorResponse('TASKS.md not found in repository', 404);
         }
 
-        // 2. Ensure project exists
+        // 1. Fetch repository details from GitHub
+        let githubRepoId = '';
+        let githubUrl = `https://github.com/${fullRepoName}`;
+        try {
+            const { data: repoData } = await octokit.repos.get({ owner, repo });
+            githubRepoId = repoData.id.toString();
+            githubUrl = repoData.html_url;
+        } catch (err) {
+            console.error('[Sync] Failed to fetch repo details from GitHub:', err);
+            // Fallback to what we have if GitHub fetch fails (though it shouldn't if we have access)
+        }
+
+        // 2. Ensure project exists and is unique
         if (!project) {
-            project = await prisma.project.create({
-                data: {
-                    name: repo,
-                    githubUrl: `https://github.com/${fullRepoName}`,
+            // Check by URL or GitHub ID
+            project = await prisma.project.findFirst({
+                where: {
                     userId: session.user.id,
-                    status: 'active'
+                    OR: [
+                        { githubUrl: githubUrl },
+                        githubRepoId ? { githubRepoId: githubRepoId } : {}
+                    ].filter(cond => Object.keys(cond).length > 0)
                 }
+            });
+
+            if (!project) {
+                project = await prisma.project.create({
+                    data: {
+                        name: repo,
+                        githubUrl: githubUrl,
+                        githubRepoId: githubRepoId || null,
+                        userId: session.user.id,
+                        status: 'active'
+                    }
+                });
+            } else if (githubRepoId && !project.githubRepoId) {
+                // Update existing project with missing repo ID
+                project = await prisma.project.update({
+                    where: { id: project.id },
+                    data: { githubRepoId }
+                });
+            }
+        } else if (githubRepoId && !project.githubRepoId) {
+            // Update existing project with missing repo ID if found by ID but missing RepoId
+            project = await prisma.project.update({
+                where: { id: project.id },
+                data: { githubRepoId }
             });
         }
 

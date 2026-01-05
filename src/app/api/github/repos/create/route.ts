@@ -66,9 +66,24 @@ export async function POST(req: NextRequest) {
                 data: projectData
             });
         } else {
-            resultProject = await prisma.project.create({
-                data: projectData
+            // Check if project already exists for this URL (in case of race conditions or retries)
+            const existing = await prisma.project.findFirst({
+                where: {
+                    userId: session.user.id,
+                    githubUrl: githubUrl
+                }
             });
+
+            if (existing) {
+                resultProject = await prisma.project.update({
+                    where: { id: existing.id },
+                    data: projectData
+                });
+            } else {
+                resultProject = await prisma.project.create({
+                    data: projectData
+                });
+            }
         }
 
         return successResponse({

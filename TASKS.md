@@ -46,7 +46,7 @@
 | Sidebar Link Cleanup | DONE | 4 | `feature/sidebar-cleanup` | Remove dead links and Manage Tasks |
 | Right Sidebar Toggle | DONE | 6 | `feature/sidebar-toggle` | Show/hide right sidebar via icon |
 | Seed AI Estimation Project| DONE | 4 | `feature/seed-project` | Sync current git repo to DB |
-| Project Uniqueness Fix | PENDING | 6 | `fix/project-uniqueness` | Prevent duplicate projects for same repo |
+| Project Uniqueness Fix | DONE | 6 | `fix/project-uniqueness` | Prevent duplicate projects for same repo |
 
 #### [REFINEMENT] Phase 3 Details
 - **Issue #1 (Landing Page CTA)**: ✅ Route "Start Estimation" to `/login`.
@@ -54,7 +54,7 @@
   - [x] Remove "Manage Tasks" and dead links from left sidebar.
   - [x] Implement toggle icon for right sidebar.
   - [x] Ensure `ai-estimation` project is in "My Projects" list.
-  - [ ] Prevent duplicate projects for the same repository.
+  - [x] Prevent duplicate projects for the same repository.
 
 #### Chat Experience (Pending)
 - **Description**: Implement SSE (Server Side Events) for streaming AI responses and a robust input state.

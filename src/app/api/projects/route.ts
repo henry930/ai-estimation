@@ -22,7 +22,10 @@ export async function POST(req: Request) {
         const existingProject = await prisma.project.findFirst({
             where: {
                 userId: session.user.id,
-                githubRepoId: String(githubRepoId),
+                OR: [
+                    { githubRepoId: String(githubRepoId) },
+                    { githubUrl: githubUrl }
+                ].filter(Boolean) as any,
             },
         });
 
