@@ -7,7 +7,7 @@
 ---
 
 ## Phase 1: Foundation & Setup
-**Status**: DONE | **Total Hours**: 40
+**Status**: DONE | **Total Hours**: 40 | **Branch**: `feature/phase-1-foundation`
 
 | Task Group | Status | Hours | Branch | Detail |
 | :--- | :--- | :--- | :--- | :--- |
@@ -19,7 +19,7 @@
 ---
 
 ## Phase 2: Authentication & Subscription
-**Status**: DONE | **Total Hours**: 48
+**Status**: DONE | **Total Hours**: 48 | **Branch**: `feature/phase-2-auth-subs`
 
 | Task Group | Status | Hours | Branch | Detail |
 | :--- | :--- | :--- | :--- | :--- |
@@ -32,7 +32,7 @@
 ---
 
 ## Phase 3: Frontend Development
-**Status**: IN PROGRESS | **Total Hours**: 72
+**Status**: IN PROGRESS | **Total Hours**: 72 | **Branch**: `feature/phase-3-frontend`
 
 | Task Group | Status | Hours | Branch | Detail |
 | :--- | :--- | :--- | :--- | :--- |
@@ -61,7 +61,7 @@
 ---
 
 ## Phase 4: Backend API & AI Integration
-**Status**: PENDING | **Total Hours**: 88
+**Status**: PENDING | **Total Hours**: 88 | **Branch**: `feature/phase-4-ai-integration`
 
 | Task Group | Status | Hours | Branch | Detail |
 | :--- | :--- | :--- | :--- | :--- |
@@ -81,7 +81,7 @@
 ---
 
 ## Phase 5: GitHub Integration
-**Status**: IN PROGRESS | **Total Hours**: 44
+**Status**: IN PROGRESS | **Total Hours**: 44 | **Branch**: `feature/phase-5-github-integration`
 
 | Task Group | Status | Hours | Branch | Detail |
 | :--- | :--- | :--- | :--- | :--- |
@@ -96,7 +96,7 @@
 ---
 
 ## Phase 6: Testing & Deployment
-**Status**: PENDING | **Total Hours**: 20
+**Status**: PENDING | **Total Hours**: 20 | **Branch**: `feature/phase-6-deployment`
 
 | Task Group | Status | Hours | Branch | Detail |
 | :--- | :--- | :--- | :--- | :--- |
