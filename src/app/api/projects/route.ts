@@ -2,19 +2,20 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { successResponse, errorResponse } from '@/lib/api-response';
 
 export async function POST(req: Request) {
     const session = await getServerSession(authOptions);
 
     if (!session?.user?.id) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        return errorResponse('Unauthorized', 401);
     }
 
     try {
         const { name, githubUrl, githubRepoId, description } = await req.json();
 
         if (!name || !githubRepoId) {
-            return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+            return errorResponse('Missing required fields', 400);
         }
 
         // Check if project already exists for this user
@@ -26,7 +27,7 @@ export async function POST(req: Request) {
         });
 
         if (existingProject) {
-            return NextResponse.json({ error: 'Project already connected' }, { status: 400 });
+            return errorResponse('Project already connected', 400);
         }
 
         const project = await prisma.project.create({
@@ -39,9 +40,9 @@ export async function POST(req: Request) {
             },
         });
 
-        return NextResponse.json(project);
+        return successResponse(project);
     } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return errorResponse(error.message, 500);
     }
 }
 
@@ -51,7 +52,7 @@ export async function GET(req: NextRequest) {
         const userId = session?.user?.id;
 
         if (!userId) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            return errorResponse('Unauthorized', 401);
         }
 
         const projects = await prisma.project.findMany({
@@ -64,9 +65,9 @@ export async function GET(req: NextRequest) {
             }
         });
 
-        return NextResponse.json(projects);
+        return successResponse(projects);
     } catch (error: any) {
         console.error('API Error:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return errorResponse(error.message, 500);
     }
 }

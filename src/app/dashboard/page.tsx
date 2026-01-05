@@ -18,7 +18,14 @@ export default function DashboardPage() {
     };
 
     return (
-        <DashboardLayout>
+        <DashboardLayout
+            rightSidebar={
+                <>
+                    <QuickActions onConnectGitHub={() => setShowRepoSelection(true)} />
+                    <SubscriptionStatus />
+                </>
+            }
+        >
             <div className="space-y-8">
                 {/* Header */}
                 <div className="flex items-center justify-between">
@@ -26,22 +33,11 @@ export default function DashboardPage() {
                         <h1 className="text-3xl font-bold">Welcome back, {session?.user?.name?.split(' ')[0] || 'User'}</h1>
                         <p className="text-gray-400 mt-1">Here&apos;s what&apos;s happening with your projects.</p>
                     </div>
-                    <div className="text-sm text-gray-400">
-                        {new Date().toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-                    </div>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    {/* Main Content Area (Projects) - spans 2 cols */}
-                    <div className="lg:col-span-2 space-y-8">
-                        <ProjectList key={refreshKey} onConnectClick={() => setShowRepoSelection(true)} />
-                    </div>
-
-                    {/* Sidebar Area (Quick Actions & Stats) - spans 1 col */}
-                    <div className="space-y-6">
-                        <QuickActions onConnectGitHub={() => setShowRepoSelection(true)} />
-                        <SubscriptionStatus />
-                    </div>
+                <div className="space-y-8">
+                    {/* Main Content Area (Projects) */}
+                    <ProjectList key={refreshKey} onConnectClick={() => setShowRepoSelection(true)} />
                 </div>
             </div>
 

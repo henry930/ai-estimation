@@ -9,10 +9,8 @@ export default function Sidebar() {
 
     const links = [
         { href: '/dashboard', label: 'Overview', icon: <HomeIcon /> },
-        { href: '/dashboard/management', label: 'Manage Tasks', icon: <LayoutIcon /> },
         { href: '/estimate/new', label: 'New Estimation', icon: <PlusIcon /> },
         { href: '/dashboard/projects', label: 'My Projects', icon: <FolderIcon /> },
-        { href: '/dashboard/settings', label: 'Settings', icon: <SettingsIcon /> },
     ];
 
     const { data: session } = useSession();
