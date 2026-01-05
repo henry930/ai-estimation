@@ -47,7 +47,7 @@
 | Right Sidebar Toggle | DONE | 6 | `feature/sidebar-toggle` | Show/hide right sidebar via icon |
 | Seed AI Estimation Project| DONE | 4 | `feature/seed-project` | Sync current git repo to DB |
 | Project Uniqueness Fix | DONE | 6 | `fix/project-uniqueness` | Prevent duplicate projects for same repo |
-| Schema Alignment | IN PROGRESS | 8 | `feature/schema-alignment` | Group tasks by Phase, Sync Objectives |
+| Schema Alignment | DONE | 8 | `feature/schema-alignment` | Group tasks by Phase, Sync Objectives |
 
 #### [REFINEMENT] Phase 3 Details
 - **Issue #1 (Landing Page CTA)**: ✅ Route "Start Estimation" to `/login`.
