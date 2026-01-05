@@ -50,8 +50,6 @@
 | Schema Alignment | DONE | 8 | `feature/schema-alignment` | Group tasks by Phase, Sync Objectives |
 | Task Detail View | DONE | 8 | `feature/task-detail-view` | Individual pages with tabs for tasks |
 | Project Detail View | DONE | 8 | `feature/project-detail-view` | Project page tabs: Obj, Issues, Docs, Tasks |
-| Project Detail View | DONE | 8 | `feature/project-detail-view` | Project page tabs: Obj, Issues, Docs, Tasks |
-| Task Status & Progress | DONE | 6 | `feature/task-progress` | Display status and subtask % completion |
 | Task Status & Progress | DONE | 6 | `feature/task-progress` | Display status and subtask % completion |
 | Phase Progress Bars | DONE | 6 | `feature/phase-progress` | Aggregated progress for Task Groups |
 | Branch Creation UI | DONE | 4 | `feature/branch-creation-ui` | Button to create branch from Task Detail |
