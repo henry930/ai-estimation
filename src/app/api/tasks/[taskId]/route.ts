@@ -22,7 +22,12 @@ export async function GET(
                 group: {
                     select: {
                         title: true,
-                        projectId: true
+                        projectId: true,
+                        project: {
+                            select: {
+                                name: true
+                            }
+                        }
                     }
                 },
                 subtasks: {

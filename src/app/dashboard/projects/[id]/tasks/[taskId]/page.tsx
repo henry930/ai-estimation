@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import Link from 'next/link';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface SubTask {
     id: string;
@@ -29,6 +31,9 @@ interface TaskDetail {
     group: {
         title: string;
         projectId: string;
+        project: {
+            name: string;
+        };
     };
     subtasks: SubTask[];
     documents: TaskDocument[];
@@ -147,20 +152,23 @@ export default function TaskDetailPage() {
     return (
         <DashboardLayout>
             <div className="max-w-4xl mx-auto space-y-6">
+                {/* Breadcrumb Widget */}
+                <div className="flex items-center gap-2 text-sm text-gray-500 mb-4 font-mono">
+                    <Link
+                        href={`/dashboard/projects/${task.group.projectId}`}
+                        className="hover:text-blue-400 transition-colors"
+                    >
+                        {task.group.project.name}
+                    </Link>
+                    <span className="text-gray-700">/</span>
+                    <span className="text-gray-300">{task.group.title}</span>
+                    <span className="text-gray-700">/</span>
+                    <span className="text-white font-semibold">{task.title}</span>
+                </div>
+
                 {/* Header */}
                 <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-2">
-                            <Link
-                                href={`/dashboard/projects/${task.group.projectId}`}
-                                className="text-gray-500 hover:text-white transition-colors"
-                            >
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
-                                </svg>
-                            </Link>
-                            <span className="text-sm text-gray-500 font-mono">{task.group.title}</span>
-                        </div>
                         {isEditing ? (
                             <input
                                 type="text"
@@ -194,6 +202,7 @@ export default function TaskDetailPage() {
                             ) : (
                                 <button
                                     onClick={() => setIsEditing(true)}
+                                    // Edit button for task details
                                     className="px-3 py-1.5 rounded-lg bg-white/5 text-gray-400 border border-white/10 text-xs hover:bg-white/10 hover:text-white transition-all flex items-center gap-2"
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-3.5 h-3.5">
@@ -243,8 +252,8 @@ export default function TaskDetailPage() {
                             </select>
                         ) : (
                             <div className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${task.status === 'DONE' ? 'bg-green-500/10 text-green-500' :
-                                    task.status === 'IN PROGRESS' ? 'bg-blue-500/10 text-blue-500' :
-                                        'bg-white/10 text-gray-500'
+                                task.status === 'IN PROGRESS' ? 'bg-blue-500/10 text-blue-500' :
+                                    'bg-white/10 text-gray-500'
                                 }`}>
                                 {task.status}
                             </div>
@@ -280,15 +289,16 @@ export default function TaskDetailPage() {
                                     <textarea
                                         value={editForm.objective}
                                         onChange={e => setEditForm(prev => ({ ...prev, objective: e.target.value }))}
-                                        className="w-full h-40 bg-black/20 border border-white/10 rounded-lg p-3 text-gray-300 focus:outline-none focus:border-blue-500 resize-none font-light leading-relaxed"
+                                        className="w-full h-96 bg-black/20 border border-white/10 rounded-lg p-3 text-gray-300 focus:outline-none focus:border-blue-500 resize-none font-mono text-sm leading-relaxed"
                                     />
                                 ) : (
-                                    <p className="text-gray-300 leading-relaxed font-light text-lg whitespace-pre-wrap">
-                                        {task.objective || task.description || 'No objective defined for this task.'}
-                                    </p>
+                                    <div className="prose prose-invert max-w-none text-gray-300 font-light">
+                                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                            {task.objective || task.description || 'No objective defined for this task.'}
+                                        </ReactMarkdown>
+                                    </div>
                                 )}
                             </div>
-                            {/* Description block logic can be simplified or merged since we are editing objective primarily */}
                         </div>
                     )}
 
