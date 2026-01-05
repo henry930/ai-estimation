@@ -155,12 +155,38 @@ export async function POST(req: NextRequest) {
         }
 
         // 7. Process Phases and Tasks
-        const phases = mainContent.split(/## Phase \d+:/).slice(1);
+        const phaseBlocks = mainContent.split(/(?=## Phase \d+:)/).filter(b => b.trim().startsWith('## Phase'));
         let groupOrder = 0;
 
-        for (let i = 0; i < phases.length; i++) {
-            const phaseContent = phases[i];
-            const lines = phaseContent.split('\n');
+        for (const phaseBlock of phaseBlocks) {
+            const lines = phaseBlock.split('\n');
+            // Extract Phase Title (e.g., "Phase 1: Foundation & Setup")
+            const phaseTitleMatch = lines[0].match(/## (Phase \d+: .+)/);
+            if (!phaseTitleMatch) continue;
+
+            const phaseTitle = phaseTitleMatch[1].trim();
+            const phaseObjective = lines.find(l => l.startsWith('**Objective**:'))?.split('**Objective**:')[1]?.trim() || null;
+
+            // Upsert TaskGroup (Phase)
+            const existingGroup = await prisma.taskGroup.findFirst({
+                where: { projectId: project.id, title: phaseTitle }
+            });
+
+            const taskGroup = await prisma.taskGroup.upsert({
+                where: { id: existingGroup?.id || 'new-group-placeholder' },
+                update: {
+                    order: groupOrder,
+                    objective: phaseObjective
+                },
+                create: {
+                    projectId: project.id,
+                    title: phaseTitle,
+                    objective: phaseObjective,
+                    order: groupOrder
+                }
+            });
+
+            // Find the table in this phase block
             const tableRows = lines.filter(l =>
                 l.includes('|') &&
                 !l.includes('---') &&
@@ -168,35 +194,27 @@ export async function POST(req: NextRequest) {
                 !l.toLowerCase().includes('progress')
             );
 
+            let taskOrder = 0;
             for (const row of tableRows) {
                 const cols = row.split('|').map(c => c.trim()).filter(Boolean);
                 if (cols.length < 3) continue;
 
-                const groupTitle = cols[0];
+                // | Row Title (Task) | Status | Hours | Branch | Detail (Objective) |
+                const taskTitle = cols[0];
                 const status = cols[1];
                 const hours = parseInt(cols[2]) || 0;
                 const branch = cols[3]?.replace(/`/g, '') || null;
                 const detail = cols[4] || '';
 
-                // Upsert TaskGroup
-                const existingGroup = await prisma.taskGroup.findFirst({
-                    where: { projectId: project.id, title: groupTitle }
-                });
-
-                const taskGroup = await prisma.taskGroup.upsert({
-                    where: { id: existingGroup?.id || 'new-group-placeholder' },
-                    update: { order: groupOrder },
-                    create: {
-                        projectId: project.id,
-                        title: groupTitle,
-                        order: groupOrder
-                    }
-                });
-
                 // Upsert Task
-                const ref = refinements[groupTitle];
+                // We use the first column "Task Group" from markdown as the Task Title
+                // We use the "Detail" column as the Task Objective/Description
+
+                // Check for refinements for this specific task
+                const ref = refinements[taskTitle];
+
                 const existingTask = await prisma.task.findFirst({
-                    where: { groupId: taskGroup.id, title: groupTitle }
+                    where: { groupId: taskGroup.id, title: taskTitle }
                 });
 
                 const task = await prisma.task.upsert({
@@ -206,32 +224,35 @@ export async function POST(req: NextRequest) {
                         hours: hours,
                         branch: branch,
                         description: ref?.description || detail,
+                        objective: detail, // Explicitly set objective from Detail column
                         aiPrompt: ref?.prompt || null,
+                        order: taskOrder
                     },
                     create: {
                         groupId: taskGroup.id,
-                        title: groupTitle,
+                        title: taskTitle,
                         status: status as any,
                         hours: hours,
                         branch: branch,
                         description: ref?.description || detail,
+                        objective: detail,
                         aiPrompt: ref?.prompt || null,
-                        order: 0
+                        order: taskOrder
                     }
                 });
 
                 // Link GitHub Issues to Task
                 // We match issues that have a label matching the branch or title
                 const matchedIssues = githubIssues.filter(issue =>
-                    issue.labels.some((l: any) => l.name === branch || l.name === groupTitle) ||
-                    issue.title.includes(groupTitle)
+                    issue.labels.some((l: any) => l.name === branch || l.name === taskTitle) ||
+                    issue.title.includes(taskTitle)
                 );
 
                 // Clear/Update Subtasks and Documents
                 await prisma.subTask.deleteMany({ where: { taskId: task.id } });
                 await prisma.taskDocument.deleteMany({ where: { taskId: task.id } });
 
-                // 1. Add subtasks from TASKS.md
+                // 1. Add subtasks from TASKS.md Refinements
                 const issuesFromMd = ref?.issues || '';
                 if (issuesFromMd) {
                     const subLines = issuesFromMd.split('\n').filter((l: string) => l.trim());
@@ -267,7 +288,7 @@ export async function POST(req: NextRequest) {
                     }
                 }
 
-                // 3. Add documents from TASKS.md
+                // 3. Add documents from TASKS.md Refinements
                 const docsFromMd = ref?.documents || '';
                 if (docsFromMd) {
                     const docLines = docsFromMd.split('\n').filter((l: string) => l.trim());
@@ -290,7 +311,7 @@ export async function POST(req: NextRequest) {
 
                 // 4. Add documents from docs folder that match task keywords
                 const matchedDocs = githubDocs.filter(doc =>
-                    doc.name.toLowerCase().includes(groupTitle.toLowerCase().replace(/\s+/g, '-')) ||
+                    doc.name.toLowerCase().includes(taskTitle.toLowerCase().replace(/\s+/g, '-')) ||
                     (branch && doc.name.toLowerCase().includes(branch.split('/')[1] || branch))
                 );
 
@@ -308,8 +329,9 @@ export async function POST(req: NextRequest) {
                     }
                 }
 
-                groupOrder++;
+                taskOrder++;
             }
+            groupOrder++;
         }
 
         await prisma.project.update({

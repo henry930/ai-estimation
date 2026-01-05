@@ -6,6 +6,7 @@ export interface TaskItem {
     id: string;
     title: string;
     description?: string;
+    objective?: string | null;
     hours: number;
     completed: boolean;
     branch?: string;
@@ -65,6 +66,9 @@ export default function TaskBreakdown({ categories, onBranchClick }: TaskBreakdo
                                         </h4>
                                         <span className="text-xs text-gray-500 whitespace-nowrap">{task.hours}h</span>
                                     </div>
+                                    {task.objective && (
+                                        <p className="text-xs text-gray-500 mt-1 line-clamp-2">{task.objective}</p>
+                                    )}
                                     {task.branch && (
                                         <button
                                             onClick={() => onBranchClick?.(task.branch!)}
