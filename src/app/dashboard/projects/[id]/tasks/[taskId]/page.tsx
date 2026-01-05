@@ -6,6 +6,7 @@ import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import Link from 'next/link';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import ContextSidebar from '@/components/chat/ContextSidebar';
 
 interface SubTask {
     id: string;
@@ -150,7 +151,7 @@ export default function TaskDetailPage() {
     const checklistItems = task.subtasks.filter(st => !st.title.startsWith('GitHub Issue #'));
 
     return (
-        <DashboardLayout>
+        <DashboardLayout rightSidebar={<ContextSidebar githubUrl={task?.group?.project?.githubUrl} />}>
             <div className="max-w-4xl mx-auto space-y-6">
                 {/* Breadcrumb Widget */}
                 <div className="flex items-center gap-2 text-sm text-gray-500 mb-4 font-mono">
