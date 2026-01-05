@@ -48,6 +48,7 @@
 | Seed AI Estimation Project| DONE | 4 | `feature/seed-project` | Sync current git repo to DB |
 | Project Uniqueness Fix | DONE | 6 | `fix/project-uniqueness` | Prevent duplicate projects for same repo |
 | Schema Alignment | DONE | 8 | `feature/schema-alignment` | Group tasks by Phase, Sync Objectives |
+| Task Detail View | IN PROGRESS | 8 | `feature/task-detail-view` | Individual pages with tabs for tasks |
 
 #### [REFINEMENT] Phase 3 Details
 - **Issue #1 (Landing Page CTA)**: ✅ Route "Start Estimation" to `/login`.

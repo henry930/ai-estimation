@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+import { useParams } from 'next/navigation';
 import { useState } from 'react';
 
 export interface TaskItem {
@@ -27,6 +29,9 @@ interface TaskBreakdownProps {
 }
 
 export default function TaskBreakdown({ categories, onBranchClick }: TaskBreakdownProps) {
+    const params = useParams();
+    const projectId = params.id as string;
+
     if (!categories || categories.length === 0) {
         return (
             <div className="text-center py-20 border-2 border-dashed border-white/5 rounded-xl">
@@ -44,10 +49,10 @@ export default function TaskBreakdown({ categories, onBranchClick }: TaskBreakdo
                             {category.title}
                             {category.status && (
                                 <span className={`text-[10px] px-2 py-0.5 rounded font-mono border ${category.status === 'DONE'
-                                        ? 'bg-green-500/10 text-green-400 border-green-500/20'
-                                        : category.status === 'IN PROGRESS'
-                                            ? 'bg-blue-500/10 text-blue-400 border-blue-500/20'
-                                            : 'bg-white/5 text-gray-400 border-white/10'
+                                    ? 'bg-green-500/10 text-green-400 border-green-500/20'
+                                    : category.status === 'IN PROGRESS'
+                                        ? 'bg-blue-500/10 text-blue-400 border-blue-500/20'
+                                        : 'bg-white/5 text-gray-400 border-white/10'
                                     }`}>
                                     {category.status}
                                 </span>
@@ -75,10 +80,12 @@ export default function TaskBreakdown({ categories, onBranchClick }: TaskBreakdo
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center justify-between gap-2">
-                                        <h4 className={`text-sm font-medium transition-colors ${task.completed ? 'text-gray-500 line-through' : 'text-gray-300 group-hover:text-white'
-                                            }`}>
+                                        <Link
+                                            href={`/dashboard/projects/${projectId}/tasks/${task.id}`}
+                                            className={`text-sm font-medium transition-colors hover:underline underline-offset-4 ${task.completed ? 'text-gray-500 line-through' : 'text-gray-300 group-hover:text-white'}`}
+                                        >
                                             {task.title}
-                                        </h4>
+                                        </Link>
                                         <span className="text-xs text-gray-500 whitespace-nowrap">{task.hours}h</span>
                                     </div>
                                     {task.objective && (
