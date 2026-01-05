@@ -49,7 +49,7 @@
 | Project Uniqueness Fix | DONE | 6 | `fix/project-uniqueness` | Prevent duplicate projects for same repo |
 | Schema Alignment | DONE | 8 | `feature/schema-alignment` | Group tasks by Phase, Sync Objectives |
 | Task Detail View | DONE | 8 | `feature/task-detail-view` | Individual pages with tabs for tasks |
-| Project Detail View | IN PROGRESS | 8 | `feature/project-detail-view` | Project page tabs: Obj, Issues, Docs, Tasks |
+| Project Detail View | DONE | 8 | `feature/project-detail-view` | Project page tabs: Obj, Issues, Docs, Tasks |
 
 #### [REFINEMENT] Phase 3 Details
 - **Issue #1 (Landing Page CTA)**: ✅ Route "Start Estimation" to `/login`.
