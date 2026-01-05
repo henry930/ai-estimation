@@ -26,6 +26,9 @@
 | Authentication System | DONE | 24 | `feature/github-auth` | GitHub OAuth & Session Management |
 | Subscription Management | DONE | 24 | `feature/stripe-integration` | Stripe Checkout & Webhook Handlers |
 
+#### [REFINEMENT] Phase 2 Details
+- **Issue #3 (Auto-redirect)**: ✅ Redirect authenticated users from `/` and `/login` to `/dashboard`.
+
 ---
 
 ## Phase 3: Frontend Development
@@ -40,8 +43,9 @@
 | Results Functionality | PENDING | 10 | `feature/results-api` | Real data mapping, Export logic |
 | GitHub Connection UI | PENDING | 8 | `feature/github-ui` | File tree viewer, Status indicators |
 
-### [REFINEMENT] Phase 3 Details
-#### Mockup Consolidation (In Review)
+#### [REFINEMENT] Phase 3 Details
+- **Issue #1 (Landing Page CTA)**: ✅ Route "Start Estimation" to `/login`.
+- **Mockup Consolidation (In Review)**
 - **Description**: Audit all mockups and replace placeholders with functional UI (e.g., RepoSelection integrated, Markdown added).
 - **AI Enquiry Prompt**: "What's the best way to render a TaskBreakdown component inside a Markdown-enabled chat message list?"
 - **Issues**: 
@@ -77,13 +81,17 @@
 ---
 
 ## Phase 5: GitHub Integration
-**Status**: PENDING | **Total Hours**: 44
+**Status**: IN PROGRESS | **Total Hours**: 44
 
 | Task Group | Status | Hours | Branch | Detail |
 | :--- | :--- | :--- | :--- | :--- |
-| GitHub API Integration | PENDING | 16 | `feature/github-api` | Repository & File fetching |
+| GitHub API Integration | DONE | 16 | `feature/github-api` | Repository, Issue & File fetching |
 | Repository Creation | PENDING | 14 | `feature/repo-ops` | Automated repo creation & config |
 | README & Issues | PENDING | 14 | `feature/github-actions` | Auto-committing README & Task issues |
+
+#### [REFINEMENT] Phase 5 Details
+- **Issue #2 (Data Sync)**: ✅ Expanded sync to fetch repository metadata (Issues & Documents).
+- **Issue #2 (Data Sync)**: ✅ Link GitHub Issues to platform Tasks via labels/keywords.
 
 ---
 
@@ -98,7 +106,7 @@
 ---
 
 ## Summary Progress Bar
-**Overall Progress**: 48% (32/67 tasks approx)
+**Overall Progress**: 55% (37/67 tasks approx)
 
 | Phase | Progress |
 | :--- | :--- |
@@ -106,5 +114,5 @@
 | 2. Auth & Subs | [xxxxxxxxxx] 100% |
 | 3. Frontend | [xxxxxx----] 60% |
 | 4. Backend/AI | [----------] 0% |
-| 5. GitHub | [----------] 0% |
+| 5. GitHub | [xxxx------] 40% |
 | 6. Testing/Ops | [----------] 0% |
