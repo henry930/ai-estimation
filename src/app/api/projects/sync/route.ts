@@ -171,6 +171,21 @@ export async function POST(req: NextRequest) {
             const phaseTitle = phaseTitleMatch[1].trim();
             const phaseObjective = lines.find(l => l.startsWith('**Objective**:'))?.split('**Objective**:')[1]?.trim() || null;
 
+            // Extract Status Line: **Status**: DONE | **Total Hours**: 40 | **Branch**: `feature/phase-1-foundation`
+            const statusLine = lines.find(l => l.trim().startsWith('**Status**:'));
+            let phaseStatus = null;
+            let phaseHours = 0;
+            let phaseBranch = null;
+
+            if (statusLine) {
+                const parts = statusLine.split('|');
+                for (const part of parts) {
+                    if (part.includes('Status')) phaseStatus = part.split(':')[1].trim();
+                    if (part.includes('Total Hours')) phaseHours = parseInt(part.split(':')[1].trim()) || 0;
+                    if (part.includes('Branch')) phaseBranch = part.split(':')[1].trim().replace(/`/g, '');
+                }
+            }
+
             // Upsert TaskGroup (Phase)
             const existingGroup = await prisma.taskGroup.findFirst({
                 where: { projectId: project.id, title: phaseTitle }
@@ -180,12 +195,18 @@ export async function POST(req: NextRequest) {
                 where: { id: existingGroup?.id || 'new-group-placeholder' },
                 update: {
                     order: groupOrder,
-                    objective: phaseObjective
+                    objective: phaseObjective,
+                    status: phaseStatus,
+                    totalHours: phaseHours,
+                    branch: phaseBranch
                 },
                 create: {
                     projectId: project.id,
                     title: phaseTitle,
                     objective: phaseObjective,
+                    status: phaseStatus,
+                    totalHours: phaseHours,
+                    branch: phaseBranch,
                     order: groupOrder
                 }
             });
@@ -195,7 +216,8 @@ export async function POST(req: NextRequest) {
                 l.includes('|') &&
                 !l.includes('---') &&
                 !l.toLowerCase().includes('task group') &&
-                !l.toLowerCase().includes('progress')
+                !l.toLowerCase().includes('progress') &&
+                !l.trim().startsWith('**Status**') // Exclude the status line
             );
 
             let taskOrder = 0;

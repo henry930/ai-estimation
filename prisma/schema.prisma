@@ -109,6 +109,9 @@ model TaskGroup {
   projectId String
   title     String
   objective String?
+  status    String?  // e.g., "DONE", "IN PROGRESS"
+  totalHours Int?
+  branch    String?
   order     Int      @default(0)
   tasks     Task[]
   project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)

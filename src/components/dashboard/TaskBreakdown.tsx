@@ -15,6 +15,9 @@ export interface TaskItem {
 export interface TaskCategory {
     id: string;
     title: string;
+    status?: string | null;
+    totalHours?: number | null;
+    branch?: string | null;
     tasks: TaskItem[];
 }
 
@@ -37,9 +40,21 @@ export default function TaskBreakdown({ categories, onBranchClick }: TaskBreakdo
             {categories.map((category) => (
                 <div key={category.id} className="space-y-4">
                     <h3 className="text-lg font-semibold text-gray-200 border-b border-white/10 pb-2 flex justify-between items-center">
-                        {category.title}
+                        <div className="flex items-center gap-3">
+                            {category.title}
+                            {category.status && (
+                                <span className={`text-[10px] px-2 py-0.5 rounded font-mono border ${category.status === 'DONE'
+                                        ? 'bg-green-500/10 text-green-400 border-green-500/20'
+                                        : category.status === 'IN PROGRESS'
+                                            ? 'bg-blue-500/10 text-blue-400 border-blue-500/20'
+                                            : 'bg-white/5 text-gray-400 border-white/10'
+                                    }`}>
+                                    {category.status}
+                                </span>
+                            )}
+                        </div>
                         <span className="text-xs font-normal text-gray-500">
-                            {category.tasks.reduce((acc, t) => acc + t.hours, 0)} hours
+                            {category.totalHours || category.tasks.reduce((acc, t) => acc + t.hours, 0)} hours
                         </span>
                     </h3>
                     <div className="space-y-3">
