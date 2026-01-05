@@ -39,18 +39,20 @@
 | Landing Page Polish | DONE | 16 | `feature/github-projects` | Hero, Features, Pricing, Testimonials |
 | Dashboard Core | DONE | 14 | `feature/github-projects` | Layout, Project List, Repo Selector |
 | Mockup Consolidation | WAITING FOR REVIEW | 12 | `feature/frontend-polish` | Polishing Sidebar, Chat, Results UI |
+| Dashboard Refinement | IN PROGRESS | 12 | `feature/dashboard-refinement` | Sidebar cleanup, toggle logic, project sync |
 | Chat Experience | PENDING | 12 | `feature/chat-flow` | Streaming support, Input system |
 | Results Functionality | PENDING | 10 | `feature/results-api` | Real data mapping, Export logic |
 | GitHub Connection UI | PENDING | 8 | `feature/github-ui` | File tree viewer, Status indicators |
+| Sidebar Link Cleanup | PENDING | 4 | `feature/sidebar-cleanup` | Remove dead links and Manage Tasks |
+| Right Sidebar Toggle | PENDING | 6 | `feature/sidebar-toggle` | Show/hide right sidebar via icon |
+| Seed AI Estimation Project| PENDING | 4 | `feature/seed-project` | Sync current git repo to DB |
 
 #### [REFINEMENT] Phase 3 Details
 - **Issue #1 (Landing Page CTA)**: ✅ Route "Start Estimation" to `/login`.
-- **Mockup Consolidation (In Review)**
-- **Description**: Audit all mockups and replace placeholders with functional UI (e.g., RepoSelection integrated, Markdown added).
-- **AI Enquiry Prompt**: "What's the best way to render a TaskBreakdown component inside a Markdown-enabled chat message list?"
-- **Issues**: 
-  - [x] RepoSelection modal not opening from QuickActions.
-  - [x] MessageList missing markdown support.
+- **Issue #4 (Dashboard Refinement)**:
+  - [/] Remove "Manage Tasks" and dead links from left sidebar.
+  - [/] Implement toggle icon for right sidebar.
+  - [/] Ensure `ai-estimation` project is in "My Projects" list.
 
 #### Chat Experience (Pending)
 - **Description**: Implement SSE (Server Side Events) for streaming AI responses and a robust input state.
@@ -86,7 +88,7 @@
 | Task Group | Status | Hours | Branch | Detail |
 | :--- | :--- | :--- | :--- | :--- |
 | GitHub API Integration | DONE | 16 | `feature/github-api` | Repository, Issue & File fetching |
-| Repository Creation | PENDING | 14 | `feature/repo-ops` | Automated repo creation & config |
+| Repository Creation | DONE | 14 | `feature/repo-ops` | Automated repo creation & config |
 | README & Issues | PENDING | 14 | `feature/github-actions` | Auto-committing README & Task issues |
 
 #### [REFINEMENT] Phase 5 Details
@@ -106,7 +108,7 @@
 ---
 
 ## Summary Progress Bar
-**Overall Progress**: 55% (37/67 tasks approx)
+**Overall Progress**: 60% (40/67 tasks approx)
 
 | Phase | Progress |
 | :--- | :--- |
@@ -114,5 +116,5 @@
 | 2. Auth & Subs | [xxxxxxxxxx] 100% |
 | 3. Frontend | [xxxxxx----] 60% |
 | 4. Backend/AI | [----------] 0% |
-| 5. GitHub | [xxxx------] 40% |
+| 5. GitHub | [xxxxxxx---] 70% |
 | 6. Testing/Ops | [----------] 0% |
