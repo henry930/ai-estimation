@@ -36,25 +36,28 @@ export default function ProjectDetailsPage() {
     const fetchProjectData = async () => {
         try {
             setLoading(true);
-            const [projectRes, branchesRes, tasksRes] = await Promise.all([
-                fetch(`/api/projects/${params.id}`),
-                fetch(`/api/projects/${params.id}/branches`),
-                fetch(`/api/projects/${params.id}/tasks`)
-            ]);
+            setError(null);
 
-            if (!projectRes.ok) throw new Error('Failed to fetch project');
-            if (!branchesRes.ok) throw new Error('Failed to fetch branches');
-            if (!tasksRes.ok) throw new Error('Failed to fetch tasks');
-
-            const [projectData, branchesData, tasksData] = await Promise.all([
-                projectRes.json(),
-                branchesRes.json(),
-                tasksRes.json()
-            ]);
-
+            // Fetch project first
+            const projectRes = await fetch(`/api/projects/${params.id}`);
+            if (!projectRes.ok) {
+                throw new Error('Failed to fetch project');
+            }
+            const projectData = await projectRes.json();
             setProject(projectData);
-            setBranches(branchesData);
-            setTaskGroups(tasksData);
+
+            // Fetch branches and tasks in parallel, but don't fail if they error
+            const [branchesRes, tasksRes] = await Promise.allSettled([
+                fetch(`/api/projects/${params.id}/branches`).then(r => r.ok ? r.json() : []),
+                fetch(`/api/projects/${params.id}/tasks`).then(r => r.ok ? r.json() : [])
+            ]);
+
+            if (branchesRes.status === 'fulfilled') {
+                setBranches(branchesRes.value);
+            }
+            if (tasksRes.status === 'fulfilled') {
+                setTaskGroups(tasksRes.value);
+            }
         } catch (err: any) {
             setError(err.message);
         } finally {
@@ -138,8 +141,8 @@ export default function ProjectDetailsPage() {
                                 key={tab}
                                 onClick={() => setActiveTab(tab as any)}
                                 className={`pb-3 text-sm font-medium transition-colors border-b-2 ${activeTab === tab
-                                        ? 'border-blue-500 text-blue-500'
-                                        : 'border-transparent text-gray-500 hover:text-gray-300'
+                                    ? 'border-blue-500 text-blue-500'
+                                    : 'border-transparent text-gray-500 hover:text-gray-300'
                                     } capitalize`}
                             >
                                 {tab === 'tasks' ? 'Task List' : tab}

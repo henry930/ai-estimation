@@ -1,52 +1,83 @@
+'use client';
+
+import { useState } from 'react';
+import ChatPanel from '../dashboard/ChatPanel';
+
 interface ContextSidebarProps {
     githubUrl?: string | null;
     onConnectRepo?: () => void;
 }
 
 export default function ContextSidebar({ githubUrl, onConnectRepo }: ContextSidebarProps) {
+    const [activeTab, setActiveTab] = useState<'chat' | 'context'>('chat');
+
     return (
-        <div className="h-full flex flex-col bg-black text-white">
-            <div className="p-6 border-b border-white/10">
-                <h3 className="font-semibold text-lg">Estimation Context</h3>
+        <div className="h-full flex flex-col bg-[#050505] text-white">
+            {/* Tab Header */}
+            <div className="flex border-b border-white/10">
+                <button
+                    onClick={() => setActiveTab('chat')}
+                    className={`flex-1 py-4 text-sm font-medium border-b-2 transition-colors ${activeTab === 'chat'
+                        ? 'border-blue-500 text-blue-400'
+                        : 'border-transparent text-gray-500 hover:text-gray-300'
+                        }`}
+                >
+                    Chat
+                </button>
+                <button
+                    onClick={() => setActiveTab('context')}
+                    className={`flex-1 py-4 text-sm font-medium border-b-2 transition-colors ${activeTab === 'context'
+                        ? 'border-blue-500 text-blue-400'
+                        : 'border-transparent text-gray-500 hover:text-gray-300'
+                        }`}
+                >
+                    Context
+                </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-6 space-y-8">
-                {/* GitHub Context Section */}
-                <div>
-                    <h4 className="text-xs font-bold text-gray-500 uppercase mb-4 tracking-widest">Target Repository</h4>
-                    {githubUrl ? (
-                        <div className="p-4 rounded-xl bg-blue-500/5 border border-blue-500/20 flex items-center gap-3 group">
-                            <GitHubIcon />
-                            <div className="min-w-0">
-                                <div className="text-sm font-medium text-blue-400 truncate">
-                                    {githubUrl.split('/').slice(-2).join('/')}
+            <div className="flex-1 p-6 overflow-hidden">
+                {activeTab === 'chat' ? (
+                    <ChatPanel />
+                ) : (
+                    <div className="h-full overflow-y-auto space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
+                        {/* GitHub Context Section */}
+                        <div>
+                            <h4 className="text-xs font-bold text-gray-500 uppercase mb-4 tracking-widest">Target Repository</h4>
+                            {githubUrl ? (
+                                <div className="p-4 rounded-xl bg-blue-500/5 border border-blue-500/20 flex items-center gap-3 group">
+                                    <GitHubIcon />
+                                    <div className="min-w-0">
+                                        <div className="text-sm font-medium text-blue-400 truncate">
+                                            {githubUrl.split('/').slice(-2).join('/')}
+                                        </div>
+                                        <div className="text-[10px] text-gray-500">Connected</div>
+                                    </div>
                                 </div>
-                                <div className="text-[10px] text-gray-500">Connected</div>
-                            </div>
+                            ) : (
+                                <button
+                                    onClick={onConnectRepo}
+                                    className="w-full py-4 px-4 rounded-xl border border-dashed border-white/10 text-sm text-gray-400 hover:text-white hover:border-white/30 hover:bg-white/5 transition-all flex flex-col items-center justify-center gap-3 group"
+                                >
+                                    <div className="p-2 rounded-full bg-white/5 group-hover:bg-white/10 transition-colors">
+                                        <PlusIcon />
+                                    </div>
+                                    <span>Connect Repository</span>
+                                </button>
+                            )}
                         </div>
-                    ) : (
-                        <button
-                            onClick={onConnectRepo}
-                            className="w-full py-4 px-4 rounded-xl border border-dashed border-white/10 text-sm text-gray-400 hover:text-white hover:border-white/30 hover:bg-white/5 transition-all flex flex-col items-center justify-center gap-3 group"
-                        >
-                            <div className="p-2 rounded-full bg-white/5 group-hover:bg-white/10 transition-colors">
-                                <PlusIcon />
-                            </div>
-                            <span>Connect Repository</span>
-                        </button>
-                    )}
-                </div>
 
-                {/* Info Section */}
-                <div className="p-4 rounded-xl bg-orange-500/5 border border-orange-500/20">
-                    <div className="flex items-center gap-2 mb-2 text-orange-400">
-                        <InfoIcon />
-                        <span className="text-sm font-semibold">Pro Tip</span>
+                        {/* Info Section */}
+                        <div className="p-4 rounded-xl bg-orange-500/5 border border-orange-500/20">
+                            <div className="flex items-center gap-2 mb-2 text-orange-400">
+                                <InfoIcon />
+                                <span className="text-sm font-semibold">Pro Tip</span>
+                            </div>
+                            <p className="text-xs text-orange-400/70 leading-relaxed">
+                                Connecting a repository allows the AI to analyze existing code patterns and generate more accurate task breakdowns.
+                            </p>
+                        </div>
                     </div>
-                    <p className="text-xs text-orange-400/70 leading-relaxed">
-                        Connecting a repository allows the AI to analyze existing code patterns and generate more accurate task breakdowns.
-                    </p>
-                </div>
+                )}
             </div>
         </div>
     );
