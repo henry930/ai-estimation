@@ -11,10 +11,10 @@
 
 | Task Group | Status | Hours | Branch | Detail |
 | :--- | :--- | :--- | :--- | :--- |
-| Project Initialization | DONE | 8 | `main` | Initialize Next.js 14 app, configure TypeScript, ESLint, Prettier, install dependencies (Tailwind, Lucide), and set up environment variables (.env). |
-| Database Schema | DONE | 12 | `main` | Define Prisma schema for User, Project, Task, TaskGroup models. Configure PostgreSQL connection. Create and run initial migration. |
-| Base UI Components | DONE | 12 | `main` | Create reusable UI components (Button, Card, Input, Modal, Sidebar) using Tailwind CSS. Establish 'dashboard' layout with navigation. |
-| Project Configuration | DONE | 8 | `main` | Set up NextAuth.js structure, API route handlers architecture (GET/POST/PATCH/DELETE), and global error handling utilities. |
+| Project Initialization | DONE | 8 | `main` | Run `npx create-next-app@latest`. Install `lucide-react`, `clsx`, `tailwind-merge`. Config `tsconfig.json` paths. Outcome: Clean Next.js 14 environment running on port 3000. |
+| Database Schema | DONE | 12 | `main` | Install `prisma`, `@prisma/client`. Run `npx prisma init`. Define models: User, Project, Task in `schema.prisma`. Run `npx prisma migrate dev`. Outcome: Postgres DB connected with schema. |
+| Base UI Components | DONE | 12 | `main` | Create reusable atomic components in `src/components/ui/` (Button, Card, Input) using `cva` for variants. Outcome: Consistent component library ready for import. |
+| Project Configuration | DONE | 8 | `main` | Setup `src/lib/utils.ts` for `cn()`. Configure `next.config.js`. Create `src/lib/api-client.ts` wrapper. Outcome: Optimized build config and API utilities. |
 
 ---
 
@@ -23,8 +23,8 @@
 
 | Task Group | Status | Hours | Branch | Detail |
 | :--- | :--- | :--- | :--- | :--- |
-| Authentication System | DONE | 24 | `feature/phase-2-1-auth-system` | Implement GitHub OAuth provider via NextAuth. Allow users to sign in/up. Protect dashboard routes. Persist user sessions in DB. |
-| Subscription Management | DONE | 24 | `feature/phase-2-2-subscription` | Integrate Stripe Checkout. Create pricing tiers (Free, Pro). Handle webhooks for checkout_completed and subscription_updated events to update user status. |
+| Authentication System | DONE | 24 | `feature/phase-2-1-auth-system` | Install `next-auth` & adapter. Config `GoogleProvider`/`GitHubProvider` in `src/lib/auth.ts`. Add env vars. Outcome: Secure login/logout flow with session persistence. |
+| Subscription Management | DONE | 24 | `feature/phase-2-2-subscription` | Install `stripe`. Init client in `src/lib/stripe.ts`. Create webhook at `api/webhooks/stripe`. Outcome: Working payment flow updating `user.isPro` status. |
 
 #### [REFINEMENT] Phase 2 Details
 - **Issue #3 (Auto-redirect)**: ✅ Redirect authenticated users from `/` and `/login` to `/dashboard`.
@@ -36,24 +36,24 @@
 
 | Task Group | Status | Hours | Branch | Detail |
 | :--- | :--- | :--- | :--- | :--- |
-| Landing Page Polish | DONE | 16 | `feature/github-projects` | Refine Landing Page with distinct sections: Hero (CTA), Features, Testimonials, Pricing. Ensure responsive design and smooth scrolling. |
-| Dashboard Core | DONE | 14 | `feature/github-projects` | Build main Dashboard layout with Sidebar. Implement 'My Projects' grid view. Add 'New Project' modal with GitHub Repo selection/creation. |
-| Mockup Consolidation | WAITING FOR REVIEW | 12 | `feature/frontend-polish` | Unify fonts, colors, and spacing across all pages. Ensure consistent Sidebar navigation. Polish UI for 'Chat' and 'Results' placeholders. |
-| Dashboard Refinement | DONE | 12 | `feature/dashboard-refinement` | Clean up sidebar links. Add right sidebar toggle. Implement GitHub Project Sync button to refreshing repo data manually. |
-| Chat Experience | PENDING | 12 | `feature/chat-flow` | Build 'Talk to Task' interface. Implement sliding panel for AI chat. Handle streaming text responses. Support multi-line user input. |
-| Results Functionality | PENDING | 10 | `feature/results-api` | Create view to display AI estimation results (JSON). Map API data to UI tables. Implement 'Export to CSV/PDF' logic. |
-| GitHub Connection UI | PENDING | 8 | `feature/github-ui` | Add visual indicators for GitHub sync status (Repo connected, Last synced time). Add generic file tree viewer/browser. |
-| Sidebar Link Cleanup | DONE | 4 | `feature/sidebar-cleanup` | Remove non-functional links. Restructure navigation to prioritize Projects, Tasks, and Settings. |
-| Right Sidebar Toggle | DONE | 6 | `feature/sidebar-toggle` | Add collapsible functional right sidebar for context/help/chat, controlled by header icon. |
-| Seed AI Estimation Project| DONE | 4 | `feature/seed-project` | Create a script/API to parse current repo's TASKS.md and seed the DB with this project's own tasks for dogfooding. |
-| Project Uniqueness Fix | DONE | 6 | `fix/project-uniqueness` | Add database constraints or logic to prevent duplicate Projects for the same GitHub Repository URL. |
-| Schema Alignment | DONE | 8 | `feature/schema-alignment` | Update Prisma schema to match Phase/Task hierarchy. Add 'Objective' field to Task model. Sync logic to populate these fields. |
-| Task Detail View | DONE | 8 | `feature/task-detail-view` | Create `/projects/[id]/tasks/[taskId]` page. Implement tabs: Objective, Issues, Documents, Subtasks. |
-| Project Detail View | DONE | 8 | `feature/project-detail-view` | Refactor Project page to match Task Detail layout. Tabs: Objective (Project Summary), Issues (Repo Issues), Docs, Tasks (Phase Tree). |
-| Task Status & Progress | DONE | 6 | `feature/task-progress` | Add visual status badges (TODO/IN PROGRESS/DONE). Calculate and display progress bar % based on subtask completion. |
-| Phase Progress Bars | DONE | 6 | `feature/phase-progress` | Implement aggregate progress bars on Phase headers, calculating % completion of all tasks within that phase. |
-| Branch Creation UI | DONE | 4 | `feature/branch-creation-ui` | Add logic to check if Task has a linked branch. If not, show 'Create Branch' button. If yes, show link to GitHub branch. |
-| Dashboard Task Management | DONE | 8 | `feature/dashboard-task-mgmt` | Enable 'Edit Mode' on Task Detail page. Allow updating Title, Objective, Status, and Description directly via UI (PATCH API). |
+| Landing Page Polish | DONE | 16 | `feature/github-projects` | Modify `app/page.tsx`. Create `Hero`, `Features`, `Pricing` components. Use `framer-motion` for scroll animations. Outcome: High-converting landing page. |
+| Dashboard Core | DONE | 14 | `feature/github-projects` | Create `DashboardLayout` component with Sidebar slot. Use `grid` for Projects list. Add `NewProjectModal`. Outcome: Functional dashboard base. |
+| Mockup Consolidation | WAITING FOR REVIEW | 12 | `feature/frontend-polish` | Standardize `tailwind.config.ts` colors/fonts. Refactor Sidebar to `src/components/dashboard/Sidebar.tsx`. Outcome: Unified design system. |
+| Dashboard Refinement | DONE | 12 | `feature/dashboard-refinement` | Refactor Sidebar navigation array. Implement `RightSidebar` toggle with `useState`. Add Sync button calling `POST /api/projects/sync`. Outcome: Clean navigation. |
+| Chat Experience | PENDING | 12 | `feature/chat-flow` | Install `ai` & `openai`. Create `ChatPanel` component. Use `useChat` hook to handle streaming. Implement auto-scrolling message list. Outcome: Real-time AI chat UI. |
+| Results Functionality | PENDING | 10 | `feature/results-api` | Create `EstimationTable` component. Use `tanstack/react-table` for sorting/filtering. Add 'Export CSV' button using `csv-stringify`. Outcome: Data-rich results view. |
+| GitHub Connection UI | PENDING | 8 | `feature/github-ui` | Create `FileTree` recursive component. Add status indicators (green/red dots) for Repo connection. Outcome: Visual confirmation of GitHub sync. |
+| Sidebar Link Cleanup | DONE | 4 | `feature/sidebar-cleanup` | Remove unused routes from `Sidebar.tsx`. Ensure `Link` components use `usePathname` for active state. Outcome: Streamlined navigation. |
+| Right Sidebar Toggle | DONE | 6 | `feature/sidebar-toggle` | Add `RightSidebarContext` provider. Create toggle button in header. Outcome: Collapsible context panel. |
+| Seed AI Estimation Project| DONE | 4 | `feature/seed-project` | Create `scripts/seed-local.ts`. Use `fs` to read `TASKS.md`. Prisma `createMany` to seed. Outcome: DB populated with own tasks. |
+| Project Uniqueness Fix | DONE | 6 | `fix/project-uniqueness` | Update `POST /api/projects`. Check `prisma.project.findFirst({ url })`. Return existing if found. Outcome: No duplicate projects. |
+| Schema Alignment | DONE | 8 | `feature/schema-alignment` | Update `schema.prisma`: Add `objective` to Task. Run `prisma migrate`. Update API to include field. Outcome: DB matches functionality. |
+| Task Detail View | DONE | 8 | `feature/task-detail-view` | Create `[taskId]/page.tsx`. Use `Tab.Group` (headless UI) or state for tabs. Fetch task data via `useSWR` or `useEffect`. Outcome: Detailed task view. |
+| Project Detail View | DONE | 8 | `feature/project-detail-view` | Refactor project page. Add `Tabs` component. Reuse `TaskBreakdown` component. Outcome: Consistent project interface. |
+| Task Status & Progress | DONE | 6 | `feature/task-progress` | Add logic: `completedSubtasks / totalSubtasks`. Render `ProgressBar` component. Add Status Badge variants. Outcome: Visual progress tracking. |
+| Phase Progress Bars | DONE | 6 | `feature/phase-progress` | Calculate phase % in `TaskBreakdown`. Render bar in accordion header. Outcome: High-level progress view. |
+| Branch Creation UI | DONE | 4 | `feature/branch-creation-ui` | Logic: `!task.branch && ShowButton`. Button calls `POST /api/github/branch`. Outcome: One-click branch creation. |
+| Dashboard Task Management | DONE | 8 | `feature/dashboard-task-mgmt` | Add Edit/Save mode to `TaskDetail`. Input fields replace text. Patch `api/tasks/[id]`. Outcome: In-place task editing. |
 
 #### [REFINEMENT] Phase 3 Details
 - **Issue #1 (Landing Page CTA)**: ✅ Route "Start Estimation" to `/login`.
