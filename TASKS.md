@@ -53,6 +53,7 @@
 | Task Status & Progress | DONE | 6 | `feature/task-progress` | Display status and subtask % completion |
 | Phase Progress Bars | DONE | 6 | `feature/phase-progress` | Aggregated progress for Task Groups |
 | Branch Creation UI | DONE | 4 | `feature/branch-creation-ui` | Button to create branch from Task Detail |
+| Dashboard Task Management | IN PROGRESS | 8 | `feature/dashboard-task-mgmt` | Edit tasks/objectives directly in UI |
 
 #### [REFINEMENT] Phase 3 Details
 - **Issue #1 (Landing Page CTA)**: ✅ Route "Start Estimation" to `/login`.

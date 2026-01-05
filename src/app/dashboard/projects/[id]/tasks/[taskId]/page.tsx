@@ -80,6 +80,43 @@ export default function TaskDetailPage() {
         alert(`Request to create branch '${branchName}' initiated! (API Integration Pending)`);
     };
 
+    const [isEditing, setIsEditing] = useState(false);
+    const [editForm, setEditForm] = useState({ title: '', objective: '', status: '' });
+
+    useEffect(() => {
+        if (task) {
+            setEditForm({
+                title: task.title,
+                objective: task.objective || task.description || '',
+                status: task.status
+            });
+        }
+    }, [task]);
+
+    const handleSave = async () => {
+        try {
+            const res = await fetch(`/api/tasks/${params.taskId}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    title: editForm.title,
+                    objective: editForm.objective,
+                    description: editForm.objective, // Keeping description synced for now
+                    status: editForm.status
+                })
+            });
+
+            if (!res.ok) throw new Error('Failed to update task');
+
+            const updatedTask = await res.json();
+            setTask(prev => prev ? { ...prev, ...updatedTask } : null);
+            setIsEditing(false);
+        } catch (error) {
+            console.error('Failed to save task:', error);
+            alert('Failed to save changes');
+        }
+    };
+
     if (loading) {
         return (
             <DashboardLayout>
@@ -111,8 +148,8 @@ export default function TaskDetailPage() {
         <DashboardLayout>
             <div className="max-w-4xl mx-auto space-y-6">
                 {/* Header */}
-                <div className="flex items-start justify-between">
-                    <div>
+                <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-2">
                             <Link
                                 href={`/dashboard/projects/${task.group.projectId}`}
@@ -124,38 +161,94 @@ export default function TaskDetailPage() {
                             </Link>
                             <span className="text-sm text-gray-500 font-mono">{task.group.title}</span>
                         </div>
-                        <h1 className="text-3xl font-bold">{task.title}</h1>
-                    </div>
-                    <div className="flex items-center gap-3">
-                        {task.branch ? (
-                            <a
-                                href={`https://github.com/henry930/ai-estimation/tree/${task.branch}`} // URL should ideally be dynamic from project
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="px-3 py-1.5 rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/20 text-xs font-mono flex items-center gap-2 hover:bg-blue-500/20 transition-all"
-                            >
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0 0a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Zm0-12.814a2.25 2.25 0 1 0 3.933-2.185 2.25 2.25 0 0 0-3.933 2.185Z" />
-                                </svg>
-                                {task.branch}
-                            </a>
+                        {isEditing ? (
+                            <input
+                                type="text"
+                                value={editForm.title}
+                                onChange={e => setEditForm(prev => ({ ...prev, title: e.target.value }))}
+                                className="w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-2xl font-bold text-white focus:outline-none focus:border-blue-500"
+                            />
                         ) : (
-                            <button
-                                onClick={handleCreateBranch}
-                                className="px-3 py-1.5 rounded-lg bg-white/5 text-gray-400 border border-white/10 text-xs hover:bg-white/10 hover:text-white transition-all flex items-center gap-2"
-                            >
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                                </svg>
-                                Create Branch
-                            </button>
+                            <h1 className="text-3xl font-bold">{task.title}</h1>
                         )}
-                        <div className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${task.status === 'DONE' ? 'bg-green-500/10 text-green-500' :
-                            task.status === 'IN PROGRESS' ? 'bg-blue-500/10 text-blue-500' :
-                                'bg-white/10 text-gray-500'
-                            }`}>
-                            {task.status}
+                    </div>
+
+                    <div className="flex flex-col items-end gap-3">
+                        {/* Action Buttons */}
+                        <div className="flex items-center gap-2">
+                            {isEditing ? (
+                                <>
+                                    <button
+                                        onClick={handleSave}
+                                        className="px-3 py-1.5 rounded-lg bg-green-600 text-white text-xs font-medium hover:bg-green-500 transition-all"
+                                    >
+                                        Save
+                                    </button>
+                                    <button
+                                        onClick={() => setIsEditing(false)}
+                                        className="px-3 py-1.5 rounded-lg bg-white/10 text-gray-400 text-xs font-medium hover:bg-white/20 transition-all"
+                                    >
+                                        Cancel
+                                    </button>
+                                </>
+                            ) : (
+                                <button
+                                    onClick={() => setIsEditing(true)}
+                                    className="px-3 py-1.5 rounded-lg bg-white/5 text-gray-400 border border-white/10 text-xs hover:bg-white/10 hover:text-white transition-all flex items-center gap-2"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-3.5 h-3.5">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                                    </svg>
+                                    Edit
+                                </button>
+                            )}
+                            {!isEditing && (
+                                task.branch ? (
+                                    <a
+                                        href={`https://github.com/henry930/ai-estimation/tree/${task.branch}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="px-3 py-1.5 rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/20 text-xs font-mono flex items-center gap-2 hover:bg-blue-500/20 transition-all"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0 0a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Zm0-12.814a2.25 2.25 0 1 0 3.933-2.185 2.25 2.25 0 0 0-3.933 2.185Z" />
+                                        </svg>
+                                        {task.branch}
+                                    </a>
+                                ) : (
+                                    <button
+                                        onClick={handleCreateBranch}
+                                        className="px-3 py-1.5 rounded-lg bg-white/5 text-gray-400 border border-white/10 text-xs hover:bg-white/10 hover:text-white transition-all flex items-center gap-2"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                                        </svg>
+                                        Branch
+                                    </button>
+                                )
+                            )}
                         </div>
+
+                        {/* Status Badge */}
+                        {isEditing ? (
+                            <select
+                                value={editForm.status}
+                                onChange={e => setEditForm(prev => ({ ...prev, status: e.target.value }))}
+                                className="bg-white/5 border border-white/10 rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-blue-500"
+                            >
+                                <option value="PENDING">PENDING</option>
+                                <option value="IN PROGRESS">IN PROGRESS</option>
+                                <option value="WAITING FOR REVIEW">WAITING REVIEW</option>
+                                <option value="DONE">DONE</option>
+                            </select>
+                        ) : (
+                            <div className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${task.status === 'DONE' ? 'bg-green-500/10 text-green-500' :
+                                    task.status === 'IN PROGRESS' ? 'bg-blue-500/10 text-blue-500' :
+                                        'bg-white/10 text-gray-500'
+                                }`}>
+                                {task.status}
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -183,18 +276,19 @@ export default function TaskDetailPage() {
                         <div className="space-y-4 animate-in fade-in duration-300">
                             <div className="p-6 rounded-2xl bg-white/5 border border-white/10">
                                 <h3 className="text-lg font-semibold mb-4 text-white">Objective</h3>
-                                <p className="text-gray-300 leading-relaxed font-light text-lg">
-                                    {task.objective || task.description || 'No objective defined for this task.'}
-                                </p>
-                            </div>
-                            {task.description && task.description !== task.objective && (
-                                <div className="p-6 rounded-2xl bg-white/5 border border-white/10">
-                                    <h3 className="text-lg font-semibold mb-4 text-white">Description</h3>
-                                    <p className="text-gray-300 leading-relaxed">
-                                        {task.description}
+                                {isEditing ? (
+                                    <textarea
+                                        value={editForm.objective}
+                                        onChange={e => setEditForm(prev => ({ ...prev, objective: e.target.value }))}
+                                        className="w-full h-40 bg-black/20 border border-white/10 rounded-lg p-3 text-gray-300 focus:outline-none focus:border-blue-500 resize-none font-light leading-relaxed"
+                                    />
+                                ) : (
+                                    <p className="text-gray-300 leading-relaxed font-light text-lg whitespace-pre-wrap">
+                                        {task.objective || task.description || 'No objective defined for this task.'}
                                     </p>
-                                </div>
-                            )}
+                                )}
+                            </div>
+                            {/* Description block logic can be simplified or merged since we are editing objective primarily */}
                         </div>
                     )}
 

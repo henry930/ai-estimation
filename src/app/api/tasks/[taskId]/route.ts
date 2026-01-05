@@ -41,3 +41,34 @@ export async function GET(
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
+
+export async function PATCH(
+    req: Request,
+    { params }: { params: Promise<{ taskId: string }> }
+) {
+    const { taskId } = await params;
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user?.id) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    try {
+        const body = await req.json();
+        const { title, objective, description, status } = body;
+
+        const updatedTask = await prisma.task.update({
+            where: { id: taskId },
+            data: {
+                title,
+                objective,
+                description,
+                status
+            }
+        });
+
+        return NextResponse.json(updatedTask);
+    } catch (error: any) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+}
