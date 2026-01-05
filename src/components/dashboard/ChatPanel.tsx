@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useChat } from 'ai/react';
+import { useChat } from 'ai';
 import { useRef, useEffect } from 'react';
 
 export default function ChatPanel() {
@@ -36,8 +36,8 @@ export default function ChatPanel() {
                 {messages.map(m => (
                     <div key={m.id} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                         <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${m.role === 'user'
-                                ? 'bg-blue-600 text-white rounded-br-none'
-                                : 'bg-white/10 text-gray-200 rounded-bl-none'
+                            ? 'bg-blue-600 text-white rounded-br-none'
+                            : 'bg-white/10 text-gray-200 rounded-bl-none'
                             }`}>
                             <span className="font-bold text-[10px] opacity-50 block mb-1 uppercase tracking-wider">
                                 {m.role === 'user' ? 'You' : 'AI'}
