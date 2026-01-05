@@ -6,6 +6,14 @@ import { prisma } from '@/lib/prisma'
 
 export async function POST(request: Request) {
     try {
+        // Check if Stripe is configured
+        if (!stripe) {
+            return NextResponse.json(
+                { error: 'Stripe is not configured' },
+                { status: 503 }
+            )
+        }
+
         const session = await getServerSession(authOptions)
 
         if (!session?.user?.email) {

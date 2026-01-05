@@ -1,4 +1,46 @@
 import { prisma } from './prisma';
+import { Octokit } from '@octokit/rest';
+
+/**
+ * Creates an Octokit instance with the provided access token
+ * Returns null if no token is provided (for mock mode)
+ */
+export function getOctokit(token?: string | null): Octokit | null {
+    if (!token) return null;
+    return new Octokit({ auth: token });
+}
+
+/**
+ * Creates a GitHub issue using Octokit
+ */
+export async function createIssue(
+    octokit: Octokit,
+    owner: string,
+    repo: string,
+    title: string,
+    body: string,
+    labels?: string[]
+) {
+    return await octokit.issues.create({
+        owner,
+        repo,
+        title,
+        body,
+        labels
+    });
+}
+
+/**
+ * Mock file tree data for development/testing
+ */
+export const mockFileTree = [
+    { path: 'README.md', type: 'blob', size: 1234 },
+    { path: 'src/index.ts', type: 'blob', size: 567 },
+    { path: 'src/lib', type: 'tree' },
+    { path: 'src/lib/utils.ts', type: 'blob', size: 890 },
+    { path: 'package.json', type: 'blob', size: 2345 },
+];
+
 
 export interface GitHubRepo {
     id: number;

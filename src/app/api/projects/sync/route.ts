@@ -178,7 +178,7 @@ export async function POST(req: NextRequest) {
                     await prisma.taskDocument.deleteMany({ where: { taskId: task.id } });
 
                     if (issuesText) {
-                        const subLines = issuesText.split('\n').filter(l => l.trim());
+                        const subLines = issuesText.split('\n').filter((l: string) => l.trim());
                         let subOrder = 0;
                         for (const sl of subLines) {
                             const subMatch = sl.match(/- \[( |x|X)\] (.*)/);
@@ -196,7 +196,7 @@ export async function POST(req: NextRequest) {
                     }
 
                     if (docsText) {
-                        const docLines = docsText.split('\n').filter(l => l.trim());
+                        const docLines = docsText.split('\n').filter((l: string) => l.trim());
                         for (const dl of docLines) {
                             const docMatch = dl.match(/\[([^\]]+)\]\(([^)]+)\)/);
                             if (docMatch) {

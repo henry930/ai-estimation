@@ -18,3 +18,5 @@ coverage/
 out/
 next-env.d.ts
 .pnpm-debug.log*
+.sst
+.env.production

@@ -4,11 +4,12 @@ import { successResponse, errorResponse } from '@/lib/api-response';
 
 export async function GET(
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
+    const { id } = await params;
     try {
         const task = await prisma.task.findUnique({
-            where: { id: params.id },
+            where: { id },
             include: {
                 group: true,
                 subtasks: {

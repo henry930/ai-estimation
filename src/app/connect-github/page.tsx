@@ -9,7 +9,7 @@ import Link from 'next/link';
 
 export default function ConnectGitHubPage() {
     const [isConnected, setIsConnected] = useState(false);
-    const [selectedRepo, setSelectedRepo] = useState<number | null>(null);
+    const [selectedRepo, setSelectedRepo] = useState<string | null>(null);
 
     // Mock auto-connection effect for demo purposes (or could use a toggle)
     const toggleConnection = () => {

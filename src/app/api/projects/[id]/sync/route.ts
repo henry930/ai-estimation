@@ -1,12 +1,13 @@
 import { getServerSession } from 'next-auth';
-import { authOptions } from '../../../../auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 
 export async function POST(
     req: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
+    const { id } = await params;
     const session = await getServerSession(authOptions);
 
     if (!session?.user?.id) {
@@ -16,7 +17,7 @@ export async function POST(
     try {
         const project = await prisma.project.findUnique({
             where: {
-                id: params.id,
+                id,
                 userId: session.user.id,
             },
         });

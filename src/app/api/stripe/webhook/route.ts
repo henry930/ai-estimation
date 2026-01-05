@@ -5,6 +5,14 @@ import { prisma } from '@/lib/prisma'
 import Stripe from 'stripe'
 
 export async function POST(request: Request) {
+    // Check if Stripe is configured
+    if (!stripe) {
+        return NextResponse.json(
+            { error: 'Stripe is not configured' },
+            { status: 503 }
+        )
+    }
+
     const body = await request.text()
     const headersList = await headers()
     const signature = headersList.get('stripe-signature')

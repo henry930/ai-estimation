@@ -1,12 +1,13 @@
 import { getServerSession } from 'next-auth';
-import { authOptions } from '../../../auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 
 export async function GET(
     req: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
+    const { id } = await params;
     const session = await getServerSession(authOptions);
 
     if (!session?.user?.id) {
@@ -17,7 +18,7 @@ export async function GET(
         console.log('Available Prisma models:', Object.keys(prisma).filter(k => !k.startsWith('_')));
         const taskGroups = await (prisma as any).taskGroup.findMany({
             where: {
-                projectId: params.id,
+                projectId: id,
             },
             include: {
                 tasks: {

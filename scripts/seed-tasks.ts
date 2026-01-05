@@ -75,7 +75,6 @@ async function main() {
                     groupId: currentGroup.id,
                     title,
                     hours,
-                    completed,
                     branch: currentBranch || null,
                     order: taskOrder++,
                 },

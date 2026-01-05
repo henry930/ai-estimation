@@ -1,5 +1,6 @@
 import TaskDetail from '@/components/dashboard/TaskDetail';
 
-export default function TaskDetailPage({ params }: { params: { id: string } }) {
-    return <TaskDetail taskId={params.id} />;
+export default async function TaskDetailPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = await params;
+    return <TaskDetail taskId={id} />;
 }

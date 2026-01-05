@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, Suspense } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import ChatLayout from '@/components/chat/ChatLayout';
 import MessageList, { Message } from '@/components/chat/MessageList';
 import MessageInput from '@/components/chat/MessageInput';
 import ContextSidebar from '@/components/chat/ContextSidebar';
 import RepoSelection from '@/components/dashboard/RepoSelection';
+import { TaskCategory } from '@/components/dashboard/TaskBreakdown';
 
 interface Project {
     id: string;

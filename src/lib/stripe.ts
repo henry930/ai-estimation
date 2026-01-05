@@ -1,13 +1,15 @@
 import Stripe from 'stripe'
 
-if (!process.env.STRIPE_SECRET_KEY) {
-    throw new Error('STRIPE_SECRET_KEY is not defined')
-}
+// Make Stripe optional - only initialize if key is provided
+// This allows deployment without Stripe configuration
+const stripeKey = process.env.STRIPE_SECRET_KEY;
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-    apiVersion: '2025-11-17.clover',
-    typescript: true,
-})
+export const stripe = stripeKey
+    ? new Stripe(stripeKey, {
+        apiVersion: '2025-11-17.clover',
+        typescript: true,
+    })
+    : null;
 
 export const STRIPE_PLANS = {
     free: {
