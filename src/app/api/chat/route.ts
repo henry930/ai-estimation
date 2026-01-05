@@ -1,7 +1,5 @@
-import { streamText, pipeDataStreamToResponse } from 'ai';
+import { streamText } from 'ai';
 import { bedrock } from '@ai-sdk/amazon-bedrock';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
 import { NextResponse } from 'next/server';
 
 export const runtime = 'edge';
@@ -61,9 +59,7 @@ Be concise and actionable.`;
     // Check if AWS credentials are configured
     if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
         // Return mock response
-        const mockText = "I am a mock AI assistant. Please configure your AWS credentials (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION) to get real Claude responses.\n\nI can help you refine this task's objective, add subtasks, and suggest improvements.";
-
-        return new Response(mockText, {
+        return new Response("I am a mock AI assistant. Please configure your AWS credentials (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION) to get real Claude responses.\n\nI can help you refine this task's objective, add subtasks, and suggest improvements.", {
             headers: {
                 'Content-Type': 'text/plain',
             }
@@ -77,9 +73,12 @@ Be concise and actionable.`;
             messages,
         });
 
-        const response = new Response(result.textStream);
-        pipeDataStreamToResponse(result, response);
-        return response;
+        // Return the text stream directly
+        return new Response(result.textStream, {
+            headers: {
+                'Content-Type': 'text/plain; charset=utf-8',
+            }
+        });
     } catch (error: any) {
         console.error('Bedrock error:', error);
         return NextResponse.json({
