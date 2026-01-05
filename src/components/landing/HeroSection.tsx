@@ -25,7 +25,7 @@ export default function HeroSection() {
 
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                     <Link
-                        href="/estimate/new"
+                        href="/login"
                         className="px-8 py-4 rounded-full bg-white text-black font-semibold text-lg hover:bg-gray-100 transition-all transform hover:scale-105"
                     >
                         Start Estimation
