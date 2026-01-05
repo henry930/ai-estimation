@@ -40,7 +40,7 @@
 | Dashboard Core | DONE | 14 | `feature/github-projects` | Create `DashboardLayout` component with Sidebar slot. Use `grid` for Projects list. Add `NewProjectModal`. Outcome: Functional dashboard base. |
 | Mockup Consolidation | WAITING FOR REVIEW | 12 | `feature/frontend-polish` | Standardize `tailwind.config.ts` colors/fonts. Refactor Sidebar to `src/components/dashboard/Sidebar.tsx`. Outcome: Unified design system. |
 | Dashboard Refinement | DONE | 12 | `feature/dashboard-refinement` | Refactor Sidebar navigation array. Implement `RightSidebar` toggle with `useState`. Add Sync button calling `POST /api/projects/sync`. Outcome: Clean navigation. |
-| Chat Experience | PENDING | 12 | `feature/chat-flow` | Install `ai` & `openai`. Create `ChatPanel` component. Use `useChat` hook to handle streaming. Implement auto-scrolling message list. Outcome: Real-time AI chat UI. |
+| Chat Experience | DONE | 12 | `feature/chat-flow` | Install `ai` & `openai`. Create `ChatPanel` component. Use `useChat` hook to handle streaming. Implement auto-scrolling message list. Outcome: Real-time AI chat UI. |
 | Results Functionality | PENDING | 10 | `feature/results-api` | Create `EstimationTable` component. Use `tanstack/react-table` for sorting/filtering. Add 'Export CSV' button using `csv-stringify`. Outcome: Data-rich results view. |
 | GitHub Connection UI | PENDING | 8 | `feature/github-ui` | Create `FileTree` recursive component. Add status indicators (green/red dots) for Repo connection. Outcome: Visual confirmation of GitHub sync. |
 | Sidebar Link Cleanup | DONE | 4 | `feature/sidebar-cleanup` | Remove unused routes from `Sidebar.tsx`. Ensure `Link` components use `usePathname` for active state. Outcome: Streamlined navigation. |
