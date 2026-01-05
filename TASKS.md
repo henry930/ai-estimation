@@ -76,11 +76,11 @@
 
 | Task Group | Status | Hours | Branch | Detail |
 | :--- | :--- | :--- | :--- | :--- |
-| AI Integration Setup | PENDING | 16 | `feature/ai-integration` | Configure OpenAI SDK/Google Gemini API. Set up system prompts for 'Estimation' and 'Chat' personas. Create shared AI utility functions. |
-| Estimation Engine | PENDING | 28 | `feature/estimation-logic` | Develop core logic to analyze project documents (Readme, Issues) and generate a structured JSON task breakdown with hours and phases. |
-| Chat API | PENDING | 20 | `feature/chat-api` | Create Next.js API route for chat. Implement Server-Sent Events (SSE) for streaming responses. Manage chat history/context in DB. |
-| Project Management API | PENDING | 12 | `feature/projects-api` | Build robust CRUD endpoints for Projects and Tasks. Ensure proper validation and authorization loops for all mutation operations. |
-| Usage Tracking | PENDING | 12 | `feature/usage-metering` | Implement logic to track token usage/costs per user. Enforce subscription limits (Free vs Pro) on AI requests. |
+| AI Integration Setup | PENDING | 16 | `feature/ai-integration` | Install `openai`. Add `OPENAI_API_KEY` to `.env`. Create `src/lib/ai.ts` with `OpenAI` client. Define system prompts in `src/lib/prompts.ts` using constants. Outcome: Verified connection to OpenAI API with test completion. |
+| Estimation Engine | PENDING | 28 | `feature/estimation-logic` | Create `src/services/estimation.ts`. Function `parseRequirement(text)`. Use regex or OpenAI function calling to extract tasks. Outcome: Text input converts to strictly typed `Task[]` JSON. |
+| Chat API | PENDING | 20 | `feature/chat-api` | Create `app/api/chat/route.ts` (POST). Use `OpenAIStream` from `ai` SDK. Implement streaming text response. Outcome: Real-time streaming interface. |
+| Project Management API | PENDING | 12 | `feature/projects-api` | Create `app/api/projects/route.ts`. Implement GET (list), POST (create), PUT (update), DELETE. Validate inputs with `zod`. Outcome: Full CRUD endpoints for projects. |
+| Usage Tracking | PENDING | 12 | `feature/usage-metering` | Add `tokenUsage` to User model in Prisma. Middleware to check `user.credits > 0`. Increment counter after request. Outcome: Hard limit on free tier usage. |
 
 ### [REFINEMENT] Phase 4 Details
 #### Estimation Engine
@@ -96,9 +96,9 @@
 
 | Task Group | Status | Hours | Branch | Detail |
 | :--- | :--- | :--- | :--- | :--- |
-| GitHub API Integration | DONE | 16 | `feature/github-api` | Set up Octokit client. Create generic fetching functions for Repos, Issues, Pull Requests, and file contents (README/TASKS.md). |
-| Repository Creation | DONE | 14 | `feature/repo-ops` | Implement flow to create new GitHub repositories via API on behalf of the user. Include template initialization (gitignore, readme). |
-| README & Issues | PENDING | 14 | `feature/github-actions` | Develop logic to auto-generate markdown content (README/TASKS). Commit these files to the user's repo. Auto-create GitHub Issues from tasks. |
+| GitHub API Integration | DONE | 16 | `feature/github-api` | Install `octokit`. Init in `src/lib/github.ts`. Create `getRepoDetails(url)` & `getRepoIssues(url)`. Outcome: Successful fetch of metadata from public/private repos. |
+| Repository Creation | DONE | 14 | `feature/repo-ops` | Endpoint `POST /api/github/create`. Use `octokit.repos.createForAuthenticatedUser`. Auto-commit `.gitignore`. Outcome: Button click creates actual repo on GitHub. |
+| README & Issues | PENDING | 14 | `feature/github-actions` | Use `octokit.repos.createOrUpdateFileContents` for README. `octokit.issues.create` for tasks. Outcome: User's GitHub repo populated with docs. |
 
 #### [REFINEMENT] Phase 5 Details
 - **Issue #2 (Data Sync)**: ✅ Expanded sync to fetch repository metadata (Issues & Documents).
@@ -111,8 +111,8 @@
 
 | Task Group | Status | Hours | Branch | Detail |
 | :--- | :--- | :--- | :--- | :--- |
-| Unit & API Testing | PENDING | 12 | `feature/testing` | Set up Jest and Supertest. Write unit tests for core utilities and integration tests for critical API routes (Auth, Projects, Tasks). |
-| Deployment & Monitoring | PENDING | 8 | `feature/ops` | configure Vercel deployment. Set up production PostgreSQL database. Implement logging (Sentry/LogRocket) and basic uptime monitoring. |
+| Unit & API Testing | PENDING | 12 | `feature/testing` | Install `jest`, `ts-jest`, `supertest`. Config `jest.config.js`. Write test `tests/api/auth.test.ts`. Outcome: CI-ready test suite passing locally. |
+| Deployment & Monitoring | PENDING | 8 | `feature/ops` | Connect Vercel. Set `DATABASE_URL`, `NEXTAUTH_SECRET`. Install `@sentry/nextjs`. Outcome: Live HTTPS URL with error tracking. |
 
 ---
 
