@@ -46,17 +46,17 @@ export default function ProjectDetailsPage() {
             const projectData = await projectRes.json();
             setProject(projectData);
 
-            // Fetch branches and tasks in parallel, but don't fail if they error
-            const [branchesRes, tasksRes] = await Promise.allSettled([
-                fetch(`/api/projects/${params.id}/branches`).then(r => r.ok ? r.json() : []),
-                fetch(`/api/projects/${params.id}/tasks`).then(r => r.ok ? r.json() : [])
-            ]);
+            // Fetch branches in the background so it doesn't block the main UI
+            fetch(`/api/projects/${params.id}/branches`)
+                .then(r => r.ok ? r.json() : [])
+                .then(data => setBranches(data))
+                .catch(err => console.error('Background branch fetch failed:', err));
 
-            if (branchesRes.status === 'fulfilled') {
-                setBranches(branchesRes.value);
-            }
-            if (tasksRes.status === 'fulfilled') {
-                setTaskGroups(tasksRes.value);
+            // Fetch tasks (critical data)
+            const tasksRes = await fetch(`/api/projects/${params.id}/tasks`);
+            if (tasksRes.ok) {
+                const tasksData = await tasksRes.json();
+                setTaskGroups(tasksData);
             }
         } catch (err: any) {
             setError(err.message);

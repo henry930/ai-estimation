@@ -91,42 +91,51 @@ export default function ProjectList({ onConnectClick }: { onConnectClick?: () =>
                 </div>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-1">
                 {projects.map((project) => (
                     <Link
                         key={project.id}
                         href={`/dashboard/projects/${project.id}`}
-                        className="group flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl bg-[#050505] border border-white/5 hover:bg-white/[0.02] hover:border-white/10 transition-all duration-200"
+                        className="group flex items-center gap-4 p-3 rounded-xl hover:bg-white/[0.03] border border-transparent hover:border-white/10 transition-all duration-200"
                     >
-                        <div className="flex items-center gap-4 flex-1 min-w-0">
-                            <div className="hidden sm:flex w-10 h-10 items-center justify-center rounded-lg bg-white/5 group-hover:bg-blue-500/10 transition-colors">
-                                <LayoutIcon className="w-5 h-5 text-gray-500 group-hover:text-blue-400 transition-colors" />
-                            </div>
-                            <div className="min-w-0">
+                        {/* Status Icon */}
+                        <div className="flex-shrink-0">
+                            <div className={`w-2.5 h-2.5 rounded-full ${project.status.toLowerCase() === 'active' ? 'bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]' :
+                                    project.status.toLowerCase() === 'completed' ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]' :
+                                        'bg-gray-500'
+                                }`} />
+                        </div>
+
+                        {/* Project Info */}
+                        <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-3">
                                 <h3 className="text-sm font-bold text-white group-hover:text-blue-400 transition-colors truncate">
                                     {project.name}
                                 </h3>
-                                <p className="text-xs text-gray-500 truncate mt-0.5">
-                                    {project.description || 'No description provided'}
-                                </p>
+                                <span className="px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-[10px] text-gray-400 font-mono">
+                                    {project.id.slice(0, 8)}
+                                </span>
+                            </div>
+                            <p className="text-xs text-gray-500 truncate mt-0.5 font-light">
+                                {project.description || 'No description provided'}
+                            </p>
+                        </div>
+
+                        {/* Stats - Desktop Only */}
+                        <div className="hidden lg:flex items-center gap-6 px-4">
+                            <div className="flex items-center gap-2 text-[11px] text-gray-500">
+                                <LayoutIcon className="w-3.5 h-3.5" />
+                                <span>{project._count?.taskGroups || 0} Groups</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-[11px] text-gray-500 w-32">
+                                <CalendarIcon className="w-3.5 h-3.5" />
+                                <span>{new Date(project.updatedAt).toLocaleDateString()}</span>
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-6 mt-4 sm:mt-0 sm:ml-4">
-                            <div className="flex items-center gap-4 text-[11px] text-gray-500">
-                                <div className={`px-2 py-0.5 rounded text-[10px] font-bold border uppercase tracking-tight ${getStatusColor(project.status)}`}>
-                                    {project.status}
-                                </div>
-                                <div className="hidden lg:flex items-center gap-1.5 min-w-[100px]">
-                                    <ClockIcon className="w-3.5 h-3.5" />
-                                    <span>{project._count?.taskGroups || 0} Task Groups</span>
-                                </div>
-                                <div className="hidden md:flex items-center gap-1.5">
-                                    <CalendarIcon className="w-3.5 h-3.5" />
-                                    <span>{new Date(project.updatedAt).toLocaleDateString()}</span>
-                                </div>
-                            </div>
-                            <ChevronRightIcon className="w-4 h-4 text-gray-600 group-hover:text-blue-400 group-hover:translate-x-0.5 transition-all" />
+                        {/* Action */}
+                        <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <ChevronRightIcon className="w-4 h-4 text-gray-600 group-hover:text-blue-400" />
                         </div>
                     </Link>
                 ))}

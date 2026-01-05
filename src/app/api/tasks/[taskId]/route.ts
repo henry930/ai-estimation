@@ -69,50 +69,43 @@ export async function PATCH(
         if (description !== undefined) updateData.description = description;
         if (status !== undefined) updateData.status = status;
 
-        const updatedTask = await prisma.task.update({
-            where: { id: taskId },
-            data: updateData
+        // Use a transaction for atomic and faster updates
+        const updatedTask = await prisma.$transaction(async (tx) => {
+            const task = await tx.task.update({
+                where: { id: taskId },
+                data: updateData
+            });
+
+            // Handle subtasks if provided
+            if (subtasks && Array.isArray(subtasks)) {
+                await tx.subTask.deleteMany({ where: { taskId } });
+
+                // Create subtasks in bulk if possible, otherwise map to skip loop overhead
+                await Promise.all(subtasks.map((title, i) =>
+                    tx.subTask.create({
+                        data: { taskId, title, isCompleted: false, order: i }
+                    })
+                ));
+            }
+
+            // Handle documents if provided
+            if (documents && Array.isArray(documents)) {
+                await tx.taskDocument.deleteMany({ where: { taskId } });
+
+                await Promise.all(documents.map(doc =>
+                    tx.taskDocument.create({
+                        data: {
+                            taskId,
+                            title: doc.title,
+                            url: doc.url,
+                            type: doc.type || 'link'
+                        }
+                    })
+                ));
+            }
+
+            return task;
         });
-
-        // Handle subtasks if provided
-        if (subtasks && Array.isArray(subtasks)) {
-            // Delete existing subtasks
-            await prisma.subTask.deleteMany({
-                where: { taskId }
-            });
-
-            // Create new subtasks
-            for (let i = 0; i < subtasks.length; i++) {
-                await prisma.subTask.create({
-                    data: {
-                        taskId,
-                        title: subtasks[i],
-                        isCompleted: false,
-                        order: i
-                    }
-                });
-            }
-        }
-
-        // Handle documents if provided
-        if (documents && Array.isArray(documents)) {
-            // Delete existing documents
-            await prisma.taskDocument.deleteMany({
-                where: { taskId }
-            });
-
-            // Create new documents
-            for (const doc of documents) {
-                await prisma.taskDocument.create({
-                    data: {
-                        taskId,
-                        title: doc.title,
-                        url: doc.url,
-                        type: doc.type || 'link'
-                    }
-                });
-            }
-        }
 
         return NextResponse.json(updatedTask);
     } catch (error: any) {

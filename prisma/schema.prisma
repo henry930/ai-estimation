@@ -101,6 +101,7 @@ model Project {
   chatHistory ChatHistory[]
   taskGroups  TaskGroup[]
 
+  @@index([userId])
   @@map("projects")
 }
 
@@ -116,6 +117,7 @@ model TaskGroup {
   tasks     Task[]
   project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
+  @@index([projectId])
   @@map("task_groups")
 }
 
@@ -137,6 +139,7 @@ model Task {
   subtasks    SubTask[]
   documents   TaskDocument[]
 
+  @@index([groupId])
   @@map("tasks")
 }
 
@@ -150,6 +153,7 @@ model SubTask {
   updatedAt   DateTime @updatedAt
   task        Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
 
+  @@index([taskId])
   @@map("sub_tasks")
 }
 
@@ -163,6 +167,7 @@ model TaskDocument {
   updatedAt DateTime @updatedAt
   task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
 
+  @@index([taskId])
   @@map("task_documents")
 }
 
@@ -181,6 +186,7 @@ model Estimation {
 
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
+  @@index([projectId])
   @@map("estimations")
 }
 
