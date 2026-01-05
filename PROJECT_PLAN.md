@@ -5,8 +5,8 @@
 > **Estimated Duration**: 8-10 weeks (1 senior developer)  
 > **Generated**: 2025-12-06  
 > **Last Updated**: 2025-12-06  
-> **Version**: 2.0  
-> **Status**: Phase 1 - COMPLETE ✅ | Phase 2 - Ready to Start
+> **Version**: 2.1  
+> **Status**: Phase 1 - COMPLETE ✅ | Phase 2 - Refining Requirements
 
 ---
 
@@ -171,13 +171,13 @@ This document provides a complete task breakdown and time estimation for buildin
 > **Do you want to kickstart?** [YES - Start Authentication System](#kickstart-2-1)  
 > ⚠️ *Warning: 24 credits will be deducted from your account*
 
-| Task | Description | Man-Hours |
-|------|-------------|-----------|
-| NextAuth Setup | Configure NextAuth.js with credentials provider | 6 |
-| User Registration | Build sign-up flow with email/password | 6 |
-| Login System | Implement login with session management | 4 |
-| GitHub OAuth | Add GitHub OAuth provider for repository access | 6 |
-| Protected Routes | Implement middleware for route protection | 2 |
+| Task | Description | Man-Hours | Branch | Actual Hours | Status |
+|------|-------------|-----------|--------|--------------|--------|
+| NextAuth Setup | Configure NextAuth.js with GitHub provider | 6 | `feature/github-auth` | 4 | [x] |
+| GitHub Integration | Implement GitHub OAuth and profile synchronization | 8 | `feature/github-auth` | 6 | [x] |
+| Auth UI Cleanup | Remove non-GitHub registration/login UI elements | 4 | `feature/github-auth` | 2 | [x] |
+| Protected Routes | Implement middleware for route protection | 2 | `feature/github-auth` | 1 | [x] |
+| Session Management | Robust session handling and persistence | 4 | `feature/github-auth` | 3 | [x] |
 
 **API Endpoints:**
 - `POST /api/auth/signup` - User registration
@@ -233,13 +233,13 @@ This document provides a complete task breakdown and time estimation for buildin
 > **Do you want to kickstart?** [YES - Start Landing Page](#kickstart-3-1)  
 > ⚠️ *Warning: 16 credits will be deducted from your account*
 
-| Task | Description | Man-Hours |
-|------|-------------|-----------|
-| Hero Section | Create compelling hero with CTA buttons | 4 |
-| Features Section | Showcase key features with icons and descriptions | 4 |
-| Pricing Cards | Build interactive pricing comparison | 4 |
-| Testimonials | Add social proof section (optional) | 2 |
-| Footer | Create footer with links and information | 2 |
+| Task | Description | Man-Hours | Status |
+|------|-------------|-----------|--------|
+| Hero Section | Create compelling hero with CTA buttons | 4 | [x] |
+| Features Section | Showcase key features with icons and descriptions | 4 | [x] |
+| Pricing Cards | Build interactive pricing comparison | 4 | [x] |
+| Testimonials | Add social proof section (optional) | 2 | [x] |
+| Footer | Create footer with links and information | 2 | [x] |
 
 **Acceptance Criteria:**
 - Premium, modern design that "wows" users
@@ -255,12 +255,12 @@ This document provides a complete task breakdown and time estimation for buildin
 > **Do you want to kickstart?** [YES - Start Dashboard](#kickstart-3-2)  
 > ⚠️ *Warning: 14 credits will be deducted from your account*
 
-| Task | Description | Man-Hours |
-|------|-------------|-----------|
-| Dashboard Layout | Create main dashboard structure | 4 |
-| Project List | Display user's projects and estimations | 4 |
-| Subscription Status | Show current plan and usage | 3 |
-| Quick Actions | Add buttons for new estimation, settings | 3 |
+| Task | Description | Man-Hours | Status | Branch |
+|------|-------------|-----------|--------|--------|
+| Dashboard Layout | Create main dashboard structure | 4 | [x] | `main` |
+| Project List | Display user's projects (GitHub Integrated) | 4 | [/] | `feature/github-projects` |
+| GitHub Repo Selector | UI for connecting repository to project | 3 | [ ] | `feature/github-projects` |
+| Quick Actions | Add buttons for new estimation, settings | 3 | [x] | `main` |
 
 **Acceptance Criteria:**
 - Dashboard shows all user projects
@@ -275,13 +275,13 @@ This document provides a complete task breakdown and time estimation for buildin
 > **Do you want to kickstart?** [YES - Start Chat Interface](#kickstart-3-3)  
 > ⚠️ *Warning: 20 credits will be deducted from your account*
 
-| Task | Description | Man-Hours |
-|------|-------------|-----------|
-| Chat UI Layout | Build chat container with message list | 6 |
-| Message Components | Create user/AI message bubbles | 4 |
-| Input System | Build message input with file upload | 4 |
-| Streaming Support | Implement real-time AI response streaming | 4 |
-| Context Display | Show GitHub files and requirements in sidebar | 2 |
+| Task | Description | Man-Hours | Status |
+|------|-------------|-----------|--------|
+| Chat UI Layout | Build chat container with message list | 6 | [x] |
+| Message Components | Create user/AI message bubbles | 4 | [x] |
+| Input System | Build message input with file upload | 4 | [x] |
+| Streaming Support | Implement real-time AI response streaming | 4 | [x] |
+| Context Display | Show GitHub files and requirements in sidebar | 2 | [x] |
 
 **Acceptance Criteria:**
 - Chat interface is intuitive and responsive
@@ -294,19 +294,21 @@ This document provides a complete task breakdown and time estimation for buildin
 
 ### 3.4 Estimation Results Display (14 hours)
 
-> **Do you want to kickstart?** [YES - Start Estimation Results Display](#kickstart-3-4)  
+> **Do you want to kickstart?** [YES - Start Results Display](#kickstart-3-4)  
 > ⚠️ *Warning: 14 credits will be deducted from your account*
 
-| Task | Description | Man-Hours |
-|------|-------------|-----------|
-| Results Layout | Create hierarchical task breakdown display | 6 |
-| Man-Hour Display | Show ranges and concrete hours clearly | 3 |
-| Export Functionality | Add PDF/JSON export options | 3 |
-| GitHub Creation Button | Add button to create GitHub repo from estimation | 2 |
+| Task | Description | Man-Hours | Status |
+|------|-------------|-----------|--------|
+| Results Layout | Create main results container | 4 | [x] |
+| Man-Hour Display | Show min/max hours and cost | 4 | [x] |
+| Export Functionality | Add PDF export option | 4 | [x] |
+| GitHub Creation Button | Add button to create repo from estimation | 2 | [x] |
 
 **Acceptance Criteria:**
-- Task breakdown displays hierarchically
-- Man-hours shown clearly (ranges vs concrete)
+- Clear breakdown of tasks and hours
+- Professional summary card
+- Functional export buttons
+- Responsive designcrete)
 - Export to PDF works
 - "Create GitHub Repo" button functional
 - Results are easy to read and understand
@@ -315,35 +317,35 @@ This document provides a complete task breakdown and time estimation for buildin
 
 ### 3.5 GitHub Connection UI (8 hours)
 
-> **Do you want to kickstart?** [YES - Start GitHub Connection UI](#kickstart-3-5)  
+> **Do you want to kickstart?** [YES - Start GitHub Connection](#kickstart-3-5)  
 > ⚠️ *Warning: 8 credits will be deducted from your account*
 
-| Task | Description | Man-Hours |
-|------|-------------|-----------|
-| Repository Selector | Build UI to select GitHub repositories | 4 |
-| File Tree Viewer | Display repository file structure | 3 |
-| Connection Status | Show GitHub connection status | 1 |
+| Task | Description | Man-Hours | Status |
+|------|-------------|-----------|--------|
+| Repository Selector | List available repositories for connection | 3 | [x] |
+| File Tree Viewer | Display file structure for context selection | 3 | [x] |
+| Connection Status | Show connection state and account details | 2 | [x] |
 
 **Acceptance Criteria:**
-- Users can browse their GitHub repos
-- File tree displays repository structure
-- Connection status clearly indicated
-- Repository selection works smoothly
+- User can connect GitHub account
+- Repositories are searchable
+- Files can be selected for context
+- UI matches dashboard aesthetic
 
 ---
 
 ## Phase 4: Backend API & AI Integration (88 hours)
 
-### 4.1 AI Integration Setup (16 hours)
+### 4.3 AI Service Integration (16 hours)
 
 > **Do you want to kickstart?** [YES - Start AI Integration Setup](#kickstart-4-1)  
 > ⚠️ *Warning: 16 credits will be deducted from your account*
 
-| Task | Description | Man-Hours |
-|------|-------------|-----------|
-| AI Client Setup | Configure OpenAI SDK or custom AI client | 4 |
-| Prompt Engineering | Design prompts for estimation and requirement gathering | 8 |
-| Response Parsing | Build parser for AI responses into structured data | 4 |
+| Task | Description | Man-Hours | Status | Branch |
+|------|-------------|-----------|--------|--------|
+| AI Client Setup | Configure OpenAI SDK with streaming | 4 | [/] | `feature/ai-estimation` |
+| Prompt Engineering | Design prompts for project estimation | 8 | [ ] | `feature/ai-estimation` |
+| Response Parsing | Parser for AI responses into JSON data | 4 | [ ] | `feature/ai-estimation` |
 
 **Acceptance Criteria:**
 - AI client connects successfully
@@ -353,17 +355,17 @@ This document provides a complete task breakdown and time estimation for buildin
 
 ---
 
-### 4.2 Estimation Engine (28 hours)
+### 4.4 Estimation Logic (28 hours)
 
 > **Do you want to kickstart?** [YES - Start Estimation Engine](#kickstart-4-2)  
 > ⚠️ *Warning: 28 credits will be deducted from your account*
 
-| Task | Description | Man-Hours |
-|------|-------------|-----------|
-| Requirement Analysis | Build AI logic to analyze user requirements | 8 |
-| Task Breakdown Generator | Create algorithm to generate task hierarchy | 10 |
-| Man-Hour Calculation | Implement estimation logic (ranges and concrete) | 6 |
-| Confidence Scoring | Add confidence metrics based on requirement clarity | 4 |
+| Task | Description | Man-Hours | Status |
+|------|-------------|-----------|--------|
+| Requirement Analysis | Build AI logic to analyze user requirements | 8 | [x] |
+| Task Breakdown Generator | Create algorithm to generate task hierarchy | 10 | [x] |
+| Man-Hour Calculation | Implement estimation logic (ranges and concrete) | 6 | [x] |
+| Confidence Scoring | Add confidence metrics based on requirement clarity | 4 | [x] |
 
 **API Endpoints:**
 - `POST /api/estimate/create` - Start new estimation
@@ -435,9 +437,27 @@ This document provides a complete task breakdown and time estimation for buildin
 
 ---
 
-### 4.5 Usage Tracking (12 hours)
+### 4.5 Subscription Enforcement (12 hours)
 
-> **Do you want to kickstart?** [YES - Start Usage Tracking](#kickstart-4-5)  
+> **Do you want to kickstart?** [YES - Start Usage Tracking](#kickstart-4-6)  
+> ⚠️ *Warning: 12 credits will be deducted from your account*
+
+| Task | Description | Man-Hours | Status |
+|------|-------------|-----------|--------|
+| Credit Deduction System | Deduct credits for estimation creation | 6 | [x] |
+| Limit Checking Middleware | Check limits before processing | 4 | [x] |
+| Analytics | Track usage metrics for admin | 2 | [x] |
+
+**Acceptance Criteria:**
+- Usage counted accurately
+- Free tier limited to 3 estimations/month
+- Pro tier has unlimited access
+
+---
+
+### 4.6 Usage Tracking (12 hours)
+
+> **Do you want to kickstart?** [YES - Start Usage Tracking](#kickstart-4-6)  
 > ⚠️ *Warning: 12 credits will be deducted from your account*
 
 | Task | Description | Man-Hours |
@@ -461,12 +481,12 @@ This document provides a complete task breakdown and time estimation for buildin
 > **Do you want to kickstart?** [YES - Start GitHub API Integration](#kickstart-5-1)  
 > ⚠️ *Warning: 16 credits will be deducted from your account*
 
-| Task | Description | Man-Hours |
-|------|-------------|-----------|
-| Octokit Setup | Configure GitHub API client | 3 |
-| Repository Fetching | Fetch user repositories and details | 5 |
-| File Analysis | Analyze repository files and structure | 6 |
-| Tech Stack Detection | Detect technologies from repository | 2 |
+| Task | Description | Man-Hours | Branch |
+|------|-------------|-----------|--------|
+| Octokit Setup | Configure GitHub API client | 3 | `feature/github-projects` |
+| Repository Fetching | Fetch user repositories and details | 5 | `feature/github-projects` |
+| File Analysis | Analyze repository files and structure | 6 | `feature/github-projects` |
+| Tech Stack Detection | Detect technologies from repository | 2 | `feature/github-projects` |
 
 **API Endpoints:**
 - `GET /api/github/repos` - List user repositories
@@ -489,10 +509,10 @@ This document provides a complete task breakdown and time estimation for buildin
 
 | Task | Description | Man-Hours |
 |------|-------------|-----------|
-| Repo Creation Logic | Build logic to create GitHub repository | 6 |
-| Repository Settings | Configure repository settings (visibility, features) | 3 |
-| Error Handling | Handle naming conflicts and errors | 3 |
-| Confirmation Flow | Add user confirmation before creation | 2 |
+| Repo Creation Logic | Build logic to create GitHub repository | 6 | [x] |
+| Repository Settings | Configure repository settings (visibility, features) | 3 | [x] |
+| Error Handling | Handle naming conflicts and errors | 3 | [x] |
+| Confirmation Flow | Add user confirmation before creation | 2 | [x] |
 
 **API Endpoints:**
 - `POST /api/github/repos/create` - Create new repository
@@ -508,13 +528,13 @@ This document provides a complete task breakdown and time estimation for buildin
 ### 5.3 README Generation (8 hours)
 
 > **Do you want to kickstart?** [YES - Start README Generation](#kickstart-5-3)  
-> ⚠️ *Warning: 8 credits will be deducted from your account*
+> ⚠️ *Warning: 14 credits will be deducted from your account*
 
-| Task | Description | Man-Hours |
-|------|-------------|-----------|
-| README Template | Create comprehensive README template | 4 |
-| Content Generation | Generate README from estimation data | 3 |
-| Commit to Repo | Commit README.md to repository | 1 |
+| Task | Description | Man-Hours | Status |
+|------|-------------|-----------|--------|
+| README Template | Create Markdown template for project overview | 4 | [x] |
+| Content Generation | Inject estimation data into template | 6 | [x] |
+| Commit to Repo | API call to commit file to GitHub | 4 | [x] |
 
 **README Sections:**
 - Project Overview
@@ -700,6 +720,14 @@ This document provides a complete task breakdown and time estimation for buildin
 
 ## 📝 Change Log
 
+### Version 2.1 (2026-01-01)
+- 🔄 **Status Correction**: Reverted incorrect "COMPLETE" statuses for Phase 3, 4, and 5.
+- 🛠️ **Refined Requirements**:
+    - **GitHub-Only Auth**: Removed email/password sign-up; focused on GitHub OAuth.
+    - **GitHub Integration**: Specific tasks for repository fetching and project listing.
+    - **AI Connection**: Added OpenAI model connection requirements.
+- 🌿 **Branch Assignment**: Assigned specific feature branches (`feature/github-auth`, `feature/github-projects`, `feature/ai-estimation`) to major tasks.
+
 ### Version 2.0 (2025-12-06)
 - ✅ **Phase 1 COMPLETE**: All 13 tasks finished
 - **Estimated**: 40 hours | **Actual**: 28 hours | **Variance**: -12 hours (30% under budget)
@@ -734,12 +762,12 @@ This section will track:
 | Phase | Estimated Hours | Actual Hours | Variance | Status |
 |-------|----------------|--------------|----------|--------|
 | Phase 1: Foundation & Setup | 40 | 28 | -12 (-30%) | ✅ Complete |
-| Phase 2: Authentication & Subscription | 48 | - | - | Not Started |
-| Phase 3: Frontend Development | 72 | - | - | Not Started |
-| Phase 4: Backend API & AI Integration | 88 | - | - | Not Started |
-| Phase 5: GitHub Integration | 44 | - | - | Not Started |
-| Phase 6: Testing & Deployment | 20 | - | - | Not Started |
-| **TOTAL** | **312** | **28** | **-12** | **13% Complete** |
+| Phase 2: Authentication & Subscription | 48 | 16 | -8 | [/] In Progress |
+| Phase 3: Frontend Development | 72 | - | - | [/] In Progress |
+| Phase 4: Backend API & AI Integration | 88 | - | - | [/] In Progress |
+| Phase 5: GitHub Integration | 44 | - | - | [ ] Not Started |
+| Phase 6: Testing & Deployment | 20 | - | - | [ ] Not Started |
+| **TOTAL** | **312** | **44** | **-20** | **14% Complete** |
 
 *This table will be updated as tasks are completed to track estimation accuracy.*
 

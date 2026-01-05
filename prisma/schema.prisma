@@ -6,83 +6,187 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
 model User {
-  id            String         @id @default(cuid())
-  email         String         @unique
+  id            String    @id @default(cuid())
   name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
   passwordHash  String?
   githubToken   String?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  accounts      Account[]
+  sessions      Session[]
   subscriptions Subscription[]
   projects      Project[]
-  
+
   @@map("users")
 }
 
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
 model Subscription {
-  id               String   @id @default(cuid())
+  id               String    @id @default(cuid())
   userId           String
-  plan             String   // "free", "pro", "team"
-  status           String   // "active", "cancelled", "expired"
-  startDate        DateTime @default(now())
+  plan             String // "free", "pro", "team"
+  status           String // "active", "cancelled", "expired"
+  startDate        DateTime  @default(now())
   endDate          DateTime?
   stripeCustomerId String?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-  
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
   @@map("subscriptions")
 }
 
 model Project {
-  id          String       @id @default(cuid())
-  userId      String
-  name        String
-  description String?
-  githubUrl   String?
+  id           String   @id @default(cuid())
+  userId       String
+  name         String
+  description  String?
+  githubUrl    String?
   githubRepoId String?
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  
-  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status       String   @default("active") // "active", "archived", "syncing"
+  lastSync     DateTime @default(now())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   estimations Estimation[]
   chatHistory ChatHistory[]
-  
+  taskGroups  TaskGroup[]
+
   @@map("projects")
+}
+
+model TaskGroup {
+  id        String   @id @default(cuid())
+  projectId String
+  title     String
+  order     Int      @default(0)
+  tasks     Task[]
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("task_groups")
+}
+
+model Task {
+  id          String         @id @default(cuid())
+  groupId     String
+  title       String
+  description String?
+  hours       Int?
+  status      String         @default("PENDING") // "PENDING", "IN PROGRESS", "WAITING FOR REVIEW", "DONE"
+  branch      String?
+  aiPrompt    String?        // Context for AI (JSON string or text)
+  issues      String?        // List of issues (JSON string)
+  order       Int            @default(0)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  group       TaskGroup      @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  subtasks    SubTask[]
+  documents   TaskDocument[]
+
+  @@map("tasks")
+}
+
+model SubTask {
+  id          String   @id @default(cuid())
+  taskId      String
+  title       String
+  isCompleted Boolean  @default(false)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  task        Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@map("sub_tasks")
+}
+
+model TaskDocument {
+  id        String   @id @default(cuid())
+  taskId    String
+  title     String
+  url       String   // Relative or absolute path/link
+  type      String   @default("markdown") // "markdown", "link", "pdf"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@map("task_documents")
 }
 
 model Estimation {
   id         String   @id @default(cuid())
   projectId  String
-  tasks      Json     // Structured task breakdown
+  tasks      String // Structured task breakdown (JSON string)
   totalHours Int
   minHours   Int?
   maxHours   Int?
-  status     String   // "draft", "confirmed", "completed"
+  cost       Float? // Estimated cost
+  currency   String   @default("USD")
+  status     String // "draft", "confirmed", "completed"
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
-  
+
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  
+
   @@map("estimations")
 }
 
 model ChatHistory {
   id        String   @id @default(cuid())
   projectId String
-  messages  Json     // Array of chat messages
-  context   Json?    // Additional context (GitHub files, etc.)
+  messages  String // Array of chat messages (JSON string)
+  context   String? // Additional context (JSON string)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  
+
   @@map("chat_history")
 }

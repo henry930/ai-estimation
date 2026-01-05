@@ -18,3 +18,10 @@ coverage/
 out/
 next-env.d.ts
 .pnpm-debug.log*
+.sst
+prisma/dev.db
+*.db
+*.db-journal
+.env
+.env.production
+.env.local
