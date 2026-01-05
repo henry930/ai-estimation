@@ -1,30 +1,37 @@
 import { streamText } from 'ai';
 import { bedrock } from '@ai-sdk/amazon-bedrock';
 import { NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
 
 export const runtime = 'nodejs';
 
 export async function POST(req: Request) {
     try {
+        const session = await getServerSession(authOptions);
+        if (!session?.user) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
         const { messages, taskId } = await req.json();
 
         // Build context-aware system prompt
         let systemPrompt = 'You are an expert technical project manager and software architect. Help the user refine their task objectives, break down requirements, and suggest improvements. Be concise and practical.';
 
-        // If taskId is provided, fetch task context
+        // OPTIMIZATION: Fetch task data directly from database instead of using fetch()
         if (taskId) {
-            try {
-                // Use absolute URL for server-side fetch in Next.js
-                const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
-                const taskRes = await fetch(`${baseUrl}/api/tasks/${taskId}`, {
-                    headers: {
-                        'Cookie': req.headers.get('cookie') || '',
-                    }
-                });
+            const task = await prisma.task.findUnique({
+                where: { id: taskId },
+                include: {
+                    subtasks: true,
+                    documents: true,
+                    issues: true
+                }
+            });
 
-                if (taskRes.ok) {
-                    const task = await taskRes.json();
-                    systemPrompt = `You are an expert technical project manager helping refine this task:
+            if (task) {
+                systemPrompt = `You are an expert technical project manager helping refine this task:
 
 **Task Title**: ${task.title}
 **Current Objective**: ${task.objective || task.description || 'Not defined'}
@@ -53,9 +60,6 @@ When the user asks you to update the task, respond with a JSON object in this fo
 \`\`\`
 
 Be concise and actionable.`;
-                }
-            } catch (error) {
-                console.error('Failed to fetch task context:', error);
             }
         }
 
@@ -63,10 +67,11 @@ Be concise and actionable.`;
         if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
             return NextResponse.json({
                 error: 'Configuration Error',
-                details: 'AWS Credentials missing. Please check your .env file.'
+                details: 'AWS Credentials missing.'
             }, { status: 500 });
         }
 
+        // Claude 3.5 Sonnet Inference Profile
         const modelId = 'eu.anthropic.claude-3-5-sonnet-20240620-v1:0';
 
         const result = await streamText({
@@ -75,7 +80,6 @@ Be concise and actionable.`;
             messages,
         });
 
-        // result.toTextStreamResponse() returns a Response with the text stream
         return result.toTextStreamResponse();
     } catch (error: any) {
         console.error('Bedrock API error:', error);
