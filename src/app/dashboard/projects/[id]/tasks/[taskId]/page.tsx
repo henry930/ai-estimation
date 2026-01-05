@@ -151,7 +151,13 @@ export default function TaskDetailPage() {
     const checklistItems = task.subtasks.filter(st => !st.title.startsWith('GitHub Issue #'));
 
     return (
-        <DashboardLayout rightSidebar={<ContextSidebar githubUrl={task?.group?.project?.githubUrl} />}>
+        <DashboardLayout rightSidebar={
+            <ContextSidebar
+                githubUrl={task?.group?.project?.githubUrl}
+                taskId={task.id}
+                onTaskRefresh={fetchTask}
+            />
+        }>
             <div className="max-w-4xl mx-auto space-y-6">
                 {/* Breadcrumb Widget */}
                 <div className="flex items-center gap-2 text-sm text-gray-500 mb-4 font-mono">

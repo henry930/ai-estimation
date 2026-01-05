@@ -60,17 +60,59 @@ export async function PATCH(
 
     try {
         const body = await req.json();
-        const { title, objective, description, status } = body;
+        const { title, objective, description, status, subtasks, issues, documents } = body;
+
+        // Update main task fields
+        const updateData: any = {};
+        if (title !== undefined) updateData.title = title;
+        if (objective !== undefined) updateData.objective = objective;
+        if (description !== undefined) updateData.description = description;
+        if (status !== undefined) updateData.status = status;
 
         const updatedTask = await prisma.task.update({
             where: { id: taskId },
-            data: {
-                title,
-                objective,
-                description,
-                status
-            }
+            data: updateData
         });
+
+        // Handle subtasks if provided
+        if (subtasks && Array.isArray(subtasks)) {
+            // Delete existing subtasks
+            await prisma.subTask.deleteMany({
+                where: { taskId }
+            });
+
+            // Create new subtasks
+            for (let i = 0; i < subtasks.length; i++) {
+                await prisma.subTask.create({
+                    data: {
+                        taskId,
+                        title: subtasks[i],
+                        isCompleted: false,
+                        order: i
+                    }
+                });
+            }
+        }
+
+        // Handle documents if provided
+        if (documents && Array.isArray(documents)) {
+            // Delete existing documents
+            await prisma.taskDocument.deleteMany({
+                where: { taskId }
+            });
+
+            // Create new documents
+            for (const doc of documents) {
+                await prisma.taskDocument.create({
+                    data: {
+                        taskId,
+                        title: doc.title,
+                        url: doc.url,
+                        type: doc.type || 'link'
+                    }
+                });
+            }
+        }
 
         return NextResponse.json(updatedTask);
     } catch (error: any) {

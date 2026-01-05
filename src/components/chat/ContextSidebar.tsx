@@ -6,10 +6,37 @@ import ChatPanel from '../dashboard/ChatPanel';
 interface ContextSidebarProps {
     githubUrl?: string | null;
     onConnectRepo?: () => void;
+    taskId?: string;
+    onTaskRefresh?: () => void;
 }
 
-export default function ContextSidebar({ githubUrl, onConnectRepo }: ContextSidebarProps) {
+export default function ContextSidebar({ githubUrl, onConnectRepo, taskId, onTaskRefresh }: ContextSidebarProps) {
     const [activeTab, setActiveTab] = useState<'chat' | 'context'>('chat');
+
+    const handleTaskUpdate = async (updates: any) => {
+        if (!taskId) return;
+
+        try {
+            const res = await fetch(`/api/tasks/${taskId}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updates)
+            });
+
+            if (res.ok) {
+                // Refresh the task data
+                if (onTaskRefresh) {
+                    onTaskRefresh();
+                }
+                alert('✅ Task updated successfully!');
+            } else {
+                alert('❌ Failed to update task');
+            }
+        } catch (error) {
+            console.error('Failed to update task:', error);
+            alert('❌ Error updating task');
+        }
+    };
 
     return (
         <div className="h-full flex flex-col bg-[#050505] text-white">
@@ -37,7 +64,7 @@ export default function ContextSidebar({ githubUrl, onConnectRepo }: ContextSide
 
             <div className="flex-1 p-6 overflow-hidden">
                 {activeTab === 'chat' ? (
-                    <ChatPanel />
+                    <ChatPanel taskId={taskId} onTaskUpdate={handleTaskUpdate} />
                 ) : (
                     <div className="h-full overflow-y-auto space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
                         {/* GitHub Context Section */}

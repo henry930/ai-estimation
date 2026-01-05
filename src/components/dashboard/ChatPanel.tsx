@@ -2,10 +2,17 @@
 'use client';
 
 import { useChat } from 'ai';
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 
-export default function ChatPanel() {
-    const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat();
+interface ChatPanelProps {
+    taskId?: string;
+    onTaskUpdate?: (updates: any) => void;
+}
+
+export default function ChatPanel({ taskId, onTaskUpdate }: ChatPanelProps) {
+    const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
+        body: { taskId }
+    });
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     const scrollToBottom = () => {
@@ -14,7 +21,24 @@ export default function ChatPanel() {
 
     useEffect(() => {
         scrollToBottom();
-    }, [messages]);
+
+        // Check last AI message for task updates
+        const lastMessage = messages[messages.length - 1];
+        if (lastMessage && lastMessage.role === 'assistant') {
+            try {
+                // Look for JSON in code blocks
+                const jsonMatch = lastMessage.content.match(/```json\n([\s\S]*?)\n```/);
+                if (jsonMatch) {
+                    const data = JSON.parse(jsonMatch[1]);
+                    if (data.action === 'update_task' && data.updates && onTaskUpdate) {
+                        onTaskUpdate(data.updates);
+                    }
+                }
+            } catch (e) {
+                // Not a JSON update, ignore
+            }
+        }
+    }, [messages, onTaskUpdate]);
 
     return (
         <div className="flex flex-col h-[calc(100vh-8rem)]">
