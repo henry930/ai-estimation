@@ -11,6 +11,7 @@ interface ChatPanelProps {
 
 export default function ChatPanel({ taskId, onTaskUpdate }: ChatPanelProps) {
     const { messages, input, setInput, handleSubmit, isLoading } = useChat({
+        api: '/api/chat',
         body: { taskId }
     });
     const messagesEndRef = useRef<HTMLDivElement>(null);
