@@ -22,6 +22,9 @@ export async function GET(
             },
             include: {
                 tasks: {
+                    include: {
+                        subtasks: true,
+                    },
                     orderBy: {
                         order: 'asc',
                     },

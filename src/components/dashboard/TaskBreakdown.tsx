@@ -80,13 +80,36 @@ export default function TaskBreakdown({ categories, onBranchClick }: TaskBreakdo
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center justify-between gap-2">
-                                        <Link
-                                            href={`/dashboard/projects/${projectId}/tasks/${task.id}`}
-                                            className={`text-sm font-medium transition-colors hover:underline underline-offset-4 ${task.completed ? 'text-gray-500 line-through' : 'text-gray-300 group-hover:text-white'}`}
-                                        >
-                                            {task.title}
-                                        </Link>
-                                        <span className="text-xs text-gray-500 whitespace-nowrap">{task.hours}h</span>
+                                        <div className="flex items-center gap-2">
+                                            <Link
+                                                href={`/dashboard/projects/${projectId}/tasks/${task.id}`}
+                                                className={`text-sm font-medium transition-colors hover:underline underline-offset-4 ${task.completed ? 'text-gray-500 line-through' : 'text-gray-300 group-hover:text-white'}`}
+                                            >
+                                                {task.title}
+                                            </Link>
+                                            <span className={`text-[10px] px-1.5 py-0.5 rounded border ${task.status === 'DONE' ? 'bg-green-500/10 text-green-500 border-green-500/20' :
+                                                    task.status === 'IN PROGRESS' ? 'bg-blue-500/10 text-blue-500 border-blue-500/20' :
+                                                        'bg-white/5 text-gray-500 border-white/10'
+                                                }`}>
+                                                {task.status}
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            {task.subtasks && task.subtasks.length > 0 && (
+                                                <div className="flex items-center gap-1.5" title={`${Math.round((task.subtasks.filter(t => t.isCompleted).length / task.subtasks.length) * 100)}% Complete`}>
+                                                    <div className="w-16 h-1.5 bg-white/10 rounded-full overflow-hidden">
+                                                        <div
+                                                            className="h-full bg-blue-500 rounded-full transition-all duration-500"
+                                                            style={{ width: `${(task.subtasks.filter(t => t.isCompleted).length / task.subtasks.length) * 100}%` }}
+                                                        />
+                                                    </div>
+                                                    <span className="text-[10px] text-gray-500 tabular-nums">
+                                                        {Math.round((task.subtasks.filter(t => t.isCompleted).length / task.subtasks.length) * 100)}%
+                                                    </span>
+                                                </div>
+                                            )}
+                                            <span className="text-xs text-gray-500 whitespace-nowrap">{task.hours}h</span>
+                                        </div>
                                     </div>
                                     {task.objective && (
                                         <p className="text-xs text-gray-500 mt-1 line-clamp-2">{task.objective}</p>

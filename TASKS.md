@@ -50,6 +50,7 @@
 | Schema Alignment | DONE | 8 | `feature/schema-alignment` | Group tasks by Phase, Sync Objectives |
 | Task Detail View | DONE | 8 | `feature/task-detail-view` | Individual pages with tabs for tasks |
 | Project Detail View | DONE | 8 | `feature/project-detail-view` | Project page tabs: Obj, Issues, Docs, Tasks |
+| Task Status & Progress | IN PROGRESS | 6 | `feature/task-progress` | Display status and subtask % completion |
 
 #### [REFINEMENT] Phase 3 Details
 - **Issue #1 (Landing Page CTA)**: ✅ Route "Start Estimation" to `/login`.
