@@ -20,6 +20,14 @@ export default function ChatPanel({ taskId, onTaskUpdate }: ChatPanelProps) {
         setInput(e.target.value);
     };
 
+    const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        console.log('Form submitted with input:', input);
+        if (input?.trim()) {
+            handleSubmit(e);
+        }
+    };
+
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
@@ -91,7 +99,7 @@ export default function ChatPanel({ taskId, onTaskUpdate }: ChatPanelProps) {
             </div>
 
             {/* Input Area */}
-            <form onSubmit={handleSubmit} className="mt-auto pt-4 border-t border-white/10">
+            <form onSubmit={onSubmit} className="mt-auto pt-4 border-t border-white/10">
                 <div className="relative">
                     <input
                         className="w-full bg-black/50 border border-white/10 rounded-xl pl-4 pr-10 py-3 text-sm text-white focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all placeholder:text-gray-600"
