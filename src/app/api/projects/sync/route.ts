@@ -155,6 +155,10 @@ export async function POST(req: NextRequest) {
         }
 
         // 7. Process Phases and Tasks
+        // Clear existing groups to ensure strict alignment with TASKS.md hierarchy (Phase -> Task)
+        // This prevents mixing old "Task as Group" records with new "Phase as Group" records.
+        await prisma.taskGroup.deleteMany({ where: { projectId: project.id } });
+
         const phaseBlocks = mainContent.split(/(?=## Phase \d+:)/).filter(b => b.trim().startsWith('## Phase'));
         let groupOrder = 0;
 
