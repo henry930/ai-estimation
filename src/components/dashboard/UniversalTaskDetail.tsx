@@ -424,6 +424,9 @@ export default function UniversalTaskDetail({ type, initialId }: UniversalTaskDe
                                 <p className="text-xs text-gray-500 mt-2">Allocated time for this {type}.</p>
                             </div>
                         </div>
+
+                        {/* Report Content */}
+                        <ReportContent node={node} />
                     </div>
                 )}
 
@@ -437,6 +440,41 @@ export default function UniversalTaskDetail({ type, initialId }: UniversalTaskDe
                         />
                     </div>
                 )}
+            </div>
+        </div>
+    );
+}
+
+function ReportContent({ node }: { node: UnifiedNode }) {
+    const [content, setContent] = useState<string | null>(null);
+    const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        const reportDoc = node.documents.find(d => d.title === 'Completion Report');
+        if (reportDoc) {
+            setLoading(true);
+            fetch(reportDoc.url)
+                .then(res => res.text())
+                .then(text => setContent(text))
+                .catch(err => console.error('Failed to load report:', err))
+                .finally(() => setLoading(false));
+        }
+    }, [node]);
+
+    if (!node.documents.some(d => d.title === 'Completion Report')) return null;
+
+    if (loading) return <div className="p-6 text-gray-500">Loading report...</div>;
+
+    return (
+        <div className="p-6 rounded-2xl bg-white/5 border border-white/10">
+            <h3 className="text-lg font-semibold mb-4 text-white flex items-center gap-2">
+                <FileTextIcon className="w-5 h-5 text-purple-400" />
+                Completion Report
+            </h3>
+            <div className="prose prose-invert max-w-none text-gray-300 font-light">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {content || 'Failed to load content.'}
+                </ReactMarkdown>
             </div>
         </div>
     );

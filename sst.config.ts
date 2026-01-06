@@ -38,6 +38,7 @@ export default $config({
                 BEDROCK_AWS_REGION: "eu-west-1",
 
                 NODE_ENV: "production",
+                AUTH_TRUST_HOST: "true",
             },
         });
 
