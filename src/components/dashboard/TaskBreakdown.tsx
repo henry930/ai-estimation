@@ -12,6 +12,8 @@ export interface TaskItem {
     hours: number;
     completed: boolean;
     branch?: string;
+    status?: string;
+    subtasks?: any[];
 }
 
 export interface TaskCategory {
@@ -49,10 +51,10 @@ export default function TaskBreakdown({ categories, onBranchClick }: TaskBreakdo
                             {category.title}
                             {category.status && (
                                 <span className={`text-[10px] px-2 py-0.5 rounded font-mono border ${category.status === 'DONE'
-                                        ? 'bg-green-500/10 text-green-400 border-green-500/20'
-                                        : category.status === 'IN PROGRESS'
-                                            ? 'bg-blue-500/10 text-blue-400 border-blue-500/20'
-                                            : 'bg-white/5 text-gray-400 border-white/10'
+                                    ? 'bg-green-500/10 text-green-400 border-green-500/20'
+                                    : category.status === 'IN PROGRESS'
+                                        ? 'bg-blue-500/10 text-blue-400 border-blue-500/20'
+                                        : 'bg-white/5 text-gray-400 border-white/10'
                                     }`}>
                                     {category.status}
                                 </span>

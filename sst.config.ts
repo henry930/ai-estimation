@@ -36,6 +36,11 @@ export default $config({
                 STRIPE_TEAM_PRICE_ID: process.env.STRIPE_TEAM_PRICE_ID || "",
                 STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET || "",
 
+                // AWS Bedrock (Claude 3.5 Sonnet) - Renamed to avoid reserved key conflicts in Lambda
+                BEDROCK_AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID || "",
+                BEDROCK_AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY || "",
+                BEDROCK_AWS_REGION: process.env.AWS_REGION || "eu-west-1",
+
                 NODE_ENV: "production",
             },
         });

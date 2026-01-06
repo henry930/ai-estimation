@@ -14,7 +14,7 @@ The application has been successfully deployed to AWS using SST. However, the pr
 ## Sub-Tasks
 
 ### 1. Production Database Setup (3 hours)
-**Branch**: `phase-7-production-setup/database-init`  
+**Branch**: `prod-setup-database-init`  
 **Status**: PENDING
 
 - [ ] Connect to AWS RDS production database
@@ -24,7 +24,7 @@ The application has been successfully deployed to AWS using SST. However, the pr
 - [ ] Document database connection process
 
 ### 2. GitHub OAuth Production Configuration (2 hours)
-**Branch**: `phase-7-production-setup/github-oauth`  
+**Branch**: `prod-setup-github-oauth`  
 **Status**: PENDING
 
 - [ ] Create new GitHub OAuth App for production domain
@@ -34,7 +34,7 @@ The application has been successfully deployed to AWS using SST. However, the pr
 - [ ] Document OAuth setup process
 
 ### 3. Environment Variables Management (2 hours)
-**Branch**: `phase-7-production-setup/env-management`  
+**Branch**: `prod-setup-env-management`  
 **Status**: PENDING
 
 - [ ] Audit all required environment variables
@@ -44,7 +44,7 @@ The application has been successfully deployed to AWS using SST. However, the pr
 - [ ] Create environment variables documentation
 
 ### 4. Production Verification & Testing (1 hour)
-**Branch**: `phase-7-production-setup/verification`  
+**Branch**: `prod-setup-verification`  
 **Status**: PENDING
 
 - [ ] Test user registration flow in production

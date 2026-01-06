@@ -8,6 +8,7 @@
         "start": "next start",
         "lint": "next lint",
         "deploy": "sst deploy --stage production",
+        "deploy:prod": "./scripts/deploy-prod.sh",
         "deploy:dev": "sst deploy --stage dev",
         "sst:dev": "sst dev",
         "remove": "sst remove --stage production"

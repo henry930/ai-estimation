@@ -34,6 +34,7 @@ interface TaskDetail {
         projectId: string;
         project: {
             name: string;
+            githubUrl: string | null;
         };
     };
     subtasks: SubTask[];

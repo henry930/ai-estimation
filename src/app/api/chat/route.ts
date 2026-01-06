@@ -1,5 +1,5 @@
 import { streamText } from 'ai';
-import { bedrock } from '@ai-sdk/amazon-bedrock';
+import { createAmazonBedrock } from '@ai-sdk/amazon-bedrock';
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
@@ -25,8 +25,7 @@ export async function POST(req: Request) {
                 where: { id: taskId },
                 include: {
                     subtasks: true,
-                    documents: true,
-                    issues: true
+                    documents: true
                 }
             });
 
@@ -63,19 +62,18 @@ Be concise and actionable.`;
             }
         }
 
-        // Check if AWS credentials are configured
-        if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
-            return NextResponse.json({
-                error: 'Configuration Error',
-                details: 'AWS Credentials missing.'
-            }, { status: 500 });
-        }
+        // Initialize Bedrock with renamed or default credentials
+        const bedrockInstance = createAmazonBedrock({
+            accessKeyId: process.env.BEDROCK_AWS_ACCESS_KEY_ID || process.env.AWS_ACCESS_KEY_ID,
+            secretAccessKey: process.env.BEDROCK_AWS_SECRET_ACCESS_KEY || process.env.AWS_SECRET_ACCESS_KEY,
+            region: process.env.BEDROCK_AWS_REGION || process.env.AWS_REGION || 'eu-west-1',
+        });
 
         // Claude 3.5 Sonnet Inference Profile
         const modelId = 'eu.anthropic.claude-3-5-sonnet-20240620-v1:0';
 
         const result = await streamText({
-            model: bedrock(modelId),
+            model: bedrockInstance(modelId),
             system: systemPrompt,
             messages,
         });

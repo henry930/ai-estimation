@@ -638,10 +638,10 @@ This document provides a complete task breakdown and time estimation for buildin
 
 | Task | Description | Man-Hours | Branch | Status |
 |------|-------------|-----------|--------|--------|
-| Database Connection | Connect to AWS RDS production database | 0.5 | `phase-7-production-setup/database-init` | [ ] |
-| Schema Migration | Run Prisma migrations on production | 1 | `phase-7-production-setup/database-init` | [ ] |
-| Verification | Verify schema and test connectivity | 1 | `phase-7-production-setup/database-init` | [ ] |
-| Documentation | Document database setup process | 0.5 | `phase-7-production-setup/database-init` | [ ] |
+| Database Connection | Connect to AWS RDS production database | 0.5 | `prod-setup-database-init` | [ ] |
+| Schema Migration | Run Prisma migrations on production | 1 | `prod-setup-database-init` | [ ] |
+| Verification | Verify schema and test connectivity | 1 | `prod-setup-database-init` | [ ] |
+| Documentation | Document database setup process | 0.5 | `prod-setup-database-init` | [ ] |
 
 **Acceptance Criteria:**
 - Production database schema matches local development
@@ -658,10 +658,10 @@ This document provides a complete task breakdown and time estimation for buildin
 
 | Task | Description | Man-Hours | Branch | Status |
 |------|-------------|-----------|--------|--------|
-| OAuth App Creation | Create GitHub OAuth app for production | 0.5 | `phase-7-production-setup/github-oauth` | [ ] |
-| Callback Configuration | Configure production callback URLs | 0.5 | `phase-7-production-setup/github-oauth` | [ ] |
-| Environment Update | Update production env vars with OAuth credentials | 0.5 | `phase-7-production-setup/github-oauth` | [ ] |
-| Testing | Test GitHub authentication in production | 0.5 | `phase-7-production-setup/github-oauth` | [ ] |
+| OAuth App Creation | Create GitHub OAuth app for production | 0.5 | `prod-setup-github-oauth` | [ ] |
+| Callback Configuration | Configure production callback URLs | 0.5 | `prod-setup-github-oauth` | [ ] |
+| Environment Update | Update production env vars with OAuth credentials | 0.5 | `prod-setup-github-oauth` | [ ] |
+| Testing | Test GitHub authentication in production | 0.5 | `prod-setup-github-oauth` | [ ] |
 
 **Acceptance Criteria:**
 - GitHub OAuth app created for production domain
@@ -678,9 +678,9 @@ This document provides a complete task breakdown and time estimation for buildin
 
 | Task | Description | Man-Hours | Branch | Status |
 |------|-------------|-----------|--------|--------|
-| Environment Audit | Review all required environment variables | 0.5 | `phase-7-production-setup/env-management` | [ ] |
-| SST Secrets Setup | Configure SST secrets for sensitive data | 1 | `phase-7-production-setup/env-management` | [ ] |
-| Verification | Verify all env vars accessible in production | 0.5 | `phase-7-production-setup/env-management` | [ ] |
+| Environment Audit | Review all required environment variables | 0.5 | `prod-setup-env-management` | [ ] |
+| SST Secrets Setup | Configure SST secrets for sensitive data | 1 | `prod-setup-env-management` | [ ] |
+| Verification | Verify all env vars accessible in production | 0.5 | `prod-setup-env-management` | [ ] |
 
 **Environment Variables:**
 - `DATABASE_URL` - Production database connection
@@ -705,8 +705,8 @@ This document provides a complete task breakdown and time estimation for buildin
 
 | Task | Description | Man-Hours | Branch | Status |
 |------|-------------|-----------|--------|--------|
-| End-to-End Testing | Test complete user flows in production | 0.5 | `phase-7-production-setup/verification` | [ ] |
-| Issue Resolution | Fix any production-specific issues | 0.5 | `phase-7-production-setup/verification` | [ ] |
+| End-to-End Testing | Test complete user flows in production | 0.5 | `prod-setup-verification` | [ ] |
+| Issue Resolution | Fix any production-specific issues | 0.5 | `prod-setup-verification` | [ ] |
 
 **Test Scenarios:**
 - User registration via GitHub OAuth

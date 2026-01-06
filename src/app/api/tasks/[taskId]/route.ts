@@ -25,7 +25,8 @@ export async function GET(
                         projectId: true,
                         project: {
                             select: {
-                                name: true
+                                name: true,
+                                githubUrl: true
                             }
                         }
                     }

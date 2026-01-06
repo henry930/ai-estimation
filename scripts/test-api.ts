@@ -6,8 +6,7 @@ async function test() {
     try {
         console.log('Testing Project.findFirst...');
         const project = await prisma.project.findFirst({
-            where: { name: 'AI Estimation System' },
-            include: { documents: true }
+            where: { name: 'AI Estimation System' }
         });
         console.log('Project found ID:', project?.id);
         console.log('Project githubUrl:', project?.githubUrl);

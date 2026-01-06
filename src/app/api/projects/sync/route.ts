@@ -232,8 +232,8 @@ export async function POST(req: NextRequest) {
                     });
 
                     // Collect all subtasks and docs for bulk creation
-                    const subtasksToCreate = [];
-                    const docsToCreate = [];
+                    const subtasksToCreate: any[] = [];
+                    const docsToCreate: any[] = [];
 
                     // 1. From TASKS.md refinements
                     const issuesFromMd = ref?.issues || '';
@@ -257,7 +257,7 @@ export async function POST(req: NextRequest) {
                         issue.labels.some((l: any) => l.name === branch || l.name === taskTitle) ||
                         issue.title.includes(taskTitle)
                     );
-                    matchedIssues.forEach(gitIssue => {
+                    matchedIssues.forEach((gitIssue: any) => {
                         const issueTitle = `GitHub Issue #${gitIssue.number}: ${gitIssue.title}`;
                         if (!issuesFromMd.includes(gitIssue.title)) {
                             subtasksToCreate.push({
@@ -273,7 +273,7 @@ export async function POST(req: NextRequest) {
                     const docsFromMd = ref?.documents || '';
                     if (docsFromMd) {
                         const docLines = docsFromMd.split('\n').filter((l: string) => l.trim());
-                        docLines.forEach(dl => {
+                        docLines.forEach((dl: string) => {
                             const docMatch = dl.match(/\[([^\]]+)\]\(([^)]+)\)/);
                             if (docMatch) {
                                 const rawUrl = docMatch[2].trim();
@@ -293,7 +293,7 @@ export async function POST(req: NextRequest) {
                         doc.name.toLowerCase().includes(taskTitle.toLowerCase().replace(/\s+/g, '-')) ||
                         (branch && doc.name.toLowerCase().includes(branch.split('/')[1] || branch))
                     );
-                    matchedDocs.forEach(gitDoc => {
+                    matchedDocs.forEach((gitDoc: any) => {
                         if (!docsFromMd.includes(gitDoc.name)) {
                             docsToCreate.push({
                                 taskId: task.id,
