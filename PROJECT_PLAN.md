@@ -75,7 +75,8 @@ This document provides a complete task breakdown and time estimation for buildin
 | Phase 4: Backend API & AI Integration | 88 | 28% |
 | Phase 5: GitHub Integration | 44 | 14% |
 | Phase 6: Testing & Deployment | 20 | 6% |
-| **TOTAL** | **312** | **100%** |
+| Phase 7: Production Setup | 8 | 3% |
+| **TOTAL** | **320** | **100%** |
 
 ---
 
@@ -628,6 +629,100 @@ This document provides a complete task breakdown and time estimation for buildin
 
 ---
 
+## Phase 7: Production Setup (8 hours)
+
+### 7.1 Production Database Initialization (3 hours)
+
+> **Do you want to kickstart?** [YES - Start Production Database Setup](#kickstart-7-1)  
+> ⚠️ *Warning: 3 credits will be deducted from your account*
+
+| Task | Description | Man-Hours | Branch | Status |
+|------|-------------|-----------|--------|--------|
+| Database Connection | Connect to AWS RDS production database | 0.5 | `phase-7-production-setup/database-init` | [ ] |
+| Schema Migration | Run Prisma migrations on production | 1 | `phase-7-production-setup/database-init` | [ ] |
+| Verification | Verify schema and test connectivity | 1 | `phase-7-production-setup/database-init` | [ ] |
+| Documentation | Document database setup process | 0.5 | `phase-7-production-setup/database-init` | [ ] |
+
+**Acceptance Criteria:**
+- Production database schema matches local development
+- All tables and relationships created correctly
+- Database accessible from deployed application
+- Connection tested and verified
+
+---
+
+### 7.2 GitHub OAuth Production Configuration (2 hours)
+
+> **Do you want to kickstart?** [YES - Start GitHub OAuth Setup](#kickstart-7-2)  
+> ⚠️ *Warning: 2 credits will be deducted from your account*
+
+| Task | Description | Man-Hours | Branch | Status |
+|------|-------------|-----------|--------|--------|
+| OAuth App Creation | Create GitHub OAuth app for production | 0.5 | `phase-7-production-setup/github-oauth` | [ ] |
+| Callback Configuration | Configure production callback URLs | 0.5 | `phase-7-production-setup/github-oauth` | [ ] |
+| Environment Update | Update production env vars with OAuth credentials | 0.5 | `phase-7-production-setup/github-oauth` | [ ] |
+| Testing | Test GitHub authentication in production | 0.5 | `phase-7-production-setup/github-oauth` | [ ] |
+
+**Acceptance Criteria:**
+- GitHub OAuth app created for production domain
+- Callback URLs correctly configured
+- Users can authenticate via GitHub in production
+- OAuth flow works end-to-end
+
+---
+
+### 7.3 Environment Variables Management (2 hours)
+
+> **Do you want to kickstart?** [YES - Start Environment Management](#kickstart-7-3)  
+> ⚠️ *Warning: 2 credits will be deducted from your account*
+
+| Task | Description | Man-Hours | Branch | Status |
+|------|-------------|-----------|--------|--------|
+| Environment Audit | Review all required environment variables | 0.5 | `phase-7-production-setup/env-management` | [ ] |
+| SST Secrets Setup | Configure SST secrets for sensitive data | 1 | `phase-7-production-setup/env-management` | [ ] |
+| Verification | Verify all env vars accessible in production | 0.5 | `phase-7-production-setup/env-management` | [ ] |
+
+**Environment Variables:**
+- `DATABASE_URL` - Production database connection
+- `NEXTAUTH_URL` - Production domain URL
+- `NEXTAUTH_SECRET` - Session encryption key
+- `GITHUB_ID` - Production OAuth client ID
+- `GITHUB_SECRET` - Production OAuth client secret
+- `GOOGLE_API_KEY` - Google AI API key
+
+**Acceptance Criteria:**
+- All required environment variables configured
+- Sensitive data stored securely via SST secrets
+- Application can access all environment variables
+- No hardcoded secrets in codebase
+
+---
+
+### 7.4 Production Verification (1 hour)
+
+> **Do you want to kickstart?** [YES - Start Production Verification](#kickstart-7-4)  
+> ⚠️ *Warning: 1 credit will be deducted from your account*
+
+| Task | Description | Man-Hours | Branch | Status |
+|------|-------------|-----------|--------|--------|
+| End-to-End Testing | Test complete user flows in production | 0.5 | `phase-7-production-setup/verification` | [ ] |
+| Issue Resolution | Fix any production-specific issues | 0.5 | `phase-7-production-setup/verification` | [ ] |
+
+**Test Scenarios:**
+- User registration via GitHub OAuth
+- Repository connection and listing
+- Task synchronization from GitHub
+- Database operations (CRUD)
+- Error handling and logging
+
+**Acceptance Criteria:**
+- All core features work in production
+- No 502 or 500 errors
+- Performance is acceptable
+- Error logging is functional
+
+---
+
 ## 📈 Summary & Assumptions
 
 ### Total Estimation
@@ -640,7 +735,8 @@ This document provides a complete task breakdown and time estimation for buildin
 | Backend API & AI Integration | 5 | 88 |
 | GitHub Integration | 4 | 44 |
 | Testing & Deployment | 2 | 20 |
-| **TOTAL** | **22** | **312** |
+| Production Setup | 4 | 8 |
+| **TOTAL** | **26** | **320** |
 
 ### Key Assumptions
 
@@ -767,7 +863,8 @@ This section will track:
 | Phase 4: Backend API & AI Integration | 88 | - | - | [/] In Progress |
 | Phase 5: GitHub Integration | 44 | - | - | [ ] Not Started |
 | Phase 6: Testing & Deployment | 20 | - | - | [ ] Not Started |
-| **TOTAL** | **312** | **44** | **-20** | **14% Complete** |
+| Phase 7: Production Setup | 8 | - | - | [/] In Progress |
+| **TOTAL** | **320** | **44** | **-20** | **14% Complete** |
 
 *This table will be updated as tasks are completed to track estimation accuracy.*
 
