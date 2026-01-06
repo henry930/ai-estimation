@@ -29,10 +29,7 @@ export default $config({
                 GITHUB_ID: process.env.GITHUB_ID || "",
                 GITHUB_SECRET: process.env.GITHUB_SECRET || "",
 
-                // Google API
-                GOOGLE_API_KEY: process.env.GOOGLE_API_KEY || "",
-
-                // OpenAI API (optional)
+                // OpenAI API (optional - not currently used)
                 OPENAI_API_KEY: process.env.OPENAI_API_KEY || "",
 
                 // Stripe (optional)
