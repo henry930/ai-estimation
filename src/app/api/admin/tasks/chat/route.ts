@@ -1,31 +1,35 @@
-import { NextRequest } from 'next/server';
+import { streamText } from 'ai';
+import { getAIModel, isAIConfigured } from '@/lib/ai-provider';
 import { prisma } from '@/lib/prisma';
-import { openai, isAIConfigured } from '@/lib/openai';
-import { streamToResponse } from '@/lib/ai-stream';
 import { errorResponse } from '@/lib/api-response';
 
-export async function POST(req: NextRequest) {
+export const runtime = 'nodejs';
+
+export async function POST(req: Request) {
     if (!isAIConfigured()) {
-        return errorResponse('AI is not configured. Please add OPENAI_API_KEY.', 500);
+        return errorResponse('AI is not configured. Please add AWS credentials or OPENAI_API_KEY.', 500);
     }
 
     try {
-        const { taskId, messages } = await req.json();
+        const { taskId, messages, groupId } = await req.json();
 
-        if (!taskId || !messages || !Array.isArray(messages)) {
-            return errorResponse('Missing taskId or valid messages array', 400);
+        if ((!taskId && !groupId) || !messages || !Array.isArray(messages)) {
+            return errorResponse('Missing taskId/groupId or valid messages array', 400);
         }
 
-        // 1. Fetch the target task for context
-        const task = await prisma.task.findUnique({
-            where: { id: taskId },
-            include: { subtasks: true, documents: true }
-        });
+        let systemPrompt = '';
+        const id = taskId || groupId;
 
-        if (!task) return errorResponse('Task not found', 404);
+        if (taskId) {
+            // 1. Fetch the target task for context
+            const task = await prisma.task.findUnique({
+                where: { id: taskId },
+                include: { subtasks: true, documents: true }
+            });
 
-        // 2. Build system prompt with task context
-        const systemPrompt = `You are an AI Project Assistant helping a developer with a specific task.
+            if (!task) return errorResponse('Task not found', 404);
+
+            systemPrompt = `You are an AI Project Assistant helping a developer with a specific task.
 Task Title: ${task.title}
 Task Description: ${task.description || 'No description provided.'}
 Task Branch: ${task.branch || 'No branch assigned'}
@@ -41,26 +45,44 @@ ${task.documents.map(d => `- ${d.title}: ${d.url}`).join('\n') || 'No documents 
 Current AI Context/Prompt: ${task.aiPrompt || 'None'}
 
 Your goal is to answer questions about this task, suggest refinements, or help with implementation details. 
-Keep your answers technical, concise, and helpful. If asked to refine the task (e.g., adding subtasks or changing description), 
-advise the user to use the "Refine" action in the UI for automated updates, but you can suggest the specific changes here first.`;
+Keep your answers technical, concise, and helpful.`;
+        } else if (groupId) {
+            // 2. Fetch the target group for context
+            const group = await prisma.taskGroup.findUnique({
+                where: { id: groupId },
+                include: { tasks: true, documents: true }
+            });
 
-        // 3. Call OpenAI with streaming
-        console.log('Calling OpenAI with messages:', messages.length);
+            if (!group) return errorResponse('Phase not found', 404);
 
-        const response = await openai.chat.completions.create({
-            model: 'gpt-4o-mini',
-            messages: [
-                { role: 'system', content: systemPrompt },
-                ...messages.map((m: any) => ({
-                    role: m.role,
-                    content: m.content
-                }))
-            ],
-            stream: true,
+            systemPrompt = `You are an AI Project Assistant helping a developer with a project phase (Group).
+Phase Title: ${group.title}
+Phase Description: ${group.description || 'No description provided.'}
+Phase Branch: ${group.branch || 'No branch assigned'}
+Total Estimated Hours: ${group.totalHours || 0}h
+Status: ${group.status}
+
+Tasks in this Phase:
+${group.tasks.map(t => `- [${t.status}] ${t.title} (${t.hours}h)`).join('\n') || 'No tasks defined for this phase.'}
+
+Documents:
+${group.documents.map(d => `- ${d.title}: ${d.url}`).join('\n') || 'No documents attached.'}
+
+Your goal is to answer questions about this high-level phase, suggest coordination strategies, or help break down features into finer tasks. 
+Keep your answers strategic, professional, and concise.`;
+        }
+
+        // 3. Call AI with streaming
+        const result = await streamText({
+            model: getAIModel(),
+            system: systemPrompt,
+            messages: messages.map((m: any) => ({
+                role: m.role,
+                content: m.content
+            })),
         });
 
-        console.log('OpenAI response received, starting stream...');
-        return streamToResponse(response);
+        return result.toTextStreamResponse();
     } catch (error: any) {
         console.error('Chat API Error:', error);
         return errorResponse(`Failed to process chat: ${error.message || 'Unknown error'}`, 500);

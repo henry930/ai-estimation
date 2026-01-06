@@ -8,9 +8,11 @@ import {
     LinkIcon,
     CheckSquareIcon,
     ClockIcon,
-    GitBranchIcon
+    GitBranchIcon,
+    MessageSquareIcon
 } from 'lucide-react';
 import Link from 'next/link';
+import AIEnquiryPanel from './AIEnquiryPanel';
 
 interface SubTask {
     id: string;
@@ -33,12 +35,12 @@ interface Task {
     status: string;
     branch: string | null;
     aiPrompt: string | null;
-    issues: string | null;
+    githubIssueNumber: number | null;
     subtasks: SubTask[];
     documents: TaskDocument[];
 }
 
-type TabType = 'description' | 'issues' | 'documents' | 'todo';
+type TabType = 'description' | 'issues' | 'documents' | 'todo' | 'enquiry';
 
 export default function TaskDetail({ taskId }: { taskId: string }) {
     const [task, setTask] = useState<Task | null>(null);
@@ -101,6 +103,23 @@ export default function TaskDetail({ taskId }: { taskId: string }) {
         }
     };
 
+    const calculateProgress = () => {
+        if (!task) return 0;
+        if (task.status === 'DONE') return 100;
+        if (task.subtasks.length === 0) return 0;
+
+        const totalHours = task.subtasks.reduce((sum, st: any) => sum + (st.hours || 0), 0);
+        if (totalHours > 0) {
+            const completedHours = task.subtasks
+                .filter(st => st.isCompleted)
+                .reduce((sum, st: any) => sum + (st.hours || 0), 0);
+            return Math.round((completedHours / totalHours) * 100);
+        }
+
+        const completed = task.subtasks.filter(st => st.isCompleted).length;
+        return Math.round((completed / task.subtasks.length) * 100);
+    };
+
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-[400px]">
@@ -125,6 +144,7 @@ export default function TaskDetail({ taskId }: { taskId: string }) {
         { id: 'issues', label: 'Issues', icon: AlertCircleIcon },
         { id: 'documents', label: 'Documents', icon: LinkIcon },
         { id: 'todo', label: 'To Do', icon: CheckSquareIcon },
+        { id: 'enquiry', label: 'AI Enquiry', icon: MessageSquareIcon },
     ];
 
     return (
@@ -151,6 +171,18 @@ export default function TaskDetail({ taskId }: { taskId: string }) {
                             <div className="flex items-center gap-1.5 text-gray-500">
                                 <ClockIcon className="w-3.5 h-3.5" />
                                 {task.hours || 0}h
+                            </div>
+                            <span className="w-1 h-1 rounded-full bg-white/10" />
+                            <div className="flex items-center gap-3 w-32">
+                                <div className="flex-1 h-1 bg-white/5 rounded-full overflow-hidden">
+                                    <div
+                                        className="h-full bg-blue-500/50 transition-all duration-500"
+                                        style={{ width: `${calculateProgress()}%` }}
+                                    />
+                                </div>
+                                <span className="text-[10px] font-bold text-gray-500 font-mono">
+                                    {calculateProgress()}%
+                                </span>
                             </div>
                         </div>
                     </div>
@@ -182,7 +214,7 @@ export default function TaskDetail({ taskId }: { taskId: string }) {
             </div>
 
             {/* Tab Content */}
-            <div className="bg-[#0a0a0a] border border-white/5 rounded-2xl p-8 min-h-[400px] shadow-2xl">
+            <div className="bg-[#0a0a0a] border border-white/5 rounded-2xl p-8 min-h-[400px] shadow-2xl overflow-hidden">
                 {activeTab === 'description' && (
                     <div className="prose prose-invert max-w-none">
                         <h3 className="text-white text-lg font-semibold mb-4">Task Description</h3>
@@ -201,18 +233,31 @@ export default function TaskDetail({ taskId }: { taskId: string }) {
 
                 {activeTab === 'issues' && (
                     <div className="space-y-4">
-                        <h3 className="text-white text-lg font-semibold mb-6">Identified Refinements & Issues</h3>
-                        {task.issues ? (
-                            <div className="space-y-3">
-                                {task.issues.split('\n').filter(i => i.trim()).map((issue, idx) => (
-                                    <div key={idx} className="flex gap-4 p-4 bg-white/[0.02] border border-white/5 rounded-xl hover:border-white/10 transition-all">
-                                        <AlertCircleIcon className="w-5 h-5 text-orange-500/60 shrink-0" />
-                                        <p className="text-gray-300 text-sm leading-relaxed">{issue.replace(/- \[.\]/, '').trim()}</p>
-                                    </div>
-                                ))}
+                        <h3 className="text-white text-lg font-semibold mb-6">Linked GitHub Issue</h3>
+                        {task.githubIssueNumber ? (
+                            <div className="p-6 rounded-2xl bg-white/5 border border-white/10 space-y-4">
+                                <div className="flex items-center justify-between">
+                                    <h4 className="text-xl font-bold text-white">Issue #{task.githubIssueNumber}</h4>
+                                    <Link
+                                        href={`/dashboard/projects/${task.id}/tasks/${task.id}`}
+                                        className="text-xs text-blue-400 hover:underline"
+                                    >
+                                        View Full Sync & Details →
+                                    </Link>
+                                </div>
+                                <p className="text-sm text-gray-400">
+                                    This task is linked to GitHub Issue #{task.githubIssueNumber}.
+                                    Visit the dedicated task page to see real-time status, labels, and comments.
+                                </p>
                             </div>
                         ) : (
-                            <div className="text-center py-12 text-gray-600 italic">No specific issues identified.</div>
+                            <div className="text-center py-20 bg-white/5 border border-dashed border-white/10 rounded-2xl">
+                                <AlertCircleIcon className="w-8 h-8 text-gray-600 mx-auto mb-4" />
+                                <p className="text-gray-400 text-sm">No GitHub issue linked to this task.</p>
+                                <button className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg text-xs font-semibold hover:bg-blue-500">
+                                    Link Issue
+                                </button>
+                            </div>
                         )}
                     </div>
                 )}
@@ -280,8 +325,8 @@ export default function TaskDetail({ taskId }: { taskId: string }) {
                                         className="w-full flex items-center gap-4 p-4 bg-white/[0.02] border border-white/5 rounded-xl group hover:bg-white/[0.04] hover:border-white/10 transition-all text-left"
                                     >
                                         <div className={`p-1 rounded border transition-all ${sub.isCompleted
-                                                ? 'bg-green-500 border-green-500 text-white'
-                                                : 'bg-white/5 border-white/10 text-transparent group-hover:text-gray-600'
+                                            ? 'bg-green-500 border-green-500 text-white'
+                                            : 'bg-white/5 border-white/10 text-transparent group-hover:text-gray-600'
                                             }`}>
                                             <CheckSquareIcon className="w-4 h-4" />
                                         </div>
@@ -295,6 +340,17 @@ export default function TaskDetail({ taskId }: { taskId: string }) {
                         ) : (
                             <div className="text-center py-12 text-gray-600 italic">No sub-tasks defined.</div>
                         )}
+                    </div>
+                )}
+
+                {activeTab === 'enquiry' && (
+                    <div className="h-[500px] animate-in fade-in duration-300">
+                        <AIEnquiryPanel
+                            taskId={task.id}
+                            taskTitle={task.title}
+                            onClose={() => setActiveTab('description')}
+                            hideHeader={true}
+                        />
                     </div>
                 )}
             </div>

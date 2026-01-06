@@ -254,8 +254,8 @@ export async function POST(req: NextRequest) {
 
                     // 2. From GitHub Issues
                     const matchedIssues = githubIssues.filter(issue =>
-                        issue.labels.some((l: any) => l.name === branch || l.name === taskTitle) ||
-                        issue.title.includes(taskTitle)
+                        issue.labels.some((l: any) => l.name.toLowerCase() === (branch?.toLowerCase() || '') || l.name.toLowerCase() === taskTitle.toLowerCase()) ||
+                        issue.title.toLowerCase().includes(taskTitle.toLowerCase())
                     );
                     matchedIssues.forEach((gitIssue: any) => {
                         const issueTitle = `GitHub Issue #${gitIssue.number}: ${gitIssue.title}`;
@@ -288,13 +288,14 @@ export async function POST(req: NextRequest) {
                         });
                     }
 
-                    // 4. Docs from GitHub docs/ folder
+                    // 4. Docs from GitHub docs/ folder (Categorized)
                     const matchedDocs = githubDocs.filter(doc =>
                         doc.name.toLowerCase().includes(taskTitle.toLowerCase().replace(/\s+/g, '-')) ||
-                        (branch && doc.name.toLowerCase().includes(branch.split('/')[1] || branch))
+                        doc.name.toLowerCase().includes(taskTitle.toLowerCase().replace(/\s+/g, '_')) ||
+                        (branch && doc.name.toLowerCase().includes(branch.split('/')[1]?.toLowerCase() || branch.toLowerCase()))
                     );
                     matchedDocs.forEach((gitDoc: any) => {
-                        if (!docsFromMd.includes(gitDoc.name)) {
+                        if (!docsFromMd.toLowerCase().includes(gitDoc.name.toLowerCase())) {
                             docsToCreate.push({
                                 taskId: task.id,
                                 title: gitDoc.name,
@@ -304,11 +305,54 @@ export async function POST(req: NextRequest) {
                         }
                     });
 
-                    // Perform writes in parallel within the transaction
+                    // Perform writes
                     await Promise.all([
                         ...subtasksToCreate.map(st => tx.subTask.create({ data: st })),
                         ...docsToCreate.map(dt => tx.taskDocument.create({ data: dt }))
                     ]);
+                }
+            }
+
+            // 8. Handle any remaining docs - put them in a Documentation group
+            if (githubDocs.length > 0) {
+                const docGroup = await tx.taskGroup.create({
+                    data: {
+                        projectId: project.id,
+                        title: 'Documentation & Resources',
+                        objective: 'Project-wide documentation found in the repository.',
+                        status: 'IN PROGRESS',
+                        order: groupOrder++
+                    }
+                });
+
+                // Group docs by filename patterns or just create a general task
+                const generalDocTask = await tx.task.create({
+                    data: {
+                        groupId: docGroup.id,
+                        title: 'Repository Wiki & Docs',
+                        description: 'Automatically collected documentation files from the /docs directory.',
+                        hours: 0,
+                        status: 'IN PROGRESS',
+                        order: 0
+                    }
+                });
+
+                for (const doc of githubDocs) {
+                    // Check if already assigned
+                    const alreadyAssigned = await tx.taskDocument.findFirst({
+                        where: { url: doc.html_url }
+                    });
+
+                    if (!alreadyAssigned) {
+                        await tx.taskDocument.create({
+                            data: {
+                                taskId: generalDocTask.id,
+                                title: doc.name,
+                                url: doc.html_url,
+                                type: 'markdown'
+                            }
+                        });
+                    }
                 }
             }
 

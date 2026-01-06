@@ -15,8 +15,7 @@ export async function GET(
     }
 
     try {
-        console.log('Available Prisma models:', Object.keys(prisma).filter(k => !k.startsWith('_')));
-        const taskGroups = await (prisma as any).taskGroup.findMany({
+        const taskGroups = await prisma.taskGroup.findMany({
             where: {
                 projectId: id,
             },
@@ -24,11 +23,13 @@ export async function GET(
                 tasks: {
                     include: {
                         subtasks: true,
+                        documents: true,
                     },
                     orderBy: {
                         order: 'asc',
                     },
                 },
+                documents: true,
             },
             orderBy: {
                 order: 'asc',

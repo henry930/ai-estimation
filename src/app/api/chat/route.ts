@@ -1,5 +1,5 @@
 import { streamText } from 'ai';
-import { createAmazonBedrock } from '@ai-sdk/amazon-bedrock';
+import { getAIModel } from '@/lib/ai-provider';
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
@@ -19,7 +19,6 @@ export async function POST(req: Request) {
         // Build context-aware system prompt
         let systemPrompt = 'You are an expert technical project manager and software architect. Help the user refine their task objectives, break down requirements, and suggest improvements. Be concise and practical.';
 
-        // OPTIMIZATION: Fetch task data directly from database instead of using fetch()
         if (taskId) {
             const task = await prisma.task.findUnique({
                 where: { id: taskId },
@@ -62,25 +61,15 @@ Be concise and actionable.`;
             }
         }
 
-        // Initialize Bedrock with renamed or default credentials
-        const bedrockInstance = createAmazonBedrock({
-            accessKeyId: process.env.BEDROCK_AWS_ACCESS_KEY_ID || process.env.AWS_ACCESS_KEY_ID,
-            secretAccessKey: process.env.BEDROCK_AWS_SECRET_ACCESS_KEY || process.env.AWS_SECRET_ACCESS_KEY,
-            region: process.env.BEDROCK_AWS_REGION || process.env.AWS_REGION || 'eu-west-1',
-        });
-
-        // Claude 3.5 Sonnet Inference Profile
-        const modelId = 'eu.anthropic.claude-3-5-sonnet-20240620-v1:0';
-
         const result = await streamText({
-            model: bedrockInstance(modelId),
+            model: getAIModel(),
             system: systemPrompt,
             messages,
         });
 
         return result.toTextStreamResponse();
     } catch (error: any) {
-        console.error('Bedrock API error:', error);
+        console.error('AI error:', error);
         return NextResponse.json({
             error: 'AI response failed',
             details: error.message

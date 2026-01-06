@@ -7,6 +7,7 @@ import Link from 'next/link';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import ContextSidebar from '@/components/chat/ContextSidebar';
+import AIEnquiryPanel from '@/components/dashboard/AIEnquiryPanel';
 
 interface SubTask {
     id: string;
@@ -39,6 +40,7 @@ interface TaskDetail {
     };
     subtasks: SubTask[];
     documents: TaskDocument[];
+    githubIssueNumber: number | null;
 }
 
 export default function TaskDetailPage() {
@@ -46,13 +48,43 @@ export default function TaskDetailPage() {
     const router = useRouter();
     const [task, setTask] = useState<TaskDetail | null>(null);
     const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState<'objective' | 'issues' | 'documents' | 'subtasks'>('objective');
+    const [activeTab, setActiveTab] = useState<'objective' | 'issues' | 'documents' | 'subtasks' | 'enquiry'>('objective');
+    const [githubIssue, setGithubIssue] = useState<any>(null);
+    const [fetchingIssue, setFetchingIssue] = useState(false);
 
     useEffect(() => {
         if (params.taskId) {
             fetchTask();
         }
     }, [params.taskId]);
+
+    useEffect(() => {
+        if (activeTab === 'issues' && task?.githubIssueNumber && task?.group?.project?.githubUrl) {
+            fetchGitHubIssue();
+        }
+    }, [activeTab, task?.githubIssueNumber]);
+
+    const fetchGitHubIssue = async () => {
+        if (!task || !task.githubIssueNumber) return;
+
+        setFetchingIssue(true);
+        try {
+            // Extract owner and repo from githubUrl
+            const match = task.group.project.githubUrl?.match(/github\.com\/([^/]+)\/([^/]+)/);
+            if (!match) return;
+
+            const [_, owner, repo] = match;
+            const res = await fetch(`/api/github/issues/${task.githubIssueNumber}?owner=${owner}&repo=${repo}`);
+            if (res.ok) {
+                const data = await res.json();
+                setGithubIssue(data.data);
+            }
+        } catch (err) {
+            console.error('Failed to fetch GitHub issue:', err);
+        } finally {
+            setFetchingIssue(false);
+        }
+    };
 
     const fetchTask = async () => {
         try {
@@ -123,6 +155,22 @@ export default function TaskDetailPage() {
             alert('Failed to save changes');
         }
     };
+    const calculateProgress = () => {
+        if (!task) return 0;
+        if (task.status === 'DONE') return 100;
+        if (task.subtasks.length === 0) return 0;
+
+        const totalHours = task.subtasks.reduce((sum, st: any) => sum + (st.hours || 0), 0);
+        if (totalHours > 0) {
+            const completedHours = task.subtasks
+                .filter(st => st.isCompleted)
+                .reduce((sum, st: any) => sum + (st.hours || 0), 0);
+            return Math.round((completedHours / totalHours) * 100);
+        }
+
+        const completed = task.subtasks.filter(st => st.isCompleted).length;
+        return Math.round((completed / task.subtasks.length) * 100);
+    };
 
     if (loading) {
         return (
@@ -185,7 +233,18 @@ export default function TaskDetailPage() {
                                 className="w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-2xl font-bold text-white focus:outline-none focus:border-blue-500"
                             />
                         ) : (
-                            <h1 className="text-3xl font-bold">{task.title}</h1>
+                            <div className="space-y-2">
+                                <h1 className="text-3xl font-bold">{task.title}</h1>
+                                <div className="flex items-center gap-3 max-w-sm">
+                                    <div className="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden">
+                                        <div
+                                            className="h-full bg-blue-500 transition-all duration-500"
+                                            style={{ width: `${calculateProgress()}%` }}
+                                        />
+                                    </div>
+                                    <span className="text-xs font-mono text-gray-500">{calculateProgress()}% Complete</span>
+                                </div>
+                            </div>
                         )}
                     </div>
 
@@ -269,10 +328,9 @@ export default function TaskDetailPage() {
                     </div>
                 </div>
 
-                {/* Tabs */}
                 <div className="border-b border-white/10">
                     <div className="flex gap-6">
-                        {['objective', 'issues', 'documents', 'subtasks'].map((tab) => (
+                        {['objective', 'issues', 'documents', 'subtasks', 'enquiry'].map((tab) => (
                             <button
                                 key={tab}
                                 onClick={() => setActiveTab(tab as any)}
@@ -281,7 +339,7 @@ export default function TaskDetailPage() {
                                     : 'border-transparent text-gray-500 hover:text-gray-300'
                                     } capitalize`}
                             >
-                                {tab === 'subtasks' ? 'Sub Task List' : tab}
+                                {tab === 'subtasks' ? 'Sub Task List' : tab === 'enquiry' ? 'AI Enquiry' : tab}
                             </button>
                         ))}
                     </div>
@@ -311,22 +369,99 @@ export default function TaskDetailPage() {
                     )}
 
                     {activeTab === 'issues' && (
-                        <div className="space-y-3 animate-in fade-in duration-300">
-                            {githubIssues.length > 0 ? (
-                                githubIssues.map(issue => (
-                                    <div key={issue.id} className="p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors flex items-center justify-between">
-                                        <div className="flex items-center gap-3">
-                                            <div className={`w-2 h-2 rounded-full ${issue.isCompleted ? 'bg-purple-500' : 'bg-green-500'}`} />
-                                            <span className="text-gray-200">{issue.title}</span>
+                        <div className="space-y-6 animate-in fade-in duration-300">
+                            {fetchingIssue ? (
+                                <div className="flex items-center justify-center py-12">
+                                    <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                                </div>
+                            ) : githubIssue ? (
+                                <div className="space-y-4">
+                                    <div className="p-6 rounded-2xl bg-white/5 border border-white/10 space-y-4">
+                                        <div className="flex items-start justify-between">
+                                            <div className="space-y-1">
+                                                <h3 className="text-xl font-bold text-white flex items-center gap-3">
+                                                    <span className="text-gray-500">#{githubIssue.number}</span>
+                                                    {githubIssue.title}
+                                                </h3>
+                                                <div className="flex items-center gap-2">
+                                                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${githubIssue.state === 'open' ? 'bg-green-500/10 text-green-500' : 'bg-purple-500/10 text-purple-400'
+                                                        }`}>
+                                                        {githubIssue.state}
+                                                    </span>
+                                                    <span className="text-gray-500 text-xs">opened {new Date(githubIssue.created_at).toLocaleDateString()}</span>
+                                                </div>
+                                            </div>
+                                            <a
+                                                href={githubIssue.html_url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-xs font-medium hover:bg-white/10 transition-all text-gray-300"
+                                            >
+                                                View on GitHub
+                                            </a>
                                         </div>
-                                        <span className={`text-xs px-2 py-0.5 rounded ${issue.isCompleted ? 'bg-purple-500/10 text-purple-400' : 'bg-green-500/10 text-green-400'}`}>
-                                            {issue.isCompleted ? 'Closed' : 'Open'}
-                                        </span>
+
+                                        {githubIssue.labels && githubIssue.labels.length > 0 && (
+                                            <div className="flex flex-wrap gap-2">
+                                                {githubIssue.labels.map((label: any) => (
+                                                    <span
+                                                        key={label.id}
+                                                        className="px-2 py-0.5 rounded text-[10px] font-medium border"
+                                                        style={{
+                                                            backgroundColor: `#${label.color}10`,
+                                                            color: `#${label.color}`,
+                                                            borderColor: `#${label.color}20`
+                                                        }}
+                                                    >
+                                                        {label.name}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        <div className="prose prose-invert prose-sm max-w-none text-gray-400 font-light border-t border-white/5 pt-4">
+                                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                                {githubIssue.body || 'No description provided.'}
+                                            </ReactMarkdown>
+                                        </div>
                                     </div>
-                                ))
+
+                                    {/* Sub-items derived from subtasks (sync preview) */}
+                                    <div className="space-y-2">
+                                        <h4 className="text-xs font-bold text-gray-500 uppercase tracking-widest pl-2">Tracked Sub-tasks</h4>
+                                        {task.subtasks.length > 0 ? (
+                                            task.subtasks.map(issue => (
+                                                <div key={issue.id} className="p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors flex items-center justify-between">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className={`w-2 h-2 rounded-full ${issue.isCompleted ? 'bg-purple-500' : 'bg-green-500'}`} />
+                                                        <span className="text-gray-200">{issue.title}</span>
+                                                    </div>
+                                                    <span className={`text-xs px-2 py-0.5 rounded ${issue.isCompleted ? 'bg-purple-500/10 text-purple-400' : 'bg-green-500/10 text-green-400'}`}>
+                                                        {issue.isCompleted ? 'Closed' : 'Open'}
+                                                    </span>
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <div className="text-center py-6 text-gray-500 text-xs italic">
+                                                No sub-tasks linked to this issue.
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
                             ) : (
-                                <div className="text-center py-12 text-gray-500">
-                                    No GitHub issues linked to this task.
+                                <div className="text-center py-20 bg-white/5 border border-dashed border-white/10 rounded-2xl flex flex-col items-center">
+                                    <div className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center mb-4">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 text-gray-500">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m0-10.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.75c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.57-.598-3.75h-.152c-3.196 0-6.1-1.249-8.25-3.286Zm0 13.036h.008v.008H12v-.008Z" />
+                                        </svg>
+                                    </div>
+                                    <h3 className="text-white font-semibold">No GitHub Issue Linked</h3>
+                                    <p className="text-gray-500 text-sm mt-1 mb-6 max-w-xs">
+                                        Link this task to a GitHub Issue to track status, labels, and discussions.
+                                    </p>
+                                    <button className="px-6 py-2 bg-blue-600 text-white rounded-xl text-xs font-semibold hover:bg-blue-500 transition-all shadow-lg shadow-blue-600/20">
+                                        Create or Link Issue
+                                    </button>
                                 </div>
                             )}
                         </div>
@@ -383,6 +518,17 @@ export default function TaskDetailPage() {
                                     No sub-tasks defined.
                                 </div>
                             )}
+                        </div>
+                    )}
+
+                    {activeTab === 'enquiry' && (
+                        <div className="h-[600px] border border-white/10 rounded-2xl overflow-hidden animate-in fade-in duration-300">
+                            <AIEnquiryPanel
+                                taskId={task.id}
+                                taskTitle={task.title}
+                                onClose={() => setActiveTab('objective')}
+                                hideHeader={true}
+                            />
                         </div>
                     )}
                 </div>

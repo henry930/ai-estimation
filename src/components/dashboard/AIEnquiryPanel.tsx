@@ -5,29 +5,40 @@ import { XIcon, SendIcon, SparklesIcon, Loader2Icon } from 'lucide-react';
 import MessageList, { Message } from '../chat/MessageList';
 
 interface AIEnquiryPanelProps {
-    taskId: string;
+    taskId?: string;
+    groupId?: string;
     taskTitle: string;
     onClose: () => void;
+    hideHeader?: boolean;
 }
 
-export default function AIEnquiryPanel({ taskId, taskTitle, onClose }: AIEnquiryPanelProps) {
+export default function AIEnquiryPanel({ taskId, groupId, taskTitle, onClose, hideHeader }: AIEnquiryPanelProps) {
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
 
+    const handleQuickSend = async (content: string) => {
+        if (isLoading) return;
+        await processSend(content);
+    };
+
     const handleSend = async () => {
         if (!input.trim() || isLoading) return;
+        const currentInput = input;
+        setInput('');
+        await processSend(currentInput);
+    };
 
+    const processSend = async (content: string) => {
         const userMessage: Message = {
             id: Date.now().toString(),
             role: 'user',
-            content: input,
+            content: content,
             timestamp: new Date()
         };
 
         setMessages(prev => [...prev, userMessage]);
-        setInput('');
         setIsLoading(true);
 
         const assistantMessageId = (Date.now() + 1).toString();
@@ -45,6 +56,7 @@ export default function AIEnquiryPanel({ taskId, taskTitle, onClose }: AIEnquiry
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     taskId,
+                    groupId,
                     messages: [...messages, userMessage].map(m => ({
                         role: m.role,
                         content: m.content
@@ -82,23 +94,25 @@ export default function AIEnquiryPanel({ taskId, taskTitle, onClose }: AIEnquiry
     return (
         <div className="flex flex-col h-full bg-[#0a0a0a] border-l border-white/10 shadow-2xl relative overflow-hidden">
             {/* Header */}
-            <div className="px-6 py-4 border-b border-white/5 flex items-center justify-between bg-white/[0.02] backdrop-blur-md sticky top-0 z-10">
-                <div className="flex items-center gap-3">
-                    <div className="p-2 bg-blue-500/10 rounded-lg">
-                        <SparklesIcon className="w-4 h-4 text-blue-400" />
+            {!hideHeader && (
+                <div className="px-6 py-4 border-b border-white/5 flex items-center justify-between bg-white/[0.02] backdrop-blur-md sticky top-0 z-10">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 bg-blue-500/10 rounded-lg">
+                            <SparklesIcon className="w-4 h-4 text-blue-400" />
+                        </div>
+                        <div>
+                            <h2 className="text-sm font-bold text-white leading-none">Task AI Assistant</h2>
+                            <p className="text-[10px] text-gray-500 mt-1 truncate max-w-[200px]">{taskTitle}</p>
+                        </div>
                     </div>
-                    <div>
-                        <h2 className="text-sm font-bold text-white leading-none">Task AI Assistant</h2>
-                        <p className="text-[10px] text-gray-500 mt-1 truncate max-w-[200px]">{taskTitle}</p>
-                    </div>
+                    <button
+                        onClick={onClose}
+                        className="p-2 hover:bg-white/5 rounded-lg transition-colors group"
+                    >
+                        <XIcon className="w-5 h-5 text-gray-500 group-hover:text-white" />
+                    </button>
                 </div>
-                <button
-                    onClick={onClose}
-                    className="p-2 hover:bg-white/5 rounded-lg transition-colors group"
-                >
-                    <XIcon className="w-5 h-5 text-gray-500 group-hover:text-white" />
-                </button>
-            </div>
+            )}
 
             {/* Messages Area */}
             <div className="flex-1 overflow-hidden flex flex-col">
@@ -111,19 +125,22 @@ export default function AIEnquiryPanel({ taskId, taskTitle, onClose }: AIEnquiry
                         <p className="text-gray-500 text-xs leading-relaxed max-w-[240px]">
                             Ask about the implementation details, branch strategy, or request a technical breakdown.
                         </p>
-                        <div className="grid grid-cols-1 gap-2 w-full max-w-[280px] mt-6">
+                        <div className="grid grid-cols-2 gap-2 w-full max-w-[320px] mt-6">
                             {[
-                                "Break this down into subtasks",
-                                "Explain the branch strategy",
-                                "How do I implement this?",
+                                "Update the estimation",
+                                "Kick start now",
+                                "Break down subtasks",
+                                "Branch strategy",
                             ].map((suggestion, idx) => (
                                 <button
                                     key={idx}
                                     onClick={() => {
-                                        setInput(suggestion);
-                                        // Trigger send immediately in a real app, but for now just set input
+                                        const suggestion = ["Update the estimation", "Kick start now", "Break down subtasks", "Branch strategy"][idx];
+                                        // We use a small timeout to ensure the state update is processed if needed, 
+                                        // but actually we can just call handleSend with the suggestion directly.
+                                        handleQuickSend(suggestion);
                                     }}
-                                    className="px-4 py-2 text-[11px] text-gray-400 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 hover:border-white/20 transition-all text-left"
+                                    className="px-4 py-2 text-[11px] font-medium text-gray-400 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 hover:border-white/20 hover:text-white transition-all text-left"
                                 >
                                     {suggestion}
                                 </button>
@@ -159,8 +176,8 @@ export default function AIEnquiryPanel({ taskId, taskTitle, onClose }: AIEnquiry
                             onClick={handleSend}
                             disabled={!input.trim() || isLoading}
                             className={`p-2.5 rounded-lg transition-all ${input.trim() && !isLoading
-                                    ? 'bg-blue-600 text-white hover:bg-blue-500 shadow-lg shadow-blue-600/20'
-                                    : 'bg-white/5 text-gray-600 cursor-not-allowed'
+                                ? 'bg-blue-600 text-white hover:bg-blue-500 shadow-lg shadow-blue-600/20'
+                                : 'bg-white/5 text-gray-600 cursor-not-allowed'
                                 }`}
                         >
                             {isLoading ? (

@@ -108,6 +108,36 @@ export default function ManagementDashboard() {
         }
     };
 
+    const calculateTaskProgress = (task: Task) => {
+        if (task.status === 'DONE') return 100;
+        if (!task.subtasks || task.subtasks.length === 0) return 0;
+
+        const totalHours = task.subtasks.reduce((sum, st) => sum + ((st as any).hours || 1), 0);
+        const completedHours = task.subtasks
+            .filter(st => st.isCompleted)
+            .reduce((sum, st) => sum + ((st as any).hours || 1), 0);
+
+        return Math.round((completedHours / totalHours) * 100);
+    };
+
+    const calculateGroupProgress = (group: TaskGroup) => {
+        if (!group.tasks || group.tasks.length === 0) return 0;
+
+        const totalHours = group.tasks.reduce((sum, t) => sum + (t.hours || 0), 0);
+
+        const progressedHours = group.tasks.reduce((sum, t) => {
+            const progress = calculateTaskProgress(t);
+            return sum + ((t.hours || 0) * (progress / 100));
+        }, 0);
+
+        if (totalHours === 0) {
+            const totalProgress = group.tasks.reduce((sum, t) => sum + calculateTaskProgress(t), 0);
+            return Math.round(totalProgress / group.tasks.length);
+        }
+
+        return Math.round((progressedHours / totalHours) * 100);
+    };
+
     if (loading) {
         return (
             <div className="flex items-center justify-center h-[50vh]">
@@ -130,14 +160,34 @@ export default function ManagementDashboard() {
             <div className="space-y-8">
                 {groups.map((group) => (
                     <div key={group.id} className="space-y-3">
-                        <div className="flex items-center gap-2 border-b border-white/5 pb-2">
-                            <ChevronRightIcon className="w-4 h-4 text-blue-500/70" />
-                            <h2 className="text-sm font-bold text-white/70 uppercase tracking-widest">
-                                {group.title}
-                            </h2>
-                            <span className="text-[10px] text-gray-600 font-mono">
-                                ({group.tasks.length})
-                            </span>
+                        <div className="flex items-center justify-between border-b border-white/5 pb-2">
+                            <div className="flex items-center gap-2">
+                                <ChevronRightIcon className="w-4 h-4 text-blue-500/70" />
+                                <Link
+                                    href={`/dashboard/projects/${group.projectId}/groups/${group.id}`}
+                                    className="hover:text-blue-400 transition-colors"
+                                >
+                                    <h2 className="text-sm font-bold text-white/70 uppercase tracking-widest leading-none">
+                                        {group.title}
+                                    </h2>
+                                </Link>
+                                <span className="text-[10px] text-gray-600 font-mono">
+                                    ({group.tasks.length})
+                                </span>
+                            </div>
+
+                            {/* Group Progress Bar */}
+                            <div className="flex items-center gap-3 w-48">
+                                <div className="flex-1 h-1 bg-white/5 rounded-full overflow-hidden">
+                                    <div
+                                        className="h-full bg-blue-500/50 transition-all duration-500"
+                                        style={{ width: `${calculateGroupProgress(group)}%` }}
+                                    />
+                                </div>
+                                <span className="text-[10px] font-bold text-gray-500 font-mono w-8 text-right">
+                                    {calculateGroupProgress(group)}%
+                                </span>
+                            </div>
                         </div>
 
                         <div className="space-y-2">
@@ -159,9 +209,22 @@ export default function ManagementDashboard() {
                                                 </h3>
                                                 <ChevronRightIcon className="w-3 h-3 text-white/0 group-hover/title:text-blue-400/50 -translate-x-1 group-hover/title:translate-x-0 transition-all" />
                                             </Link>
-                                            <p className="text-[11px] text-gray-500 truncate italic">
+                                            <p className="text-[11px] text-gray-500 truncate italic flex-1">
                                                 {task.description}
                                             </p>
+
+                                            {/* Task Progress Bar */}
+                                            <div className="flex items-center gap-2 w-24">
+                                                <div className="flex-1 h-1 bg-white/5 rounded-full overflow-hidden">
+                                                    <div
+                                                        className={`h-full transition-all duration-500 ${task.status === 'DONE' ? 'bg-green-500/50' : 'bg-blue-500/30'}`}
+                                                        style={{ width: `${calculateTaskProgress(task)}%` }}
+                                                    />
+                                                </div>
+                                                <span className="text-[9px] font-bold text-gray-600 font-mono w-6">
+                                                    {calculateTaskProgress(task)}%
+                                                </span>
+                                            </div>
                                         </div>
 
                                         {/* Row 2: Status | Branch | Action */}

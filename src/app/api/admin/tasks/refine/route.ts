@@ -1,11 +1,12 @@
-import { NextRequest } from 'next/server';
+import { generateObject } from 'ai';
+import { z } from 'zod';
+import { getAIModel, isAIConfigured } from '@/lib/ai-provider';
 import { prisma } from '@/lib/prisma';
-import { openai, isAIConfigured } from '@/lib/openai';
 import { successResponse, errorResponse } from '@/lib/api-response';
 
-export async function POST(req: NextRequest) {
+export async function POST(req: Request) {
     if (!isAIConfigured()) {
-        return errorResponse('AI is not configured. Please add OPENAI_API_KEY.', 500);
+        return errorResponse('AI is not configured. Please add AWS credentials or OPENAI_API_KEY.', 500);
     }
 
     try {
@@ -28,7 +29,33 @@ export async function POST(req: NextRequest) {
             include: { subtasks: true }
         });
 
-        // 3. Prepare the AI prompt
+        // 3. Prepare schema for generation
+        const schema = z.object({
+            targetTaskUpdates: z.object({
+                description: z.string().optional(),
+                githubIssueNumber: z.number().optional(),
+                hours: z.number().optional(),
+                newSubtasks: z.array(z.string()).optional(),
+                subtasksToToggle: z.array(z.object({
+                    id: z.string(),
+                    isCompleted: z.boolean()
+                })).optional(),
+                newDocuments: z.array(z.object({
+                    title: z.string(),
+                    url: z.string()
+                })).optional()
+            }),
+            propagatedChanges: z.array(z.object({
+                taskId: z.string(),
+                updates: z.object({
+                    description: z.string().optional(),
+                    hours: z.number().optional(),
+                    githubIssueNumber: z.number().optional()
+                })
+            })).optional()
+        });
+
+        // 4. Prepare the AI prompt
         const systemPrompt = `You are an AI Project Manager. Your goal is to refine a specific task while ensuring global consistency across all uncompleted tasks.
 The user is refining the "${tab}" section of the task "${targetTask.title}".
 
@@ -36,33 +63,11 @@ Global Context (All Uncompleted Tasks):
 ${allUncompletedTasks.map(t => `- [${t.id}] ${t.title} (${t.status})`).join('\n')}
 
 Refine the current task based on the user prompt. 
-If the change affects other uncompleted tasks (e.g., changes dependencies, scope, or hours), you MUST include those changes too.
-
-RESPONSE FORMAT (JSON):
-{
-  "targetTaskUpdates": {
-    "description": "updated text (optional)",
-    "issues": "updated issues list (optional)",
-    "hours": number (optional),
-    "newSubtasks": ["title of new subtask to add"],
-    "subtasksToToggle": [{"id": "string", "isCompleted": boolean}],
-    "newDocuments": [{"title": "string", "url": "string"}]
-  },
-  "propagatedChanges": [
-    {
-      "taskId": "string",
-      "updates": {
-        "description": "updated text",
-        "hours": number,
-        "issues": "updated issues"
-      }
-    }
-  ]
-}`;
+If the change affects other uncompleted tasks (e.g., changes dependencies, scope, or hours), you MUST include those changes too.`;
 
         const userContext = `Task: ${targetTask.title}
 Current ${tab} content: ${tab === 'description' ? targetTask.description :
-                tab === 'issues' ? targetTask.issues :
+                tab === 'issues' ? `GitHub Issue #${targetTask.githubIssueNumber}` :
                     tab === 'todo' ? JSON.stringify(targetTask.subtasks) :
                         tab === 'documents' ? JSON.stringify(targetTask.documents) :
                             'No content'
@@ -70,20 +75,15 @@ Current ${tab} content: ${tab === 'description' ? targetTask.description :
 
 User Prompt: ${prompt}`;
 
-        const response = await openai.chat.completions.create({
-            model: 'gpt-4o-mini',
-            messages: [
-                { role: 'system', content: systemPrompt },
-                { role: 'user', content: userContext }
-            ],
-            response_format: { type: 'json_object' }
+        const { object: result } = await generateObject({
+            model: getAIModel(),
+            system: systemPrompt,
+            prompt: userContext,
+            schema,
         });
 
-        const result = JSON.parse(response.choices[0].message.content || '{}');
-
-        // 4. Apply updates in a transaction
+        // 5. Apply updates in a transaction
         await prisma.$transaction(async (tx) => {
-            // Update target task
             const { targetTaskUpdates, propagatedChanges } = result;
 
             if (targetTaskUpdates) {
@@ -91,7 +91,7 @@ User Prompt: ${prompt}`;
                     where: { id: taskId },
                     data: {
                         description: targetTaskUpdates.description,
-                        issues: targetTaskUpdates.issues,
+                        githubIssueNumber: targetTaskUpdates.githubIssueNumber,
                         hours: targetTaskUpdates.hours,
                     }
                 });
@@ -119,7 +119,6 @@ User Prompt: ${prompt}`;
 
                 if (targetTaskUpdates.newDocuments) {
                     for (const doc of targetTaskUpdates.newDocuments) {
-                        console.log('Creating document:', doc);
                         await tx.taskDocument.create({
                             data: {
                                 taskId: taskId,
@@ -140,7 +139,7 @@ User Prompt: ${prompt}`;
                         data: {
                             description: change.updates.description,
                             hours: change.updates.hours,
-                            issues: change.updates.issues
+                            githubIssueNumber: change.updates.githubIssueNumber
                         }
                     });
                 }
@@ -148,8 +147,8 @@ User Prompt: ${prompt}`;
         });
 
         return successResponse({ message: 'Refinement applied successfully', changes: result });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Refine Error:', error);
-        return errorResponse('Failed to refine task', 500);
+        return errorResponse(`Failed to refine task: ${error.message}`, 500);
     }
 }

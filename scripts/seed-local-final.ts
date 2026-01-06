@@ -8,19 +8,39 @@ const prisma = new PrismaClient();
 async function seedLocal() {
     console.log('🌱 Starting local seed (Schema Final - Docs Sync)...');
 
-    const user = await prisma.user.findFirst();
+    let user = await prisma.user.findUnique({ where: { email: 'henry930@gmail.com' } });
+    if (!user) {
+        user = await prisma.user.findFirst();
+    }
+
     if (!user) {
         console.error('❌ No user found in DB. Cannot seed.');
         return;
     }
     console.log(`👤 Seeding for user: ${user.email} (${user.id})`);
 
-    // 1. Ensure Project Exists (Reuse existing)
-    const project = await prisma.project.findUnique({ where: { id: 'cmk13hanm0001hv9s9tw69hi2' } });
+    // 1. Find or create Project
+    let project = await prisma.project.findFirst({
+        where: { name: 'AI Estimation System' }
+    });
+
     if (!project) {
-        console.error('❌ Project not found. Run previous seed first or fix ID.');
-        return;
+        project = await prisma.project.create({
+            data: {
+                userId: user.id,
+                name: 'AI Estimation System',
+                description: 'AI-powered project estimation with GitHub integration',
+                githubUrl: 'https://github.com/henry930/ai-estimation',
+            }
+        });
+        console.log(`🆕 Created new project: ${project.name}`);
     }
+
+    // Update owner to the current user we are seeding for
+    project = await prisma.project.update({
+        where: { id: project.id },
+        data: { userId: user.id }
+    });
 
     // 2. Read TASKS.md from .dashboard/docs structure
     const tasksPath = path.join(process.cwd(), '.dashboard', 'docs', 'tasks.md');

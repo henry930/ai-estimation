@@ -53,15 +53,6 @@ export interface GitHubRepo {
     updated_at: string;
 }
 
-export interface GitHubBranch {
-    name: string;
-    commit: {
-        sha: string;
-        url: string;
-    };
-    protected: boolean;
-}
-
 export async function getGitHubAccessToken(userId: string): Promise<string | null> {
     const account = await prisma.account.findFirst({
         where: {
@@ -89,18 +80,69 @@ export async function getUserRepositories(accessToken: string): Promise<GitHubRe
     return response.json();
 }
 
+export interface GitHubBranch {
+    name: string;
+    commit: {
+        sha: string;
+        url: string;
+    };
+    protected: boolean;
+    commitCount?: number;
+    isMerged?: boolean;
+    isDefault?: boolean;
+}
+
 export async function getProjectBranches(accessToken: string, fullName: string): Promise<GitHubBranch[]> {
-    const response = await fetch(`https://api.github.com/repos/${fullName}/branches`, {
-        headers: {
-            Authorization: `token ${accessToken}`,
-            Accept: 'application/vnd.github.v3+json',
-        },
+    const octokit = new Octokit({ auth: accessToken });
+    const [owner, repo] = fullName.split('/');
+
+    // 1. Get default branch
+    const { data: repoData } = await octokit.repos.get({ owner, repo });
+    const defaultBranch = repoData.default_branch;
+
+    // 2. Get all branches
+    const { data: branches } = await octokit.repos.listBranches({
+        owner,
+        repo,
+        per_page: 100
     });
 
-    if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to fetch branches from GitHub');
-    }
+    // 3. Get pull requests to check for merges
+    const { data: prs } = await octokit.pulls.list({
+        owner,
+        repo,
+        state: 'closed',
+        per_page: 100
+    });
 
-    return response.json();
+    const detailedBranches: GitHubBranch[] = await Promise.all(branches.map(async (branch) => {
+        let commitCount = 0;
+        try {
+            // Get last few commits to estimate activity
+            const { data: commits } = await octokit.repos.listCommits({
+                owner,
+                repo,
+                sha: branch.name,
+                per_page: 1 // We can get total count from header but simpler to just show activity
+            });
+            // GitHub doesn't give a direct "count" in the REST API without pagination
+            // For now let's just mark it as active
+            commitCount = commits.length;
+        } catch (e) {
+            console.error(`Failed to fetch commits for ${branch.name}`);
+        }
+
+        const isMerged = prs.some(pr => pr.head.ref === branch.name && pr.merged_at);
+
+        return {
+            name: branch.name,
+            commit: branch.commit,
+            protected: branch.protected,
+            isDefault: branch.name === defaultBranch,
+            isMerged: isMerged,
+            commitCount: commitCount // This is a placeholder for "is active"
+        };
+    }));
+
+    return detailedBranches;
 }
