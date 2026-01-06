@@ -23,7 +23,7 @@ export async function POST(req: Request) {
             const task = await prisma.task.findUnique({
                 where: { id: taskId },
                 include: {
-                    subtasks: true,
+                    children: true,
                     documents: true
                 }
             });

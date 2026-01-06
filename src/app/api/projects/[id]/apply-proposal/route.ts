@@ -45,25 +45,27 @@ export async function POST(
                     let group;
 
                     if (groupData.id && groupData.id.startsWith('cm')) { // Prisma CUID check
-                        group = await tx.taskGroup.update({
+                        group = await tx.task.update({
                             where: { id: groupData.id },
                             data: {
                                 title: groupData.title,
                                 objective: groupData.objective,
                                 status: groupData.status,
-                                totalHours: groupData.totalHours,
-                                order: i
+                                hours: groupData.totalHours,
+                                order: i,
+                                level: 0
                             }
                         });
                     } else {
-                        group = await tx.taskGroup.create({
+                        group = await tx.task.create({
                             data: {
                                 projectId,
                                 title: groupData.title,
                                 objective: groupData.objective,
                                 status: groupData.status || 'PENDING',
-                                totalHours: groupData.totalHours || 0,
-                                order: i
+                                hours: groupData.totalHours || 0,
+                                order: i,
+                                level: 0
                             }
                         });
                     }
@@ -81,19 +83,23 @@ export async function POST(
                                         objective: taskData.objective || taskData.description,
                                         hours: taskData.hours,
                                         status: taskData.status || 'PENDING',
-                                        order: j
+                                        order: j,
+                                        parentId: group.id,
+                                        level: 1
                                     }
                                 });
                             } else {
                                 await tx.task.create({
                                     data: {
-                                        groupId: group.id,
+                                        projectId,
+                                        parentId: group.id,
                                         title: taskData.title,
                                         description: taskData.description,
                                         objective: taskData.objective || taskData.description,
                                         hours: taskData.hours || 0,
                                         status: taskData.status || 'PENDING',
-                                        order: j
+                                        order: j,
+                                        level: 1
                                     }
                                 });
                             }

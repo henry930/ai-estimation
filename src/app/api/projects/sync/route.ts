@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
             return errorResponse('TASKS.md not found in repository', 404);
         }
 
-        // 1. Fetch repository details from GitHub
+        // Fetch repository details from GitHub
         let githubRepoId = '';
         let githubUrl = `https://github.com/${fullRepoName}`;
         try {
@@ -57,12 +57,10 @@ export async function POST(req: NextRequest) {
             githubUrl = repoData.html_url;
         } catch (err) {
             console.error('[Sync] Failed to fetch repo details from GitHub:', err);
-            // Fallback to what we have if GitHub fetch fails (though it shouldn't if we have access)
         }
 
-        // 2. Ensure project exists and is unique
+        // 2. Ensure project exists
         if (!project) {
-            // Check by URL or GitHub ID
             project = await prisma.project.findFirst({
                 where: {
                     userId: session.user.id,
@@ -84,18 +82,11 @@ export async function POST(req: NextRequest) {
                     }
                 });
             } else if (githubRepoId && !project.githubRepoId) {
-                // Update existing project with missing repo ID
                 project = await prisma.project.update({
                     where: { id: project.id },
                     data: { githubRepoId }
                 });
             }
-        } else if (githubRepoId && !project.githubRepoId) {
-            // Update existing project with missing repo ID if found by ID but missing RepoId
-            project = await prisma.project.update({
-                where: { id: project.id },
-                data: { githubRepoId }
-            });
         }
 
         const githubBaseUrl = `https://github.com/${fullRepoName}`;
@@ -110,11 +101,10 @@ export async function POST(req: NextRequest) {
             return `${baseUrl}${repoPath}${filename}`;
         }
 
-        // 3. Clear existing summary data if any
+        // 3. Parse Refinements and Content
         const summaryMatch = content.match(/## Summary Progress Bar([\s\S]*)/);
         const mainContent = summaryMatch ? content.split('## Summary Progress Bar')[0] : content;
 
-        // 4. Parse Refinements
         const refinements: Record<string, any> = {};
         const refinementBlocks = mainContent.split(/#### /).slice(1);
         for (const block of refinementBlocks) {
@@ -154,10 +144,10 @@ export async function POST(req: NextRequest) {
             console.log('[Sync] No docs folder found');
         }
 
-        // 7. Process Phases and Tasks inside a single Transaction
+        // 7. Process Phases and Tasks inside a Transaction
         const updatedProjectData = await prisma.$transaction(async (tx) => {
-            // Clear existing groups atomicly
-            await tx.taskGroup.deleteMany({ where: { projectId: project.id } });
+            // DESTRUCTIVE: Clear all existing tasks for this project
+            await tx.task.deleteMany({ where: { projectId: project!.id } });
 
             const phaseBlocks = mainContent.split(/(?=## Phase \d+:)/).filter(b => b.trim().startsWith('## Phase'));
             let groupOrder = 0;
@@ -171,28 +161,30 @@ export async function POST(req: NextRequest) {
                 const phaseObjective = lines.find(l => l.startsWith('**Objective**:'))?.split('**Objective**:')[1]?.trim() || null;
 
                 const statusLine = lines.find(l => l.trim().startsWith('**Status**:'));
-                let phaseStatus = null;
+                let phaseStatus = 'PENDING';
                 let phaseHours = 0;
                 let phaseBranch = null;
 
                 if (statusLine) {
                     const parts = statusLine.split('|');
                     for (const part of parts) {
-                        if (part.includes('Status')) phaseStatus = part.split(':')[1].trim();
+                        if (part.includes('Status')) phaseStatus = part.split(':')[1].trim() || 'PENDING';
                         if (part.includes('Total Hours')) phaseHours = parseInt(part.split(':')[1].trim()) || 0;
                         if (part.includes('Branch')) phaseBranch = part.split(':')[1].trim().replace(/`/g, '');
                     }
                 }
 
-                const taskGroup = await tx.taskGroup.create({
+                // Create Phase (Level 0)
+                const phaseNode = await tx.task.create({
                     data: {
-                        projectId: project.id,
+                        projectId: project!.id,
                         title: phaseTitle,
                         objective: phaseObjective,
                         status: phaseStatus,
-                        totalHours: phaseHours,
+                        hours: phaseHours,
                         branch: phaseBranch,
-                        order: groupOrder++
+                        order: groupOrder++,
+                        level: 0
                     }
                 });
 
@@ -217,9 +209,11 @@ export async function POST(req: NextRequest) {
 
                     const ref = refinements[taskTitle];
 
-                    const task = await tx.task.create({
+                    // Create Task (Level 1)
+                    const taskNode = await tx.task.create({
                         data: {
-                            groupId: taskGroup.id,
+                            projectId: project!.id,
+                            parentId: phaseNode.id,
                             title: taskTitle,
                             status: status as any,
                             hours: hours,
@@ -227,15 +221,16 @@ export async function POST(req: NextRequest) {
                             description: ref?.description || detail,
                             objective: detail,
                             aiPrompt: ref?.prompt || null,
-                            order: taskOrder++
+                            order: taskOrder++,
+                            level: 1
                         }
                     });
 
-                    // Collect all subtasks and docs for bulk creation
+                    // Handle subtasks (Level 2) and docs
                     const subtasksToCreate: any[] = [];
                     const docsToCreate: any[] = [];
 
-                    // 1. From TASKS.md refinements
+                    // From TASKS.md refinements
                     const issuesFromMd = ref?.issues || '';
                     if (issuesFromMd) {
                         const subLines = issuesFromMd.split('\n').filter((l: string) => l.trim());
@@ -243,16 +238,18 @@ export async function POST(req: NextRequest) {
                             const subMatch = sl.match(/- \[( |x|X)\] (.*)/);
                             if (subMatch) {
                                 subtasksToCreate.push({
-                                    taskId: task.id,
+                                    projectId: project!.id,
+                                    parentId: taskNode.id,
                                     title: subMatch[2].trim(),
-                                    isCompleted: subMatch[1].toLowerCase() === 'x',
-                                    order: i
+                                    status: subMatch[1].toLowerCase() === 'x' ? 'DONE' : 'PENDING',
+                                    order: i,
+                                    level: 2
                                 });
                             }
                         });
                     }
 
-                    // 2. From GitHub Issues
+                    // From GitHub Issues
                     const matchedIssues = githubIssues.filter(issue =>
                         issue.labels.some((l: any) => l.name.toLowerCase() === (branch?.toLowerCase() || '') || l.name.toLowerCase() === taskTitle.toLowerCase()) ||
                         issue.title.toLowerCase().includes(taskTitle.toLowerCase())
@@ -261,15 +258,18 @@ export async function POST(req: NextRequest) {
                         const issueTitle = `GitHub Issue #${gitIssue.number}: ${gitIssue.title}`;
                         if (!issuesFromMd.includes(gitIssue.title)) {
                             subtasksToCreate.push({
-                                taskId: task.id,
+                                projectId: project!.id,
+                                parentId: taskNode.id,
                                 title: issueTitle,
-                                isCompleted: gitIssue.state === 'closed',
-                                order: 999
+                                status: gitIssue.state === 'closed' ? 'DONE' : 'PENDING',
+                                githubIssueNumber: gitIssue.number,
+                                order: 999,
+                                level: 2
                             });
                         }
                     });
 
-                    // 3. Documents from MD
+                    // From MD Documents
                     const docsFromMd = ref?.documents || '';
                     if (docsFromMd) {
                         const docLines = docsFromMd.split('\n').filter((l: string) => l.trim());
@@ -279,7 +279,7 @@ export async function POST(req: NextRequest) {
                                 const rawUrl = docMatch[2].trim();
                                 const convertedUrl = convertToGitHubUrl(rawUrl, githubBaseUrl);
                                 docsToCreate.push({
-                                    taskId: task.id,
+                                    taskId: taskNode.id,
                                     title: docMatch[1].trim(),
                                     url: convertedUrl,
                                     type: convertedUrl.endsWith('.md') ? 'markdown' : 'link'
@@ -288,7 +288,7 @@ export async function POST(req: NextRequest) {
                         });
                     }
 
-                    // 4. Docs from GitHub docs/ folder (Categorized)
+                    // Docs from GitHub docs/ folder
                     const matchedDocs = githubDocs.filter(doc =>
                         doc.name.toLowerCase().includes(taskTitle.toLowerCase().replace(/\s+/g, '-')) ||
                         doc.name.toLowerCase().includes(taskTitle.toLowerCase().replace(/\s+/g, '_')) ||
@@ -297,7 +297,7 @@ export async function POST(req: NextRequest) {
                     matchedDocs.forEach((gitDoc: any) => {
                         if (!docsFromMd.toLowerCase().includes(gitDoc.name.toLowerCase())) {
                             docsToCreate.push({
-                                taskId: task.id,
+                                taskId: taskNode.id,
                                 title: gitDoc.name,
                                 url: gitDoc.html_url,
                                 type: 'markdown'
@@ -305,40 +305,39 @@ export async function POST(req: NextRequest) {
                         }
                     });
 
-                    // Perform writes
-                    await Promise.all([
-                        ...subtasksToCreate.map(st => tx.subTask.create({ data: st })),
-                        ...docsToCreate.map(dt => tx.taskDocument.create({ data: dt }))
-                    ]);
+                    // Perform writes for subtasks (tasks) and documents
+                    for (const st of subtasksToCreate) await tx.task.create({ data: st });
+                    for (const dt of docsToCreate) await tx.taskDocument.create({ data: dt });
                 }
             }
 
-            // 8. Handle any remaining docs - put them in a Documentation group
+            // 8. Documentation group
             if (githubDocs.length > 0) {
-                const docGroup = await tx.taskGroup.create({
+                const docGroup = await tx.task.create({
                     data: {
-                        projectId: project.id,
+                        projectId: project!.id,
                         title: 'Documentation & Resources',
                         objective: 'Project-wide documentation found in the repository.',
                         status: 'IN PROGRESS',
-                        order: groupOrder++
+                        order: groupOrder++,
+                        level: 0
                     }
                 });
 
-                // Group docs by filename patterns or just create a general task
                 const generalDocTask = await tx.task.create({
                     data: {
-                        groupId: docGroup.id,
+                        projectId: project!.id,
+                        parentId: docGroup.id,
                         title: 'Repository Wiki & Docs',
                         description: 'Automatically collected documentation files from the /docs directory.',
                         hours: 0,
                         status: 'IN PROGRESS',
-                        order: 0
+                        order: 0,
+                        level: 1
                     }
                 });
 
                 for (const doc of githubDocs) {
-                    // Check if already assigned
                     const alreadyAssigned = await tx.taskDocument.findFirst({
                         where: { url: doc.html_url }
                     });
@@ -357,17 +356,17 @@ export async function POST(req: NextRequest) {
             }
 
             return await tx.project.update({
-                where: { id: project.id },
+                where: { id: project!.id },
                 data: { lastSync: new Date() }
             });
         }, {
-            timeout: 30000 // Increase timeout for large syncs
+            timeout: 60000
         });
 
         console.log('[Sync] Sync completed successfully.');
         return successResponse({ project: updatedProjectData, message: 'Project synced successfully' });
-    } catch (error) {
+    } catch (error: any) {
         console.error('[Sync] Fatal Error:', error);
-        return errorResponse('Failed to sync project', 500);
+        return errorResponse(`Failed to sync project: ${error.message}`, 500);
     }
 }

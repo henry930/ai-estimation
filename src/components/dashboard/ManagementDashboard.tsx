@@ -36,6 +36,7 @@ interface Task {
 
 interface TaskGroup {
     id: string;
+    projectId: string;
     title: string;
     tasks: Task[];
 }

@@ -1,6 +1,16 @@
-import TaskDetail from '@/components/dashboard/TaskDetail';
+'use client';
 
-export default async function TaskDetailPage({ params }: { params: Promise<{ id: string }> }) {
-    const { id } = await params;
-    return <TaskDetail taskId={id} />;
+import DashboardLayout from '@/components/dashboard/DashboardLayout';
+import UniversalTaskDetail from '@/components/dashboard/UniversalTaskDetail';
+import { useParams } from 'next/navigation';
+
+export default function ManagementTaskDetailPage() {
+    const params = useParams();
+    const id = params.id as string;
+
+    return (
+        <DashboardLayout>
+            <UniversalTaskDetail type="task" initialId={id} />
+        </DashboardLayout>
+    );
 }

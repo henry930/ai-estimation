@@ -35,6 +35,7 @@ export async function GET(req: NextRequest) {
         // Map root tasks to "TaskGroups" for the existing admin interface
         const formattedGroups = rootTasks.map(root => ({
             id: root.id,
+            projectId: root.projectId,
             title: root.title,
             description: root.description,
             objective: root.objective,
