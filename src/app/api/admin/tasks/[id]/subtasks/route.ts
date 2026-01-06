@@ -11,11 +11,22 @@ export async function POST(
         const body = await req.json();
         const { title } = body;
 
-        const subtask = await prisma.subTask.create({
+        const parentTask = await prisma.task.findUnique({
+            where: { id },
+            select: { projectId: true }
+        });
+
+        if (!parentTask) {
+            return errorResponse('Parent task not found', 404);
+        }
+
+        const subtask = await prisma.task.create({
             data: {
-                taskId: id,
+                projectId: parentTask.projectId,
+                parentId: id,
                 title,
-                order: (await prisma.subTask.count({ where: { taskId: id } }))
+                level: 2,
+                order: (await prisma.task.count({ where: { parentId: id } }))
             }
         });
 
@@ -31,16 +42,15 @@ export async function PATCH(
     { params }: { params: Promise<{ id: string }> }
 ) {
     await params; // Await params even if not used
-    // This endpoint handles individual subtask updates (toggling complete)
-    // Actually, it might be better to have /api/admin/subtasks/[subid]
-    // But for simplicity, we can pass subtaskId in the body
     try {
         const body = await req.json();
         const { subtaskId, isCompleted } = body;
 
-        const subtask = await prisma.subTask.update({
+        const subtask = await prisma.task.update({
             where: { id: subtaskId },
-            data: { isCompleted }
+            data: {
+                status: isCompleted ? 'DONE' : 'PENDING'
+            }
         });
 
         return successResponse(subtask);

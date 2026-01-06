@@ -1,14 +1,9 @@
 node_modules/
 .next/
-.env
-.env.local
-.env.production
-.DS_Store
+.sst/
+.open-next/
 dist/
 build/
-*.log
-.vercel
-.turbo
 coverage/
 .idea/
 .vscode/
@@ -18,10 +13,25 @@ coverage/
 out/
 next-env.d.ts
 .pnpm-debug.log*
-.sst
+.DS_Store
+
+# Database
+dev.db
+dev.db-journal
 prisma/dev.db
+prisma/dev.db-journal
+prisma/dev.db-backup*
 *.db
 *.db-journal
+
+# Environment variables
 .env
-.env.production
 .env.local
+.env.production
+.env*.local
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

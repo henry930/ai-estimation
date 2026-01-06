@@ -8,11 +8,11 @@ export async function GET(
 ) {
     const { id } = await params;
     try {
-        const task = await prisma.task.findUnique({
+        const rootTask = await prisma.task.findUnique({
             where: { id },
             include: {
-                group: true,
-                subtasks: {
+                parent: true,
+                children: {
                     orderBy: { order: 'asc' }
                 },
                 documents: {
@@ -21,11 +21,21 @@ export async function GET(
             }
         });
 
-        if (!task) {
+        if (!rootTask) {
             return errorResponse('Task not found', 404);
         }
 
-        return successResponse(task);
+        // Map back to expected structure
+        const formattedTask = {
+            ...rootTask,
+            group: rootTask.parent,
+            subtasks: rootTask.children.map(child => ({
+                ...child,
+                isCompleted: child.status === 'DONE'
+            }))
+        };
+
+        return successResponse(formattedTask);
     } catch (error) {
         console.error('API Error:', error);
         return errorResponse('Failed to fetch task details', 500);

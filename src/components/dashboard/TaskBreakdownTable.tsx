@@ -157,7 +157,7 @@ export default function TaskBreakdownTable({ categories, onBranchClick, githubUr
                                                 )}
                                             </button>
                                             <Link
-                                                href={`/dashboard/projects/${projectId}/groups/${category.id}`}
+                                                href={`/dashboard/projects/${projectId}/tasks/${category.id}`}
                                                 className="font-semibold text-white hover:text-blue-400 transition-colors"
                                                 onClick={(e) => e.stopPropagation()}
                                             >

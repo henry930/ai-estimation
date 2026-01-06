@@ -1,3 +1,5 @@
+const path = require('path');
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     reactStrictMode: true,
@@ -8,6 +10,8 @@ const nextConfig = {
     eslint: {
         ignoreDuringBuilds: true, // Temporarily disable for deployment
     },
+    // Fix for slow performance: force Next.js to only look at this directory as the root
+    outputFileTracingRoot: path.join(__dirname),
 }
 
 module.exports = nextConfig

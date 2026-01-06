@@ -14,12 +14,15 @@ export async function GET(req: NextRequest) {
             return errorResponse('Management project not found', 404);
         }
 
-        const taskGroups = await prisma.taskGroup.findMany({
-            where: { projectId: project.id },
+        const rootTasks = await prisma.task.findMany({
+            where: {
+                projectId: project.id,
+                parentId: null
+            },
             include: {
-                tasks: {
+                children: {
                     include: {
-                        subtasks: {
+                        children: {
                             orderBy: { order: 'asc' }
                         }
                     },
@@ -29,7 +32,30 @@ export async function GET(req: NextRequest) {
             orderBy: { order: 'asc' }
         });
 
-        return successResponse(taskGroups);
+        // Map root tasks to "TaskGroups" for the existing admin interface
+        const formattedGroups = rootTasks.map(root => ({
+            id: root.id,
+            title: root.title,
+            description: root.description,
+            objective: root.objective,
+            status: root.status,
+            order: root.order,
+            tasks: root.children.map(task => ({
+                id: task.id,
+                title: task.title,
+                description: task.description,
+                status: task.status,
+                order: task.order,
+                subtasks: task.children.map(sub => ({
+                    id: sub.id,
+                    title: sub.title,
+                    isCompleted: sub.status === 'DONE',
+                    order: sub.order
+                }))
+            }))
+        }));
+
+        return successResponse(formattedGroups);
     } catch (error) {
         console.error('API Error:', error);
         return errorResponse('Failed to fetch tasks', 500);

@@ -19,8 +19,9 @@ export async function GET(
         const task = await prisma.task.findUnique({
             where: { id: taskId },
             include: {
-                group: {
+                parent: {
                     select: {
+                        id: true,
                         title: true,
                         projectId: true,
                         project: {
@@ -31,10 +32,19 @@ export async function GET(
                         }
                     }
                 },
-                subtasks: {
+                children: {
+                    include: {
+                        children: {
+                            include: {
+                                children: true
+                            }
+                        },
+                        documents: true
+                    },
                     orderBy: { order: 'asc' }
                 },
-                documents: true
+                documents: true,
+                project: true,
             }
         });
 
@@ -42,7 +52,50 @@ export async function GET(
             return NextResponse.json({ error: 'Task not found' }, { status: 404 });
         }
 
-        return NextResponse.json(task);
+        // Format children as "breakdown" suitable for TaskBreakdownTable
+        // If taskId is Level 0 (Phase), children are Level 1 (Tasks), children-children are Level 2 (Subtasks)
+        // This mapping ensures that TaskBreakdownTable gets an array of "Categories" (even if just one)
+        const breakdown = task.children.map(child => ({
+            id: child.id,
+            title: child.title,
+            status: child.status,
+            totalHours: child.hours,
+            branch: child.branch,
+            githubIssueNumber: child.githubIssueNumber,
+            tasks: child.children.map(taskItem => ({
+                id: taskItem.id,
+                title: taskItem.title,
+                status: taskItem.status,
+                hours: taskItem.hours || 0,
+                completed: taskItem.status === 'DONE',
+                branch: taskItem.branch,
+                subtasks: taskItem.children.map(subTaskItem => ({
+                    id: subTaskItem.id,
+                    title: subTaskItem.title,
+                    isCompleted: subTaskItem.status === 'DONE',
+                    hours: subTaskItem.hours,
+                    githubIssueNumber: subTaskItem.githubIssueNumber,
+                }))
+            }))
+        }));
+
+        return NextResponse.json({
+            ...task,
+            projectId: task.projectId,
+            breakdown,
+            // standard UnifiedNode fields
+            title: task.title,
+            description: task.description,
+            objective: task.objective,
+            status: task.status,
+            hours: task.hours || 0,
+            project: {
+                name: task.project.name,
+                githubUrl: task.project.githubUrl
+            },
+            documents: task.documents,
+            githubIssueNumber: task.githubIssueNumber,
+        });
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
@@ -78,32 +131,44 @@ export async function PATCH(
                 data: updateData
             });
 
-            // Handle subtasks if provided
+            // Handle subtasks if provided (now as children)
             if (subtasks && Array.isArray(subtasks)) {
-                await tx.subTask.deleteMany({ where: { taskId } });
+                await tx.task.deleteMany({
+                    where: {
+                        parentId: taskId,
+                        level: 2 // Only delete "subtask" level children
+                    }
+                });
 
-                // Create subtasks in bulk if possible, otherwise map to skip loop overhead
-                await Promise.all(subtasks.map((title, i) =>
-                    tx.subTask.create({
-                        data: { taskId, title, isCompleted: false, order: i }
-                    })
-                ));
+                // Create subtasks as children
+                for (const [i, stTitle] of subtasks.entries()) {
+                    await tx.task.create({
+                        data: {
+                            projectId: task.projectId,
+                            parentId: taskId,
+                            title: stTitle,
+                            status: 'PENDING',
+                            order: i,
+                            level: 2
+                        }
+                    });
+                }
             }
 
             // Handle documents if provided
             if (documents && Array.isArray(documents)) {
                 await tx.taskDocument.deleteMany({ where: { taskId } });
 
-                await Promise.all(documents.map(doc =>
-                    tx.taskDocument.create({
+                for (const doc of documents) {
+                    await tx.taskDocument.create({
                         data: {
                             taskId,
                             title: doc.title,
                             url: doc.url,
                             type: doc.type || 'link'
                         }
-                    })
-                ));
+                    });
+                }
             }
 
             return task;

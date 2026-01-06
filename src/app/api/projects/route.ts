@@ -63,12 +63,20 @@ export async function GET(req: NextRequest) {
             orderBy: { updatedAt: 'desc' },
             include: {
                 _count: {
-                    select: { taskGroups: true }
+                    select: { tasks: true }
                 }
             }
         });
 
-        return successResponse(projects);
+        // Map back to maintain compatibility with frontend expecting 'taskGroups' count
+        const formattedProjects = projects.map(p => ({
+            ...p,
+            _count: {
+                taskGroups: p._count.tasks
+            }
+        }));
+
+        return successResponse(formattedProjects);
     } catch (error: any) {
         console.error('API Error:', error);
         return errorResponse(error.message, 500);

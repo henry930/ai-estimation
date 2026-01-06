@@ -40,12 +40,12 @@ interface Task {
     documents: TaskDocument[];
 }
 
-type TabType = 'description' | 'issues' | 'documents' | 'todo' | 'enquiry';
+type TabType = 'implementation-plan' | 'issues' | 'documents' | 'subtasks' | 'agent';
 
 export default function TaskDetail({ taskId }: { taskId: string }) {
     const [task, setTask] = useState<Task | null>(null);
     const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState<TabType>('description');
+    const [activeTab, setActiveTab] = useState<TabType>('implementation-plan');
 
     useEffect(() => {
         const fetchTask = async () => {
@@ -140,11 +140,11 @@ export default function TaskDetail({ taskId }: { taskId: string }) {
     }
 
     const tabs: { id: TabType; label: string; icon: any }[] = [
-        { id: 'description', label: 'Description', icon: FileTextIcon },
+        { id: 'implementation-plan', label: 'Implementation Plan', icon: FileTextIcon },
         { id: 'issues', label: 'Issues', icon: AlertCircleIcon },
         { id: 'documents', label: 'Documents', icon: LinkIcon },
-        { id: 'todo', label: 'To Do', icon: CheckSquareIcon },
-        { id: 'enquiry', label: 'AI Enquiry', icon: MessageSquareIcon },
+        { id: 'subtasks', label: 'Sub Task List', icon: CheckSquareIcon },
+        { id: 'agent', label: 'AI Agent', icon: MessageSquareIcon },
     ];
 
     return (
@@ -215,11 +215,11 @@ export default function TaskDetail({ taskId }: { taskId: string }) {
 
             {/* Tab Content */}
             <div className="bg-[#0a0a0a] border border-white/5 rounded-2xl p-8 min-h-[400px] shadow-2xl overflow-hidden">
-                {activeTab === 'description' && (
+                {activeTab === 'implementation-plan' && (
                     <div className="prose prose-invert max-w-none">
-                        <h3 className="text-white text-lg font-semibold mb-4">Task Description</h3>
+                        <h3 className="text-white text-lg font-semibold mb-4">Implementation Plan</h3>
                         <p className="text-gray-400 leading-relaxed whitespace-pre-wrap">
-                            {task.description || 'No description provided.'}
+                            {task.description || 'No implementation plan provided.'}
                         </p>
 
                         {task.aiPrompt && (
@@ -291,10 +291,10 @@ export default function TaskDetail({ taskId }: { taskId: string }) {
                     </div>
                 )}
 
-                {activeTab === 'todo' && (
+                {activeTab === 'subtasks' && (
                     <div className="space-y-4">
                         <div className="flex items-center justify-between mb-6">
-                            <h3 className="text-white text-lg font-semibold">Task Breakdown</h3>
+                            <h3 className="text-white text-lg font-semibold">Sub Task List</h3>
                             <div className="text-xs text-gray-500">
                                 {task.subtasks.filter(s => s.isCompleted).length} / {task.subtasks.length} Completed
                             </div>
@@ -343,12 +343,12 @@ export default function TaskDetail({ taskId }: { taskId: string }) {
                     </div>
                 )}
 
-                {activeTab === 'enquiry' && (
+                {activeTab === 'agent' && (
                     <div className="h-[500px] animate-in fade-in duration-300">
                         <AIEnquiryPanel
                             taskId={task.id}
                             taskTitle={task.title}
-                            onClose={() => setActiveTab('description')}
+                            onClose={() => setActiveTab('implementation-plan')}
                             hideHeader={true}
                         />
                     </div>

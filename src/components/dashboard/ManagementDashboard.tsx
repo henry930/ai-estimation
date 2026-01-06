@@ -164,7 +164,7 @@ export default function ManagementDashboard() {
                             <div className="flex items-center gap-2">
                                 <ChevronRightIcon className="w-4 h-4 text-blue-500/70" />
                                 <Link
-                                    href={`/dashboard/projects/${group.projectId}/groups/${group.id}`}
+                                    href={`/dashboard/projects/${group.projectId}/tasks/${group.id}`}
                                     className="hover:text-blue-400 transition-colors"
                                 >
                                     <h2 className="text-sm font-bold text-white/70 uppercase tracking-widest leading-none">

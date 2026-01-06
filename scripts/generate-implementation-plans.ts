@@ -13,17 +13,11 @@ async function generateImplementationPlans() {
         fs.mkdirSync(plansDir, { recursive: true });
     }
 
-    // Get all projects
+    // Get all projects with their flat tasks
     const projects = await prisma.project.findMany({
         include: {
-            taskGroups: {
-                include: {
-                    tasks: {
-                        include: {
-                            subtasks: true,
-                        },
-                    },
-                },
+            tasks: {
+                orderBy: { order: 'asc' },
             },
         },
     });
@@ -31,22 +25,37 @@ async function generateImplementationPlans() {
     for (const project of projects) {
         console.log(`\n📦 Project: ${project.name}`);
 
+        // Organize tasks by level
+        const level0Tasks = project.tasks.filter(t => t.level === 0);
+
+        // Add tasks to project object for compatibility with generation functions
+        const projectWithGroups = {
+            ...project,
+            taskGroups: level0Tasks.map(group => ({
+                ...group,
+                tasks: project.tasks.filter(t => t.parentId === group.id && t.level === 1).map(task => ({
+                    ...task,
+                    subtasks: project.tasks.filter(t => t.parentId === task.id && t.level === 2)
+                }))
+            }))
+        };
+
         // Create project implementation plan
-        const projectPlan = generateProjectPlan(project);
+        const projectPlan = generateProjectPlan(projectWithGroups);
         const projectFile = path.join(plansDir, `project-${sanitizeFilename(project.name)}.md`);
         fs.writeFileSync(projectFile, projectPlan);
         console.log(`   ✅ Created: ${path.basename(projectFile)}`);
 
-        for (const group of project.taskGroups) {
+        for (const group of projectWithGroups.taskGroups) {
             // Create task group implementation plan
-            const groupPlan = generateTaskGroupPlan(group, project);
+            const groupPlan = generateTaskGroupPlan(group, projectWithGroups);
             const groupFile = path.join(plansDir, `group-${sanitizeFilename(group.title)}.md`);
             fs.writeFileSync(groupFile, groupPlan);
             console.log(`   ✅ Created: ${path.basename(groupFile)}`);
 
             for (const task of group.tasks) {
                 // Create task implementation plan
-                const taskPlan = generateTaskPlan(task, group, project);
+                const taskPlan = generateTaskPlan(task, group, projectWithGroups);
                 const taskFile = path.join(plansDir, `task-${sanitizeFilename(task.title)}.md`);
                 fs.writeFileSync(taskFile, taskPlan);
                 console.log(`      ✅ Created: ${path.basename(taskFile)}`);

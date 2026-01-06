@@ -18,30 +18,24 @@ export default $config({
             },
 
             environment: {
-                // Database
-                DATABASE_URL: process.env.DATABASE_URL || "",
+                // Database - Hardcoded for production
+                DATABASE_URL: "postgresql://aiestimation:AiEstimation2026@ai-estimation-db.cp8caqsqw2vz.eu-west-1.rds.amazonaws.com:5432/ai_estimation?sslmode=require",
 
-                // NextAuth - Using custom domain
-                NEXTAUTH_URL: process.env.NEXTAUTH_URL || "https://ai-estimation.co.uk",
-                NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET || "",
+                // NextAuth - Custom Domain
+                NEXTAUTH_URL: "https://ai-estimation.co.uk",
+                NEXTAUTH_SECRET: "WNffvEuHZqDhmPXtx1ng/3YEKQraxty983f/UzFN2fg=",
 
-                // GitHub OAuth
-                GITHUB_ID: process.env.GITHUB_ID || "",
-                GITHUB_SECRET: process.env.GITHUB_SECRET || "",
+                // GitHub OAuth - Using your new credentials
+                GITHUB_ID: "Ov23liP9U59tJvOLKHkt",
+                GITHUB_SECRET: "b113a7ce39bf050d354f49e855a4909711f52a02",
 
-                // OpenAI API (optional - not currently used)
-                OPENAI_API_KEY: process.env.OPENAI_API_KEY || "",
-
-                // Stripe (optional)
-                STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY || "",
-                STRIPE_PRO_PRICE_ID: process.env.STRIPE_PRO_PRICE_ID || "",
-                STRIPE_TEAM_PRICE_ID: process.env.STRIPE_TEAM_PRICE_ID || "",
-                STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET || "",
+                // OpenAI API (optional)
+                OPENAI_API_KEY: "dummy-openai-key",
 
                 // AWS Bedrock (Claude 3.5 Sonnet)
                 BEDROCK_AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID || "",
                 BEDROCK_AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY || "",
-                BEDROCK_AWS_REGION: process.env.AWS_REGION || "eu-west-1",
+                BEDROCK_AWS_REGION: "eu-west-1",
 
                 NODE_ENV: "production",
             },

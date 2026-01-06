@@ -3,10 +3,11 @@
 
 generator client {
   provider = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -99,62 +100,38 @@ model Project {
   user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   estimations Estimation[]
   chatHistory ChatHistory[]
-  taskGroups  TaskGroup[]
+  tasks       Task[]        // Direct relationship to tasks
 
   @@index([userId])
   @@map("projects")
 }
 
-model TaskGroup {
-  id        String   @id @default(cuid())
-  projectId String
-  title     String
-  objective String?
-  status    String?  // e.g., "DONE", "IN PROGRESS"
-  totalHours Int?
-  branch    String?
-  order     Int      @default(0)
-  tasks     Task[]
-  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+model Task {
+  id                String         @id @default(cuid())
+  projectId         String
+  parentId          String?        // Self-referencing for hierarchy
+  title             String
+  description       String?
+  objective         String?        // Implementation plan content
+  hours             Int?
+  status            String         @default("PENDING") // "PENDING", "IN PROGRESS", "WAITING FOR REVIEW", "DONE"
+  branch            String?
+  aiPrompt          String?        // Context for AI (JSON string or text)
+  githubIssueNumber Int?
+  order             Int            @default(0)
+  level             Int            @default(0) // 0=root, 1=child, 2=grandchild, etc.
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  
+  // Relationships
+  project           Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  parent            Task?          @relation("TaskHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  children          Task[]         @relation("TaskHierarchy")
+  documents         TaskDocument[]
 
   @@index([projectId])
-  @@map("task_groups")
-}
-
-model Task {
-  id          String         @id @default(cuid())
-  groupId     String
-  title       String
-  description String?
-  objective   String?
-  hours       Int?
-  status      String         @default("PENDING") // "PENDING", "IN PROGRESS", "WAITING FOR REVIEW", "DONE"
-  branch      String?
-  aiPrompt    String?        // Context for AI (JSON string or text)
-  issues      String?        // List of issues (JSON string)
-  order       Int            @default(0)
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
-  group       TaskGroup      @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  subtasks    SubTask[]
-  documents   TaskDocument[]
-
-  @@index([groupId])
+  @@index([parentId])
   @@map("tasks")
-}
-
-model SubTask {
-  id          String   @id @default(cuid())
-  taskId      String
-  title       String
-  isCompleted Boolean  @default(false)
-  order       Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  task        Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
-
-  @@index([taskId])
-  @@map("sub_tasks")
 }
 
 model TaskDocument {

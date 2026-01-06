@@ -24,7 +24,10 @@ export async function POST(req: Request) {
             // 1. Fetch the target task for context
             const task = await prisma.task.findUnique({
                 where: { id: taskId },
-                include: { subtasks: true, documents: true }
+                include: {
+                    children: true,
+                    documents: true
+                }
             });
 
             if (!task) return errorResponse('Task not found', 404);
@@ -37,7 +40,7 @@ Task Hours: ${task.hours || 0}h
 Status: ${task.status}
 
 Sub-tasks:
-${task.subtasks.map(s => `- [${s.isCompleted ? 'x' : ' '}] ${s.title}`).join('\n') || 'No sub-tasks defined.'}
+${task.children.map(s => `- [${s.status === 'DONE' ? 'x' : ' '}] ${s.title}`).join('\n') || 'No sub-tasks defined.'}
 
 Documents:
 ${task.documents.map(d => `- ${d.title}: ${d.url}`).join('\n') || 'No documents attached.'}
@@ -47,10 +50,13 @@ Current AI Context/Prompt: ${task.aiPrompt || 'None'}
 Your goal is to answer questions about this task, suggest refinements, or help with implementation details. 
 Keep your answers technical, concise, and helpful.`;
         } else if (groupId) {
-            // 2. Fetch the target group for context
-            const group = await prisma.taskGroup.findUnique({
+            // 2. Fetch the target group (level 0 task) for context
+            const group = await prisma.task.findUnique({
                 where: { id: groupId },
-                include: { tasks: true, documents: true }
+                include: {
+                    children: true,
+                    documents: true
+                }
             });
 
             if (!group) return errorResponse('Phase not found', 404);
@@ -59,11 +65,11 @@ Keep your answers technical, concise, and helpful.`;
 Phase Title: ${group.title}
 Phase Description: ${group.description || 'No description provided.'}
 Phase Branch: ${group.branch || 'No branch assigned'}
-Total Estimated Hours: ${group.totalHours || 0}h
+Total Estimated Hours: ${group.hours || 0}h
 Status: ${group.status}
 
 Tasks in this Phase:
-${group.tasks.map(t => `- [${t.status}] ${t.title} (${t.hours}h)`).join('\n') || 'No tasks defined for this phase.'}
+${group.children.map(t => `- [${t.status}] ${t.title} (${t.hours}h)`).join('\n') || 'No tasks defined for this phase.'}
 
 Documents:
 ${group.documents.map(d => `- ${d.title}: ${d.url}`).join('\n') || 'No documents attached.'}

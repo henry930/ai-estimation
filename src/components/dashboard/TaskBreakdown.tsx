@@ -77,7 +77,7 @@ export default function TaskBreakdown({ categories, onBranchClick }: TaskBreakdo
                             <h3 className="text-lg font-semibold text-gray-200 border-b border-white/10 pb-2 flex justify-between items-center">
                                 <div className="flex items-center gap-3">
                                     <Link
-                                        href={`/dashboard/projects/${projectId}/groups/${category.id}`}
+                                        href={`/dashboard/projects/${projectId}/tasks/${category.id}`}
                                         className="hover:text-blue-400 transition-colors"
                                     >
                                         {category.title}

@@ -25,14 +25,9 @@ export async function POST(
         const project = await prisma.project.findUnique({
             where: { id: projectId },
             include: {
-                taskGroups: {
+                tasks: {
                     include: {
-                        tasks: {
-                            include: {
-                                subtasks: true,
-                                documents: true
-                            }
-                        }
+                        documents: true
                     },
                     orderBy: { order: 'asc' }
                 }
@@ -41,6 +36,11 @@ export async function POST(
 
         if (!project) return errorResponse('Project not found', 404);
 
+        // Organize tasks into phases (level 0) and tasks (level 1)
+        const phases = project.tasks.filter(t => t.level === 0);
+        const tasks = project.tasks.filter(t => t.level === 1);
+        const subtasks = project.tasks.filter(t => t.level === 2);
+
         // 2. Build system prompt with project context
         const projectSummary = `Project ID: ${project.id}
 Project Name: ${project.name}
@@ -48,11 +48,11 @@ Description: ${project.description || 'N/A'}
 Objective: ${project.objective || 'N/A'}
 
 Task List Structure:
-${project.taskGroups.map(group => `
-Phase: ${group.title} (ID: ${group.id}, Status: ${group.status}, Hours: ${group.totalHours}h)
-${group.tasks.map(task => `  - Task: ${task.title} (ID: ${task.id}, ${task.hours}h, Status: ${task.status})
+${phases.map(group => `
+Phase: ${group.title} (ID: ${group.id}, Status: ${group.status}, Hours: ${group.hours}h)
+${tasks.filter(t => t.parentId === group.id).map(task => `  - Task: ${task.title} (ID: ${task.id}, ${task.hours}h, Status: ${task.status})
     Description: ${task.description || 'N/A'}
-    Sub-tasks: ${task.subtasks.map(s => `[${s.isCompleted ? 'x' : ' '}] ${s.title}`).join(', ') || 'None'}`).join('\n')}`).join('\n')}
+    Sub-tasks: ${subtasks.filter(s => s.parentId === task.id).map(s => `[${s.status === 'DONE' ? 'x' : ' '}] ${s.title}`).join(', ') || 'None'}`).join('\n')}`).join('\n')}
 `;
 
         const systemPrompt = `You are the AI Project Agent, a strategic architect responsible for the overall success of the project: "${project.name}".

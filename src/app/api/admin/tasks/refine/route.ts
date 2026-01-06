@@ -15,7 +15,7 @@ export async function POST(req: Request) {
         // 1. Fetch the target task
         const targetTask = await prisma.task.findUnique({
             where: { id: taskId },
-            include: { subtasks: true, documents: true }
+            include: { children: true, documents: true }
         });
 
         if (!targetTask) return errorResponse('Task not found', 404);
@@ -26,7 +26,7 @@ export async function POST(req: Request) {
                 status: { not: 'DONE' },
                 NOT: { id: taskId }
             },
-            include: { subtasks: true }
+            include: { children: true }
         });
 
         // 3. Prepare schema for generation
@@ -68,7 +68,7 @@ If the change affects other uncompleted tasks (e.g., changes dependencies, scope
         const userContext = `Task: ${targetTask.title}
 Current ${tab} content: ${tab === 'description' ? targetTask.description :
                 tab === 'issues' ? `GitHub Issue #${targetTask.githubIssueNumber}` :
-                    tab === 'todo' ? JSON.stringify(targetTask.subtasks) :
+                    tab === 'todo' ? JSON.stringify(targetTask.children) :
                         tab === 'documents' ? JSON.stringify(targetTask.documents) :
                             'No content'
             }
@@ -97,12 +97,14 @@ User Prompt: ${prompt}`;
                 });
 
                 if (targetTaskUpdates.newSubtasks) {
-                    for (const title of targetTaskUpdates.newSubtasks) {
-                        await tx.subTask.create({
+                    for (const stTitle of targetTaskUpdates.newSubtasks) {
+                        await tx.task.create({
                             data: {
-                                taskId: taskId,
-                                title,
-                                order: await tx.subTask.count({ where: { taskId } })
+                                projectId: targetTask.projectId,
+                                parentId: taskId,
+                                title: stTitle,
+                                level: 2,
+                                order: await tx.task.count({ where: { parentId: taskId } })
                             }
                         });
                     }
@@ -110,9 +112,9 @@ User Prompt: ${prompt}`;
 
                 if (targetTaskUpdates.subtasksToToggle) {
                     for (const toggle of targetTaskUpdates.subtasksToToggle) {
-                        await tx.subTask.update({
+                        await tx.task.update({
                             where: { id: toggle.id },
-                            data: { isCompleted: toggle.isCompleted }
+                            data: { status: toggle.isCompleted ? 'DONE' : 'PENDING' }
                         });
                     }
                 }
