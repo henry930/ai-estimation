@@ -25,6 +25,7 @@ interface Project {
 export default function ProjectList({ onConnectClick }: { onConnectClick?: () => void }) {
     const [projects, setProjects] = useState<Project[]>([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         fetchProjects();
@@ -33,13 +34,17 @@ export default function ProjectList({ onConnectClick }: { onConnectClick?: () =>
     const fetchProjects = async () => {
         try {
             setLoading(true);
+            setError(null);
             const res = await fetch('/api/projects');
             const data = await res.json();
             if (data.success) {
                 setProjects(data.data);
+            } else {
+                throw new Error(data.error || 'Failed to load projects');
             }
-        } catch (err) {
+        } catch (err: any) {
             console.error('Failed to fetch projects:', err);
+            setError(err.message || 'An error occurred while loading projects');
         } finally {
             setLoading(false);
         }
@@ -61,6 +66,20 @@ export default function ProjectList({ onConnectClick }: { onConnectClick?: () =>
                 {[1, 2, 3].map((i) => (
                     <div key={i} className="h-20 bg-white/5 border border-white/10 rounded-xl animate-pulse" />
                 ))}
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="text-center py-12 bg-red-500/5 border border-red-500/10 rounded-2xl">
+                <p className="text-red-400 mb-4">{error}</p>
+                <button
+                    onClick={fetchProjects}
+                    className="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg text-sm font-medium transition-colors"
+                >
+                    Retry
+                </button>
             </div>
         );
     }
@@ -101,8 +120,8 @@ export default function ProjectList({ onConnectClick }: { onConnectClick?: () =>
                         {/* Status Icon */}
                         <div className="flex-shrink-0">
                             <div className={`w-2.5 h-2.5 rounded-full ${project.status.toLowerCase() === 'active' ? 'bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]' :
-                                    project.status.toLowerCase() === 'completed' ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]' :
-                                        'bg-gray-500'
+                                project.status.toLowerCase() === 'completed' ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]' :
+                                    'bg-gray-500'
                                 }`} />
                         </div>
 
