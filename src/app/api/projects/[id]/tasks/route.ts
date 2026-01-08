@@ -73,3 +73,38 @@ export async function GET(
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
+
+export async function POST(
+    req: Request,
+    { params }: { params: Promise<{ id: string }> }
+) {
+    const { id } = await params;
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user?.id) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    try {
+        const { title, description, status } = await req.json();
+
+        if (!title) {
+            return NextResponse.json({ error: 'Title is required' }, { status: 400 });
+        }
+
+        const task = await prisma.task.create({
+            data: {
+                projectId: id,
+                title,
+                description: description || null,
+                status: status || 'PENDING',
+                level: 0, // Create as root task
+                hours: 0,
+            }
+        });
+
+        return NextResponse.json(task);
+    } catch (error: any) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+}
