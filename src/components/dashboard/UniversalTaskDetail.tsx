@@ -11,6 +11,7 @@ import ProjectAgentPanel from './ProjectAgentPanel';
 import DashboardLayout from './DashboardLayout';
 import TaskBreakdownTable from './TaskBreakdownTable';
 import IssueList from './IssueList';
+import IssueDetail from './IssueDetail';
 
 interface NodeItem {
     id: string;
@@ -50,6 +51,12 @@ interface UnifiedNode {
         title: string;
         url: string;
         type: string;
+    }[];
+    comments?: {
+        id: string;
+        author: string;
+        content: string;
+        createdAt: string;
     }[];
 }
 
@@ -170,6 +177,36 @@ export default function UniversalTaskDetail({ type, initialId }: UniversalTaskDe
         } catch (error) {
             console.error('Save error:', error);
             alert('Failed to save changes');
+        }
+    };
+
+    const handleUpdateTaskStatus = async (status: string) => {
+        try {
+            const res = await fetch(`/api/tasks/${id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status })
+            });
+            if (!res.ok) throw new Error('Failed to update status');
+            await fetchNode();
+        } catch (error) {
+            console.error('Status update error:', error);
+            alert('Failed to update status');
+        }
+    };
+
+    const handleAddComment = async (content: string) => {
+        try {
+            const res = await fetch(`/api/tasks/${id}/comments`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ content })
+            });
+            if (!res.ok) throw new Error('Failed to add comment');
+            await fetchNode();
+        } catch (error) {
+            console.error('Comment error:', error);
+            alert('Failed to post comment');
         }
     };
 
@@ -400,43 +437,13 @@ export default function UniversalTaskDetail({ type, initialId }: UniversalTaskDe
                         {type === 'project' ? (
                             <IssueList categories={breakdown} />
                         ) : (
-                            issueData ? (
-                                <div className="p-6 rounded-2xl bg-white/5 border border-white/10 space-y-4">
-                                    <div className="flex items-start justify-between">
-                                        <div className="space-y-1">
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-gray-500 font-mono">#{issueData.number}</span>
-                                                <h3 className="text-lg font-semibold text-white">{issueData.title}</h3>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold border uppercase ${issueData.state === 'open' ? 'bg-green-500/10 text-green-500 border-green-500/20' : 'bg-purple-500/10 text-purple-500 border-purple-500/20'}`}>
-                                                    {issueData.state}
-                                                </span>
-                                                <span className="text-xs text-gray-500">Opened by {issueData.user.login}</span>
-                                            </div>
-                                        </div>
-                                        <a href={issueData.html_url} target="_blank" rel="noopener noreferrer" className="px-3 py-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-xs transition-all">
-                                            View on GitHub
-                                        </a>
-                                    </div>
-                                    <div className="prose prose-invert max-w-none text-sm text-gray-400 font-light border-t border-white/5 pt-4 markdown-content">
-                                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                            {issueData.body || 'No description provided for this issue.'}
-                                        </ReactMarkdown>
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="text-center py-12 text-gray-500 border border-dashed border-white/10 rounded-2xl">
-                                    {node.githubIssueNumber ? (
-                                        <div className="flex flex-col items-center gap-3">
-                                            <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-                                            <p>Loading GitHub Issue #{node.githubIssueNumber}...</p>
-                                        </div>
-                                    ) : (
-                                        <p>No GitHub issue linked to this task.</p>
-                                    )}
-                                </div>
-                            )
+                            <IssueDetail
+                                task={node}
+                                comments={node.comments || []}
+                                onSaveComment={handleAddComment}
+                                onUpdateStatus={handleUpdateTaskStatus}
+                                currentUser="User"
+                            />
                         )}
                     </div>
                 )}

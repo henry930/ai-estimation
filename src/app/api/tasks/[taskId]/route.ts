@@ -45,6 +45,9 @@ export async function GET(
                 },
                 documents: true,
                 project: true,
+                comments: {
+                    orderBy: { createdAt: 'desc' }
+                },
             }
         });
 
