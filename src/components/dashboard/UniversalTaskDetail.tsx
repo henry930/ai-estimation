@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { BotIcon, FileTextIcon, FileCodeIcon, LayoutDashboardIcon, CheckCircle2, Circle, Clock } from 'lucide-react';
+import { BotIcon, FileTextIcon, FileCodeIcon, LayoutDashboardIcon, CheckCircle2, Circle, Clock, ListPlus } from 'lucide-react';
 import AIEnquiryPanel from './AIEnquiryPanel';
 import ProjectAgentPanel from './ProjectAgentPanel';
 import DashboardLayout from './DashboardLayout';
@@ -22,6 +22,7 @@ interface NodeItem {
     hours: number;
     branch: string | null;
     githubIssueNumber: number | null;
+    type: string;
 }
 
 interface UnifiedNode {
@@ -34,6 +35,7 @@ interface UnifiedNode {
     hours: number;
     branch: string | null;
     githubIssueNumber: number | null;
+    type: string;
     aiInstructions: string | null;
     parentId: string | null;
     level: number;
@@ -78,6 +80,8 @@ export default function UniversalTaskDetail({ type, initialId }: UniversalTaskDe
     const [breakdown, setBreakdown] = useState<any[]>([]);
     const [issueData, setIssueData] = useState<any>(null);
     const [isUploading, setIsUploading] = useState(false);
+    const [isLocatingAI, setIsLocatingAI] = useState(false);
+    const [issueSubTab, setIssueSubTab] = useState<'list' | 'discussion'>('discussion');
 
     useEffect(() => {
         if (id) {
@@ -96,6 +100,9 @@ export default function UniversalTaskDetail({ type, initialId }: UniversalTaskDe
             // Normalize Project to Node structure if needed
             const normalizedData = type === 'project' ? normalizeProject(data) : data;
 
+            if (!node && normalizedData.type === 'ISSUE') {
+                setActiveTab('issues');
+            }
             setNode(normalizedData);
             setEditForm({
                 title: normalizedData.title,
@@ -195,6 +202,45 @@ export default function UniversalTaskDetail({ type, initialId }: UniversalTaskDe
         }
     };
 
+    const handleAutoLocate = async () => {
+        setIsLocatingAI(true);
+        try {
+            const res = await fetch(`/api/tasks/${id}/auto-locate`, {
+                method: 'POST'
+            });
+            const data = await res.json();
+            if (data.success) {
+                alert(data.message);
+                await fetchNode();
+            } else {
+                alert(data.message || 'AI could not find a location');
+            }
+        } catch (error) {
+            console.error(error);
+            alert('Failed to auto-locate');
+        } finally {
+            setIsLocatingAI(false);
+        }
+    };
+
+    const handleConvertToTask = async () => {
+        try {
+            const res = await fetch(`/api/tasks/${id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type: 'TASK' })
+            });
+            if (!res.ok) throw new Error('Failed to convert');
+            const updated = await res.json();
+            setNode(prev => prev ? { ...prev, type: 'TASK' } : null);
+            setActiveTab('subtasks');
+            alert('Converted to task successfully!');
+        } catch (error) {
+            console.error(error);
+            alert('Failed to convert');
+        }
+    };
+
     const handleAddComment = async (content: string) => {
         try {
             const res = await fetch(`/api/tasks/${id}/comments`, {
@@ -262,7 +308,7 @@ export default function UniversalTaskDetail({ type, initialId }: UniversalTaskDe
     );
 
     return (
-        <div className="max-w-4xl mx-auto space-y-6">
+        <div className="space-y-6 max-w-5xl mx-auto pb-20">
             {/* Breadcrumb / Context */}
             <div className="flex items-center gap-2 text-sm text-gray-500 mb-4 font-mono">
                 {type !== 'project' && (
@@ -342,6 +388,24 @@ export default function UniversalTaskDetail({ type, initialId }: UniversalTaskDe
                                         </Link>
                                     </>
                                 )}
+                                {node?.parentId === null && (
+                                    <button
+                                        onClick={handleAutoLocate}
+                                        disabled={isLocatingAI}
+                                        className="px-3 py-1.5 rounded-lg bg-indigo-900/40 text-indigo-400 border border-indigo-500/20 text-xs hover:bg-indigo-500 hover:text-white transition-all flex items-center gap-2"
+                                    >
+                                        <ListPlus className="w-3.5 h-3.5" />
+                                        {isLocatingAI ? 'AI Organizing...' : 'To Do'}
+                                    </button>
+                                )}
+                                {node?.type === 'ISSUE' && (
+                                    <button
+                                        onClick={handleConvertToTask}
+                                        className="px-3 py-1.5 rounded-lg bg-blue-900/40 text-blue-400 border border-blue-500/20 text-xs hover:bg-blue-500 hover:text-white transition-all flex items-center gap-2"
+                                    >
+                                        Convert to Task
+                                    </button>
+                                )}
                                 <button onClick={() => setIsEditing(true)} className="px-3 py-1.5 rounded-lg bg-white/5 text-gray-400 border border-white/10 text-xs hover:bg-white/10 hover:text-white transition-all flex items-center gap-2">
                                     Edit
                                 </button>
@@ -365,7 +429,12 @@ export default function UniversalTaskDetail({ type, initialId }: UniversalTaskDe
 
             <div className="border-b border-white/10">
                 <div className="flex gap-6 overflow-x-auto no-scrollbar">
-                    {['subtasks', 'implementation-plan', 'issues', 'documents', 'master-mind', 'report', 'agent'].map((tab) => {
+                    {['subtasks', 'implementation-plan', 'issues', 'documents', 'master-mind', 'report', 'agent'].filter(tab => {
+                        if (node?.type === 'ISSUE') {
+                            return ['issues', 'documents', 'agent'].includes(tab);
+                        }
+                        return true;
+                    }).map((tab) => {
                         return (
                             <button
                                 key={tab}
@@ -437,13 +506,48 @@ export default function UniversalTaskDetail({ type, initialId }: UniversalTaskDe
                         {type === 'project' ? (
                             <IssueList categories={breakdown} />
                         ) : (
-                            <IssueDetail
-                                task={node}
-                                comments={node.comments || []}
-                                onSaveComment={handleAddComment}
-                                onUpdateStatus={handleUpdateTaskStatus}
-                                currentUser="User"
-                            />
+                            <div className="space-y-6">
+                                {/* Sub-tabs */}
+                                <div className="flex gap-6 border-b border-white/10 mb-6">
+                                    <button
+                                        onClick={() => setIssueSubTab('list')}
+                                        className={`pb-3 text-sm font-medium transition-colors border-b-2 flex items-center gap-2 group ${issueSubTab === 'list' ? 'border-blue-500 text-blue-500' : 'border-transparent text-gray-400 hover:text-gray-300'}`}
+                                    >
+                                        Issues
+                                        <span className="px-1.5 py-0.5 rounded-full bg-white/10 text-xs text-gray-400 ml-1 group-hover:bg-white/20 transition-colors">
+                                            {node?.children?.length || 0}
+                                        </span>
+                                    </button>
+                                    <button
+                                        onClick={() => setIssueSubTab('discussion')}
+                                        className={`pb-3 text-sm font-medium transition-colors border-b-2 flex items-center gap-2 ${issueSubTab === 'discussion' ? 'border-blue-500 text-blue-500' : 'border-transparent text-gray-400 hover:text-gray-300'}`}
+                                    >
+                                        Discussion
+                                    </button>
+                                </div>
+
+                                {/* Content */}
+                                {issueSubTab === 'list' ? (
+                                    <div className="animate-in fade-in duration-300">
+                                        <IssueList
+                                            initialIssues={node?.children || []}
+                                            parentId={node?.id}
+                                            creationType="ISSUE"
+                                        />
+                                    </div>
+                                ) : (
+                                    <div className="animate-in fade-in duration-300">
+                                        <IssueDetail
+                                            task={node}
+                                            comments={node?.comments || []}
+                                            onSaveComment={handleAddComment}
+                                            onUpdateStatus={handleUpdateTaskStatus}
+                                            currentUser="User"
+                                            githubData={issueData}
+                                        />
+                                    </div>
+                                )}
+                            </div>
                         )}
                     </div>
                 )}

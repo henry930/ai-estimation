@@ -115,6 +115,7 @@ model Task {
   githubIssueNumber Int?
   order             Int            @default(0)
   level             Int            @default(0)
+  type              String         @default("TASK") // TASK, ISSUE
   createdAt         DateTime       @default(now())
   updatedAt         DateTime       @updatedAt
   documents         TaskDocument[]

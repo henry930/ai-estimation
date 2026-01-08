@@ -19,54 +19,78 @@ interface IssueItem {
 }
 
 interface IssueListProps {
-    categories: any[];
+    categories?: any[];
+    initialIssues?: any[];
+    parentId?: string;
+    creationType?: 'TASK' | 'ISSUE';
 }
 
-export default function IssueList({ categories }: IssueListProps) {
+export default function IssueList({ categories = [], initialIssues = [], parentId, creationType = 'TASK' }: IssueListProps) {
     const params = useParams();
     const projectId = params.id as string;
     const [filterStatus, setFilterStatus] = useState<'open' | 'closed'>('open');
     const [searchQuery, setSearchQuery] = useState('');
 
+    const newLink = `/dashboard/projects/${projectId}/tasks/new?${new URLSearchParams({
+        ...(parentId ? { parentId } : {}),
+        type: creationType
+    }).toString()}`;
+
     // Flatten logic: Convert hierarchical categories/tasks/subtasks into a flat issue list
     const issues = useMemo(() => {
+        if (initialIssues.length > 0) {
+            // Map raw tasks to IssueItem
+            return initialIssues.map(task => ({
+                id: task.id,
+                title: task.title,
+                status: task.status,
+                completed: task.status === 'DONE',
+                githubIssueNumber: task.githubIssueNumber,
+                hours: task.hours || task.totalHours,
+                labels: task.branch ? [task.branch] : [],
+                commentsCount: 0 // Placeholder
+            }));
+        }
+
         const allIssues: IssueItem[] = [];
 
         categories.forEach(cat => {
             // Level 1: Main Tasks (Issues)
-            cat.tasks.forEach((task: any) => {
-                allIssues.push({
-                    id: task.id,
-                    title: task.title,
-                    status: task.status,
-                    completed: task.status === 'DONE',
-                    githubIssueNumber: task.githubIssueNumber,
-                    hours: task.hours,
-                    labels: [cat.title], // Use Category title as a label
-                    commentsCount: 0 // Placeholder until we fetch comment counts
-                });
-
-                // Level 2: Subtasks (Optional, treated as smaller issues or just subtasks)
-                // For a flattened view, we can include them with a 'Subtask' label
-                if (task.subtasks) {
-                    task.subtasks.forEach((sub: any) => {
-                        allIssues.push({
-                            id: sub.id,
-                            title: sub.title,
-                            status: sub.isCompleted ? 'DONE' : 'PENDING',
-                            completed: sub.isCompleted,
-                            githubIssueNumber: sub.githubIssueNumber,
-                            hours: sub.hours,
-                            labels: ['Subtask', cat.title],
-                            commentsCount: 0
-                        });
+            if (cat.tasks) {
+                cat.tasks.forEach((task: any) => {
+                    allIssues.push({
+                        id: task.id,
+                        title: task.title,
+                        status: task.status,
+                        completed: task.status === 'DONE',
+                        githubIssueNumber: task.githubIssueNumber,
+                        hours: task.hours,
+                        labels: [cat.title], // Use Category title as a label
+                        commentsCount: 0 // Placeholder until we fetch comment counts
                     });
-                }
-            });
+
+                    // Level 2: Subtasks (Optional, treated as smaller issues or just subtasks)
+                    // For a flattened view, we can include them with a 'Subtask' label
+                    if (task.subtasks) {
+                        task.subtasks.forEach((sub: any) => {
+                            allIssues.push({
+                                id: sub.id,
+                                title: sub.title,
+                                status: sub.isCompleted ? 'DONE' : 'PENDING',
+                                completed: sub.isCompleted, // Fixed bug: was sub.isCompleted
+                                githubIssueNumber: sub.githubIssueNumber,
+                                hours: sub.hours,
+                                labels: ['Subtask', cat.title],
+                                commentsCount: 0
+                            });
+                        });
+                    }
+                });
+            }
         });
 
         return allIssues;
-    }, [categories]);
+    }, [categories, initialIssues]);
 
     const filteredIssues = issues.filter(issue => {
         const matchesSearch = issue.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -117,7 +141,7 @@ export default function IssueList({ categories }: IssueListProps) {
                     </button>
 
                     <Link
-                        href={`/dashboard/projects/${projectId}/tasks/new`}
+                        href={newLink}
                         className="flex items-center gap-2 px-3 py-1.5 bg-green-600 hover:bg-green-500 rounded-lg text-sm font-medium text-white transition-all shadow-lg shadow-green-900/20"
                     >
                         New Issue

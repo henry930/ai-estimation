@@ -86,10 +86,26 @@ export async function POST(
     }
 
     try {
-        const { title, description, status } = await req.json();
+        const { title, description, status, parentId, type } = await req.json();
 
         if (!title) {
             return NextResponse.json({ error: 'Title is required' }, { status: 400 });
+        }
+
+        let level = 0;
+        let validParentId = null;
+
+        if (parentId) {
+            const parent = await prisma.task.findUnique({
+                where: { id: parentId }
+            });
+            if (parent) {
+                if (parent.projectId !== id) {
+                    return NextResponse.json({ error: 'Parent task belongs to different project' }, { status: 400 });
+                }
+                level = parent.level + 1;
+                validParentId = parent.id;
+            }
         }
 
         const task = await prisma.task.create({
@@ -98,7 +114,9 @@ export async function POST(
                 title,
                 description: description || null,
                 status: status || 'PENDING',
-                level: 0, // Create as root task
+                level,
+                parentId: validParentId,
+                type: type || 'TASK',
                 hours: 0,
             }
         });

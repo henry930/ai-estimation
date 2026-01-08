@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useState } from 'react';
-import { ChevronDown, ChevronRight, CheckCircle2, Circle, Clock } from 'lucide-react';
+import { ChevronDown, ChevronRight, CheckCircle2, Circle, Clock, CircleDot } from 'lucide-react';
 import BranchBadge from './BranchBadge';
 
 export interface SubTask {
@@ -24,6 +24,7 @@ export interface TaskItem {
     branch?: string;
     status?: string;
     subtasks?: SubTask[];
+    type?: string;
 }
 
 export interface TaskCategory {
@@ -225,6 +226,8 @@ export default function TaskBreakdownTable({ categories, onBranchClick, githubUr
                                                         )}
                                                         {task.status === 'DONE' ? (
                                                             <CheckCircle2 className="w-4 h-4 text-green-400 shrink-0" />
+                                                        ) : task.type === 'ISSUE' ? (
+                                                            <CircleDot className="w-4 h-4 text-purple-400 shrink-0" title="Issue Alias" />
                                                         ) : (
                                                             <Circle className="w-4 h-4 text-gray-500 shrink-0" />
                                                         )}

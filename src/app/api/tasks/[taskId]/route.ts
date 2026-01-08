@@ -117,7 +117,7 @@ export async function PATCH(
 
     try {
         const body = await req.json();
-        const { title, objective, description, status, subtasks, githubIssueNumber, documents } = body;
+        const { title, objective, description, status, subtasks, githubIssueNumber, documents, type } = body;
 
         // Update main task fields
         const updateData: any = {};
@@ -126,6 +126,7 @@ export async function PATCH(
         if (description !== undefined) updateData.description = description;
         if (status !== undefined) updateData.status = status;
         if (githubIssueNumber !== undefined) updateData.githubIssueNumber = githubIssueNumber;
+        if (type !== undefined) updateData.type = type;
 
         // Use a transaction for atomic and faster updates
         const updatedTask = await prisma.$transaction(async (tx) => {

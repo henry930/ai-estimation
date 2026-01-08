@@ -5,7 +5,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import {
     CheckCircle2, CircleDot, User,
-    Paperclip, Edit3
+    Paperclip, Edit3, Sparkles
 } from 'lucide-react';
 
 interface Comment {
@@ -27,7 +27,29 @@ interface IssueDetailProps {
 export default function IssueDetail({ task, comments, onSaveComment, onUpdateStatus, currentUser, githubData }: IssueDetailProps) {
     const [newComment, setNewComment] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isGeneratingAI, setIsGeneratingAI] = useState(false);
     const [activeTab, setActiveTab] = useState<'write' | 'preview'>('write');
+
+    const handleAIReply = async () => {
+        setIsGeneratingAI(true);
+        try {
+            const res = await fetch('/api/ai/reply', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ task, comments })
+            });
+            const data = await res.json();
+            if (data.reply) {
+                setNewComment(data.reply);
+                setActiveTab('write');
+            }
+        } catch (e) {
+            console.error(e);
+            alert('Failed to generate AI reply');
+        } finally {
+            setIsGeneratingAI(false);
+        }
+    };
 
     const handleCommentSubmit = async () => {
         if (!newComment.trim()) return;
@@ -181,6 +203,14 @@ export default function IssueDetail({ task, comments, onSaveComment, onUpdateSta
                                                 Reopen issue
                                             </>
                                         )}
+                                    </button>
+                                    <button
+                                        onClick={handleAIReply}
+                                        disabled={isSubmitting || isGeneratingAI}
+                                        className="px-4 py-1.5 bg-purple-600 hover:bg-purple-500 disabled:opacity-50 cursor-pointer text-white text-xs font-medium rounded-lg flex items-center gap-2 transition-colors shadow-lg shadow-purple-900/20"
+                                    >
+                                        <Sparkles className="w-3.5 h-3.5" />
+                                        {isGeneratingAI ? 'Thinking...' : 'AI Reply'}
                                     </button>
                                     <button
                                         onClick={handleCommentSubmit}
