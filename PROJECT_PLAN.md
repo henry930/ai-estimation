@@ -793,6 +793,54 @@ This document provides a complete task breakdown and time estimation for buildin
 
 ---
 
+---
+
+## Phase 10: GitHub Issue Interface (40 hours)
+
+### 10.1 Issue List & Filtering (8 hours)
+
+> **Do you want to kickstart?** [YES - Start Issue Interface](#kickstart-10-1)
+> ⚠️ *Warning: 8 credits will be deducted from your account*
+
+| Task | Description | Est Hours | Status |
+|------|-------------|-----------|--------|
+| Issue List UI | List tasks in flat, GitHub-like format | 4 | [x] |
+| Filtering | Filter by Open/Closed, Search by text | 4 | [x] |
+
+### 10.2 Issue Detail & Comments (12 hours)
+
+> **Do you want to kickstart?** [YES - Start Issue Detail](#kickstart-10-2)
+> ⚠️ *Warning: 12 credits will be deducted from your account*
+
+| Task | Description | Est Hours | Status |
+|------|-------------|-----------|--------|
+| Detail View | GitHub-like detail view with description | 4 | [x] |
+| Comments System | Threaded comments, Markdown support | 4 | [x] |
+| Status Management | Close/Reopen issues, update metadata | 4 | [x] |
+
+### 10.3 Issue Creation (8 hours)
+
+> **Do you want to kickstart?** [YES - Start Issue Creation](#kickstart-10-3)
+> ⚠️ *Warning: 8 credits will be deducted from your account*
+
+| Task | Description | Est Hours | Status |
+|------|-------------|-----------|--------|
+| Creation Form | Title, Description form | 4 | [x] |
+| API Integration | POST endpoint for new tasks | 4 | [x] |
+
+### 10.4 Sidebar & Metadata (12 hours)
+
+> **Do you want to kickstart?** [YES - Start Metadata](#kickstart-10-4)
+> ⚠️ *Warning: 12 credits will be deducted from your account*
+
+| Task | Description | Est Hours | Status |
+|------|-------------|-----------|--------|
+| Sidebar UI | Assignees, Labels, Status, Branch | 4 | [x] |
+| Assignee Sync | (Mocked) Assign user to issue | 4 | [x] |
+| Label Sync | (Mocked) Manage labels | 4 | [x] |
+
+---
+
 ## 📈 Summary & Assumptions
 
 ### Total Estimation
