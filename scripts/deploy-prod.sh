@@ -20,7 +20,7 @@ npx prisma db push --accept-data-loss
 
 echo "🔄 Syncing data from local SQLite to RDS..."
 # Run the data sync script
-npx tsx scripts/sync-data-to-prod.ts
+# npx tsx scripts/sync-data-to-prod.ts
 
 echo "☁️  Deploying to AWS with SST..."
 # 4. Run SST deploy (this will trigger next build using the postgres provider)

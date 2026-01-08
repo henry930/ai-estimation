@@ -22,7 +22,9 @@ export async function GET(
             },
             include: {
                 tasks: {
-                    where: { parentId: null }, // Only root tasks (phases/groups)
+                    include: {
+                        documents: true
+                    },
                     orderBy: { order: 'asc' },
                 },
             },
@@ -43,14 +45,15 @@ export async function GET(
             description: project.description,
             objective: project.objective,
             status: project.status,
+            aiInstructions: project.aiInstructions,
             totalHours: totalHours,
             hours: totalHours,
             project: {
                 name: project.name,
                 githubUrl: project.githubUrl,
             },
-            children: project.tasks,
-            documents: [], // Project documents could be added here later
+            children: project.tasks.filter(t => t.parentId === null),
+            documents: project.tasks.flatMap(t => t.documents),
             level: -1,
             parentId: null
         };

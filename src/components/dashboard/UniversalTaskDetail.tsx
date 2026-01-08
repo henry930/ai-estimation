@@ -7,6 +7,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { BotIcon, FileTextIcon, FileCodeIcon, LayoutDashboardIcon, CheckCircle2, Circle, Clock } from 'lucide-react';
 import AIEnquiryPanel from './AIEnquiryPanel';
+import ProjectAgentPanel from './ProjectAgentPanel';
 import DashboardLayout from './DashboardLayout';
 import TaskBreakdownTable from './TaskBreakdownTable';
 
@@ -31,6 +32,7 @@ interface UnifiedNode {
     hours: number;
     branch: string | null;
     githubIssueNumber: number | null;
+    aiInstructions: string | null;
     parentId: string | null;
     level: number;
     project: {
@@ -62,11 +64,12 @@ export default function UniversalTaskDetail({ type, initialId }: UniversalTaskDe
 
     const [node, setNode] = useState<UnifiedNode | null>(null);
     const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState<'implementation-plan' | 'issues' | 'documents' | 'subtasks' | 'report' | 'agent'>('subtasks');
+    const [activeTab, setActiveTab] = useState<'implementation-plan' | 'issues' | 'documents' | 'subtasks' | 'report' | 'agent' | 'master-mind'>('subtasks');
     const [isEditing, setIsEditing] = useState(false);
-    const [editForm, setEditForm] = useState({ title: '', objective: '', status: '' });
+    const [editForm, setEditForm] = useState({ title: '', objective: '', status: '', aiInstructions: '' });
     const [breakdown, setBreakdown] = useState<any[]>([]);
     const [issueData, setIssueData] = useState<any>(null);
+    const [isUploading, setIsUploading] = useState(false);
 
     useEffect(() => {
         if (id) {
@@ -89,7 +92,8 @@ export default function UniversalTaskDetail({ type, initialId }: UniversalTaskDe
             setEditForm({
                 title: normalizedData.title,
                 objective: normalizedData.objective || normalizedData.description || '',
-                status: normalizedData.status
+                status: normalizedData.status,
+                aiInstructions: normalizedData.aiInstructions || ''
             });
 
             // Handle breakdown (Tasks List)
@@ -138,7 +142,8 @@ export default function UniversalTaskDetail({ type, initialId }: UniversalTaskDe
             githubUrl: project.githubUrl
         },
         children: project.tasks || [],
-        documents: project.documents || []
+        documents: project.documents || [],
+        aiInstructions: project.aiInstructions || null
     });
 
     const handleSave = async () => {
@@ -152,7 +157,8 @@ export default function UniversalTaskDetail({ type, initialId }: UniversalTaskDe
                     name: type === 'project' ? editForm.title : undefined,
                     objective: editForm.objective,
                     description: editForm.objective,
-                    status: editForm.status
+                    status: editForm.status,
+                    aiInstructions: type === 'project' ? editForm.aiInstructions : undefined
                 })
             });
 
@@ -163,6 +169,35 @@ export default function UniversalTaskDetail({ type, initialId }: UniversalTaskDe
         } catch (error) {
             console.error('Save error:', error);
             alert('Failed to save changes');
+        }
+    };
+
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        try {
+            setIsUploading(true);
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('title', file.name.split('.')[0]); // Default title sans extension
+
+            const res = await fetch(`/api/projects/${id}/master-mind/upload`, {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!res.ok) throw new Error('Upload failed');
+
+            // Refresh node to show new document
+            await fetchNode();
+            alert('Knowledge successfully added to Master Mind!');
+        } catch (error) {
+            console.error('Upload error:', error);
+            alert('Failed to upload knowledge');
+        } finally {
+            setIsUploading(false);
+            e.target.value = ''; // Reset input
         }
     };
 
@@ -292,7 +327,7 @@ export default function UniversalTaskDetail({ type, initialId }: UniversalTaskDe
 
             <div className="border-b border-white/10">
                 <div className="flex gap-6 overflow-x-auto no-scrollbar">
-                    {['implementation-plan', 'issues', 'documents', 'subtasks', 'report', 'agent'].map((tab) => {
+                    {['subtasks', 'implementation-plan', 'issues', 'documents', 'master-mind', 'report', 'agent'].map((tab) => {
                         return (
                             <button
                                 key={tab}
@@ -300,12 +335,14 @@ export default function UniversalTaskDetail({ type, initialId }: UniversalTaskDe
                                 className={`pb-3 text-sm font-medium transition-colors border-b-2 flex items-center gap-2 whitespace-nowrap ${activeTab === tab ? 'border-blue-500 text-blue-500' : 'border-transparent text-gray-500 hover:text-gray-300'} capitalize`}
                             >
                                 {tab === 'agent' && <BotIcon className="w-4 h-4" />}
+                                {tab === 'master-mind' && <LayoutDashboardIcon className="w-4 h-4" />}
                                 {tab === 'subtasks' ? 'Task List' :
                                     tab === 'agent' ? 'AI Agent' :
                                         tab === 'report' ? 'Report' :
                                             tab === 'implementation-plan' ? 'Implementation Plan' :
                                                 tab === 'issues' ? 'Issues' :
-                                                    tab}
+                                                    tab === 'master-mind' ? 'Master Mind' :
+                                                        tab}
                             </button>
                         );
                     })}
@@ -328,13 +365,32 @@ export default function UniversalTaskDetail({ type, initialId }: UniversalTaskDe
                                     className="w-full h-96 bg-black/20 border border-white/10 rounded-lg p-3 text-gray-300 focus:outline-none focus:border-blue-500 resize-none font-mono text-sm leading-relaxed"
                                 />
                             ) : (
-                                <div className="prose prose-invert max-w-none text-gray-300 font-light">
+                                <div className="prose prose-invert max-w-none text-gray-300 font-light markdown-content">
                                     <ReactMarkdown remarkPlugins={[remarkGfm]}>
                                         {node.objective || node.description || 'No implementation plan defined.'}
                                     </ReactMarkdown>
                                 </div>
                             )}
                         </div>
+
+                        {type === 'project' && isEditing && (
+                            <div className="mt-6 p-6 rounded-2xl bg-blue-500/5 border border-blue-500/10">
+                                <h3 className="text-sm font-semibold mb-3 text-blue-400 flex items-center gap-2">
+                                    <BotIcon className="w-4 h-4" />
+                                    AI Agent Instructions (Training)
+                                </h3>
+                                <p className="text-xs text-gray-500 mb-4">
+                                    These instructions are persistent. The AI Agent will use this "knowledge" for all strategic decisions,
+                                    report generation, and plan restructuring for this project.
+                                </p>
+                                <textarea
+                                    value={editForm.aiInstructions}
+                                    onChange={e => setEditForm(prev => ({ ...prev, aiInstructions: e.target.value }))}
+                                    placeholder="e.g. Always use Tailwind CSS, prioritize AWS regions in Europe, follow multi-tenant architecture..."
+                                    className="w-full h-32 bg-black/20 border border-white/10 rounded-lg p-3 text-gray-300 focus:outline-none focus:border-blue-500 resize-none font-mono text-sm"
+                                />
+                            </div>
+                        )}
                     </div>
                 )}
 
@@ -359,7 +415,7 @@ export default function UniversalTaskDetail({ type, initialId }: UniversalTaskDe
                                         View on GitHub
                                     </a>
                                 </div>
-                                <div className="prose prose-invert max-w-none text-sm text-gray-400 font-light border-t border-white/5 pt-4">
+                                <div className="prose prose-invert max-w-none text-sm text-gray-400 font-light border-t border-white/5 pt-4 markdown-content">
                                     <ReactMarkdown remarkPlugins={[remarkGfm]}>
                                         {issueData.body || 'No description provided for this issue.'}
                                     </ReactMarkdown>
@@ -429,15 +485,74 @@ export default function UniversalTaskDetail({ type, initialId }: UniversalTaskDe
                         <ReportContent node={node} />
                     </div>
                 )}
+                {activeTab === 'master-mind' && (
+                    <div className="animate-in fade-in duration-300">
+                        <div className="p-6 rounded-2xl bg-white/5 border border-white/10">
+                            <h3 className="text-lg font-semibold mb-4 text-white flex items-center gap-2">
+                                <LayoutDashboardIcon className="w-5 h-5 text-blue-400" />
+                                Master Mind Repository
+                            </h3>
+                            <p className="text-sm text-gray-400 mb-6">
+                                This repository contains persistent instructions that "tune" the AI Agent's behavior.
+                                Give commands like "You must..." in the AI Agent tab to update this repository.
+                            </p>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {/* Upload Trigger */}
+                                <div className="p-4 rounded-xl border border-dashed border-white/10 flex flex-col items-center justify-center gap-2 hover:bg-white/5 transition-all cursor-pointer relative">
+                                    <input
+                                        type="file"
+                                        onChange={handleFileUpload}
+                                        disabled={isUploading}
+                                        className="absolute inset-0 opacity-0 cursor-pointer"
+                                    />
+                                    {isUploading ? (
+                                        <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                                    ) : (
+                                        <FileTextIcon className="w-5 h-5 text-gray-500" />
+                                    )}
+                                    <span className="text-xs text-gray-400 font-medium">
+                                        {isUploading ? 'Uploading...' : 'Upload Knowledge (Design/Docs/API)'}
+                                    </span>
+                                </div>
+
+                                {node.documents.filter(d => d.type === 'master_mind').length > 0 ? (
+                                    node.documents.filter(d => d.type === 'master_mind').map(doc => (
+                                        <a key={doc.id} href={doc.url} target="_blank" rel="noopener noreferrer" className="p-4 rounded-xl bg-white/5 border border-white/10 hover:border-blue-500/50 hover:bg-blue-500/5 transition-all group flex items-center gap-3">
+                                            <div className="p-2 rounded-lg bg-white/5 group-hover:text-blue-400 transition-colors">
+                                                <FileCodeIcon className="w-5 h-5" />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="font-medium text-gray-200 group-hover:text-white truncate">{doc.title}</div>
+                                                <div className="text-[10px] text-gray-500 font-mono truncate">master-mind/{doc.title}.md</div>
+                                            </div>
+                                        </a>
+                                    ))
+                                ) : (
+                                    <div className="col-span-full text-center py-12 text-gray-500 border border-dashed border-white/10 rounded-2xl">
+                                        No Master Mind files detected. Training required.
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {activeTab === 'agent' && (
-                    <div className="h-[600px] border border-white/10 rounded-2xl overflow-hidden animate-in fade-in duration-300">
-                        <AIEnquiryPanel
-                            taskId={node.id}
-                            taskTitle={node.title}
-                            onClose={() => setActiveTab('subtasks')}
-                            hideHeader={true}
-                        />
+                    <div className="h-[calc(100vh-220px)] min-h-[600px] border border-white/10 rounded-2xl overflow-hidden animate-in fade-in duration-300 shadow-2xl">
+                        {type === 'project' ? (
+                            <ProjectAgentPanel
+                                projectId={node.id}
+                                projectName={node.title}
+                            />
+                        ) : (
+                            <AIEnquiryPanel
+                                taskId={node.id}
+                                taskTitle={node.title}
+                                onClose={() => setActiveTab('subtasks')}
+                                hideHeader={true}
+                            />
+                        )}
                     </div>
                 )}
             </div>
@@ -471,7 +586,7 @@ function ReportContent({ node }: { node: UnifiedNode }) {
                 <FileTextIcon className="w-5 h-5 text-purple-400" />
                 Completion Report
             </h3>
-            <div className="prose prose-invert max-w-none text-gray-300 font-light">
+            <div className="prose prose-invert max-w-none text-gray-300 font-light markdown-content">
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>
                     {content || 'Failed to load content.'}
                 </ReactMarkdown>

@@ -1,7 +1,8 @@
 import { useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import TaskBreakdown, { TaskCategory } from '../dashboard/TaskBreakdown';
-import { SparklesIcon, CheckIcon } from 'lucide-react';
+import { SparklesIcon, CheckIcon, TimerIcon } from 'lucide-react';
 
 export type Role = 'user' | 'assistant' | 'system';
 
@@ -12,6 +13,7 @@ export interface Message {
     timestamp: Date;
     type?: 'text' | 'estimation';
     data?: any;
+    isThinking?: boolean;
 }
 
 export default function MessageList({
@@ -31,7 +33,16 @@ export default function MessageList({
         scrollToBottom();
     }, [messages]);
 
-    const renderContent = (content: string) => {
+    const renderContent = (content: string, role: Role) => {
+        if (!content && role === 'assistant') {
+            return (
+                <div className="flex items-center gap-2 text-purple-400 animate-pulse py-2">
+                    <TimerIcon className="w-4 h-4 animate-spin-slow" />
+                    <span className="text-xs font-medium uppercase tracking-widest">Architect is thinking...</span>
+                </div>
+            );
+        }
+
         // Check for project update proposal
         const proposalMatch = content.match(/<PROJECT_UPDATE_PROPOSAL>([\s\S]*?)<\/PROJECT_UPDATE_PROPOSAL>/);
 
@@ -47,13 +58,13 @@ export default function MessageList({
             return (
                 <div className="space-y-4">
                     {textContent && (
-                        <div className="prose prose-invert prose-sm max-w-none leading-relaxed prose-headings:font-bold prose-headings:text-white prose-p:text-gray-300 prose-strong:text-white prose-code:text-blue-400 prose-pre:bg-black/50 prose-pre:border prose-pre:border-white/5">
-                            <ReactMarkdown>{textContent}</ReactMarkdown>
+                        <div className="prose prose-invert prose-sm max-w-none leading-relaxed prose-headings:font-bold prose-headings:text-white prose-p:text-gray-300 prose-p:leading-relaxed prose-strong:text-white prose-code:text-purple-400 prose-code:bg-purple-500/10 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-pre:bg-black/50 prose-pre:border prose-pre:border-white/10 prose-ul:list-disc prose-ol:list-decimal">
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}>{textContent}</ReactMarkdown>
                         </div>
                     )}
 
                     {proposalData && (
-                        <div className="mt-4 p-5 bg-blue-500/5 rounded-2xl border border-blue-500/20 space-y-4">
+                        <div className="mt-4 p-5 bg-blue-500/5 rounded-2xl border border-blue-500/20 space-y-4 shadow-2xl">
                             <div className="flex items-center gap-2 text-blue-400 font-semibold text-xs uppercase tracking-wider">
                                 <SparklesIcon className="w-4 h-4" />
                                 Project Update Proposal
@@ -84,47 +95,54 @@ export default function MessageList({
         }
 
         return (
-            <div className="prose prose-invert prose-sm max-w-none leading-relaxed prose-headings:font-bold prose-headings:text-white prose-p:text-gray-300 prose-strong:text-white prose-code:text-blue-400 prose-pre:bg-black/50 prose-pre:border prose-pre:border-white/5">
-                <ReactMarkdown>{content}</ReactMarkdown>
+            <div className="prose prose-invert prose-sm max-w-none leading-relaxed prose-headings:font-bold prose-headings:text-white prose-p:text-gray-300 prose-p:leading-relaxed prose-strong:text-white prose-code:text-purple-400 prose-code:bg-purple-500/10 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-pre:bg-black/50 prose-pre:border prose-pre:border-white/10 prose-ul:list-disc prose-ol:list-decimal">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
             </div>
         );
     };
 
     return (
-        <div className="flex-1 overflow-y-auto p-8 space-y-8 scrollbar-thin scrollbar-thumb-white/10">
-            {messages.map((message) => (
-                <div
-                    key={message.id}
-                    className={`flex w-full ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                >
+        <div className="flex-1 overflow-y-auto p-4 space-y-6 scrollbar-thin scrollbar-thumb-white/10">
+            {messages.map((message) => {
+                const isUser = message.role === 'user';
+                return (
                     <div
-                        className={`max-w-[90%] rounded-3xl px-6 py-4 transition-all duration-300 ${message.role === 'user'
-                            ? 'bg-blue-600 text-white rounded-br-sm shadow-lg shadow-blue-900/20'
-                            : message.role === 'assistant'
-                                ? 'bg-[#121212] text-gray-200 border border-white/10 rounded-bl-sm shadow-xl'
-                                : 'bg-transparent text-gray-500 text-sm justify-center w-full text-center border-none shadow-none'
-                            }`}
+                        key={message.id}
+                        className={`flex gap-4 ${isUser ? 'flex-row-reverse' : 'flex-row'} max-w-4xl mx-auto`}
                     >
-                        {/* Role Label */}
-                        {message.role !== 'system' && (
-                            <div className={`text-[10px] uppercase tracking-widest font-bold mb-3 ${message.role === 'user' ? 'text-blue-200/60' : 'text-purple-400/60'}`}>
-                                {message.role === 'user' ? 'User' : 'AI Architect'}
-                            </div>
-                        )}
+                        {/* Avatar */}
+                        <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${isUser ? 'bg-blue-600' : 'bg-purple-600/20 border border-purple-500/20'
+                            }`}>
+                            {isUser ? (
+                                <div className="text-xs font-bold text-white">U</div>
+                            ) : (
+                                <SparklesIcon className="w-4 h-4 text-purple-400" />
+                            )}
+                        </div>
 
-                        {renderContent(message.content)}
+                        {/* Content */}
+                        <div className={`flex-1 min-w-0 ${isUser ? 'flex justify-end' : ''}`}>
+                            <div className={`
+                                ${isUser
+                                    ? 'bg-blue-600/10 border border-blue-500/20 text-blue-100 rounded-2xl rounded-tr-sm px-5 py-3'
+                                    : 'text-gray-200 px-2 py-1'
+                                }
+                            `}>
+                                {renderContent(message.content, message.role)}
 
-                        {message.type === 'estimation' && message.data && (
-                            <div className="mt-8 pt-8 border-t border-white/10">
-                                <h4 className="text-sm font-semibold mb-4 text-white">Visual Task Breakdown</h4>
-                                <div className="bg-black/20 rounded-2xl border border-white/5 p-4 overflow-hidden">
-                                    <TaskBreakdown categories={message.data} />
-                                </div>
+                                {message.type === 'estimation' && message.data && (
+                                    <div className="mt-6 pt-6 border-t border-white/10">
+                                        <h4 className="text-sm font-semibold mb-4 text-white">Visual Task Breakdown</h4>
+                                        <div className="bg-black/20 rounded-2xl border border-white/5 p-4 overflow-hidden">
+                                            <TaskBreakdown categories={message.data} />
+                                        </div>
+                                    </div>
+                                )}
                             </div>
-                        )}
+                        </div>
                     </div>
-                </div>
-            ))}
+                );
+            })}
             <div ref={messagesEndRef} />
         </div>
     );

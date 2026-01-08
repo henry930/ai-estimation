@@ -1,0 +1,321 @@
+openapi: 3.0.3
+info:
+  title: AI Estimation Platform API
+  description: Comprehensive API for project management, task estimation, and AI-powered assistance
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: support@ai-estimation.com
+
+servers:
+  - url: http://localhost:3000
+    description: Development server
+  - url: https://api.ai-estimation.com
+    description: Production server
+
+security:
+  - sessionAuth: []
+
+components:
+  securitySchemes:
+    sessionAuth:
+      type: apiKey
+      in: cookie
+      name: next-auth.session-token
+      description: NextAuth.js session cookie
+
+  schemas:
+    Project:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        objective:
+          type: string
+        status:
+          type: string
+          enum: [ACTIVE, ARCHIVED]
+        githubUrl:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    Task:
+      type: object
+      properties:
+        id:
+          type: string
+        projectId:
+          type: string
+        parentId:
+          type: string
+          nullable: true
+        title:
+          type: string
+        description:
+          type: string
+        objective:
+          type: string
+        hours:
+          type: number
+        status:
+          type: string
+          enum: [TODO, PENDING, IN PROGRESS, WAITING FOR REVIEW, DONE, CANCELLED]
+        level:
+          type: integer
+        order:
+          type: integer
+        branch:
+          type: string
+        githubIssueNumber:
+          type: integer
+
+    ChatMessage:
+      type: object
+      properties:
+        role:
+          type: string
+          enum: [user, assistant]
+        content:
+          type: string
+
+    Error:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+
+paths:
+  /api/projects:
+    get:
+      summary: Get all projects
+      tags:
+        - Projects
+      security:
+        - sessionAuth: []
+      responses:
+        '200':
+          description: List of projects
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Project'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      summary: Create a new project
+      tags:
+        - Projects
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                objective:
+                  type: string
+                githubUrl:
+                  type: string
+      responses:
+        '201':
+          description: Project created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+
+  /api/projects/{id}:
+    get:
+      summary: Get project by ID
+      tags:
+        - Projects
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Project details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+
+    put:
+      summary: Update project
+      tags:
+        - Projects
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                objective:
+                  type: string
+                status:
+                  type: string
+      responses:
+        '200':
+          description: Project updated
+
+    delete:
+      summary: Delete project
+      tags:
+        - Projects
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Project deleted
+
+  /api/projects/{id}/chat:
+    post:
+      summary: Chat with AI Project Agent
+      tags:
+        - AI Chat
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                messages:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/ChatMessage'
+      responses:
+        '200':
+          description: Streaming text response
+          content:
+            text/plain:
+              schema:
+                type: string
+
+  /api/projects/{id}/tasks:
+    get:
+      summary: Get project tasks (hierarchical)
+      tags:
+        - Tasks
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Task hierarchy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  taskGroups:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Task'
+
+  /api/github/repos:
+    get:
+      summary: Get user's GitHub repositories
+      tags:
+        - GitHub
+      responses:
+        '200':
+          description: List of repositories
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  repositories:
+                    type: array
+                    items:
+                      type: object
+
+  /api/health:
+    get:
+      summary: Health check
+      tags:
+        - Health
+      security: []
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  timestamp:
+                    type: string
+                    format: date-time
+
+tags:
+  - name: Projects
+    description: Project management endpoints
+  - name: Tasks
+    description: Task and subtask management
+  - name: AI Chat
+    description: AI-powered chat assistants
+  - name: GitHub
+    description: GitHub integration
+  - name: Health
+    description: Health and diagnostics

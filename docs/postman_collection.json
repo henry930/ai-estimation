@@ -1,0 +1,498 @@
+{
+    "info": {
+        "name": "AI Estimation Platform API",
+        "description": "Complete API collection for the AI Estimation Platform",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+        "_postman_id": "ai-estimation-api-v1"
+    },
+    "auth": {
+        "type": "noauth"
+    },
+    "item": [
+        {
+            "name": "Authentication",
+            "item": [
+                {
+                    "name": "Get Session",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/auth/session",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "auth",
+                                "session"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Projects",
+            "item": [
+                {
+                    "name": "List Projects",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/projects",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "projects"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Create Project",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"New Project\",\n  \"description\": \"Project description\",\n  \"objective\": \"Project objective\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/projects",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "projects"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Project",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/projects/{{projectId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "projects",
+                                "{{projectId}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Update Project",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"Updated Name\",\n  \"status\": \"ACTIVE\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/projects/{{projectId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "projects",
+                                "{{projectId}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Delete Project",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/projects/{{projectId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "projects",
+                                "{{projectId}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Project Tasks",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/projects/{{projectId}}/tasks",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "projects",
+                                "{{projectId}}",
+                                "tasks"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Sync with GitHub",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"githubUrl\": \"https://github.com/user/repo\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/projects/{{projectId}}/sync",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "projects",
+                                "{{projectId}}",
+                                "sync"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "AI Chat",
+            "item": [
+                {
+                    "name": "Project Chat",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"Create a new phase called 'Testing' with objective 'Test the system' and order 10\"\n    }\n  ]\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/projects/{{projectId}}/chat",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "projects",
+                                "{{projectId}}",
+                                "chat"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Task Chat",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"taskId\": \"{{taskId}}\",\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"Create 3 subtasks for this task\"\n    }\n  ]\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/admin/tasks/chat",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "admin",
+                                "tasks",
+                                "chat"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Tasks",
+            "item": [
+                {
+                    "name": "Get Task",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/tasks/{{taskId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "tasks",
+                                "{{taskId}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Create Subtasks",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"subtasks\": [\n    {\n      \"title\": \"Subtask 1\",\n      \"hours\": 2,\n      \"order\": 0\n    },\n    {\n      \"title\": \"Subtask 2\",\n      \"hours\": 3,\n      \"order\": 1\n    }\n  ]\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/admin/tasks/{{taskId}}/subtasks",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "admin",
+                                "tasks",
+                                "{{taskId}}",
+                                "subtasks"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "GitHub",
+            "item": [
+                {
+                    "name": "List Repositories",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/github/repos",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "github",
+                                "repos"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Create Repository",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"new-repo\",\n  \"description\": \"Repository description\",\n  \"private\": true\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/github/repos/create",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "github",
+                                "repos",
+                                "create"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "List Issues",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/github/issues?owner={{owner}}&repo={{repo}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "github",
+                                "issues"
+                            ],
+                            "query": [
+                                {
+                                    "key": "owner",
+                                    "value": "{{owner}}"
+                                },
+                                {
+                                    "key": "repo",
+                                    "value": "{{repo}}"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Create Issue",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"owner\": \"{{owner}}\",\n  \"repo\": \"{{repo}}\",\n  \"title\": \"New Issue\",\n  \"body\": \"Issue description\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/github/issues/create",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "github",
+                                "issues",
+                                "create"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Health",
+            "item": [
+                {
+                    "name": "Health Check",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/health",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "health"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Database Health",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/health/db",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "health",
+                                "db"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Check Version",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/check-version",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "check-version"
+                            ]
+                        }
+                    }
+                }
+            ]
+        }
+    ],
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:3000",
+            "type": "string"
+        },
+        {
+            "key": "projectId",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "taskId",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "owner",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "repo",
+            "value": "",
+            "type": "string"
+        }
+    ]
+}

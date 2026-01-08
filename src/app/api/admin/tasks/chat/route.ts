@@ -1,96 +1,262 @@
-import { streamText } from 'ai';
-import { getAIModel, isAIConfigured } from '@/lib/ai-provider';
+// @ts-nocheck
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { prisma } from '@/lib/prisma';
 import { errorResponse } from '@/lib/api-response';
 
 export const runtime = 'nodejs';
 
+/**
+ * AI Assistant for specific tasks or groups
+ */
 export async function POST(req: Request) {
-    if (!isAIConfigured()) {
-        return errorResponse('AI is not configured. Please add AWS credentials or OPENAI_API_KEY.', 500);
+    const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+    if (!apiKey) {
+        return errorResponse('AI is not configured. Please add GOOGLE_GENERATIVE_AI_API_KEY.', 500);
     }
 
     try {
-        const { taskId, messages, groupId } = await req.json();
+        const { messages, taskId, groupId } = await req.json();
 
-        if ((!taskId && !groupId) || !messages || !Array.isArray(messages)) {
-            return errorResponse('Missing taskId/groupId or valid messages array', 400);
+        if (!messages || !Array.isArray(messages)) {
+            return errorResponse('Valid messages array is required', 400);
         }
 
-        let systemPrompt = '';
         const id = taskId || groupId;
-
-        if (taskId) {
-            // 1. Fetch the target task for context
-            const task = await prisma.task.findUnique({
-                where: { id: taskId },
-                include: {
-                    children: true,
-                    documents: true
-                }
-            });
-
-            if (!task) return errorResponse('Task not found', 404);
-
-            systemPrompt = `You are an AI Project Assistant helping a developer with a specific task.
-Task Title: ${task.title}
-Task Description: ${task.description || 'No description provided.'}
-Task Branch: ${task.branch || 'No branch assigned'}
-Task Hours: ${task.hours || 0}h
-Status: ${task.status}
-
-Sub-tasks:
-${task.children.map(s => `- [${s.status === 'DONE' ? 'x' : ' '}] ${s.title}`).join('\n') || 'No sub-tasks defined.'}
-
-Documents:
-${task.documents.map(d => `- ${d.title}: ${d.url}`).join('\n') || 'No documents attached.'}
-
-Current AI Context/Prompt: ${task.aiPrompt || 'None'}
-
-Your goal is to answer questions about this task, suggest refinements, or help with implementation details. 
-Keep your answers technical, concise, and helpful.`;
-        } else if (groupId) {
-            // 2. Fetch the target group (level 0 task) for context
-            const group = await prisma.task.findUnique({
-                where: { id: groupId },
-                include: {
-                    children: true,
-                    documents: true
-                }
-            });
-
-            if (!group) return errorResponse('Phase not found', 404);
-
-            systemPrompt = `You are an AI Project Assistant helping a developer with a project phase (Group).
-Phase Title: ${group.title}
-Phase Description: ${group.description || 'No description provided.'}
-Phase Branch: ${group.branch || 'No branch assigned'}
-Total Estimated Hours: ${group.hours || 0}h
-Status: ${group.status}
-
-Tasks in this Phase:
-${group.children.map(t => `- [${t.status}] ${t.title} (${t.hours}h)`).join('\n') || 'No tasks defined for this phase.'}
-
-Documents:
-${group.documents.map(d => `- ${d.title}: ${d.url}`).join('\n') || 'No documents attached.'}
-
-Your goal is to answer questions about this high-level phase, suggest coordination strategies, or help break down features into finer tasks. 
-Keep your answers strategic, professional, and concise.`;
+        if (!id) {
+            return errorResponse('taskId or groupId is required', 400);
         }
 
-        // 3. Call AI with streaming
-        const result = await streamText({
-            model: getAIModel(),
-            system: systemPrompt,
-            messages: messages.map((m: any) => ({
-                role: m.role,
-                content: m.content
-            })),
+        // Fetch context for the prompt
+        const task = await prisma.task.findUnique({
+            where: { id: id },
+            include: {
+                documents: true,
+                children: {
+                    orderBy: { order: 'asc' }
+                }
+            }
         });
 
-        return result.toTextStreamResponse();
+        if (!task) return errorResponse('Task not found', 404);
+
+        const project = await prisma.project.findUnique({
+            where: { id: task.projectId }
+        });
+
+        const subtasksSummary = task.children.length > 0
+            ? task.children.map(c => `- [${c.status}] ${c.title} (${c.hours || 0}h)`).join('\n')
+            : 'No subtasks yet.';
+
+        const docsSummary = task.documents.length > 0
+            ? task.documents.map(d => `- ${d.title}: ${d.url}`).join('\n')
+            : 'No documents linked.';
+
+        const systemPrompt = `You are a Technical Lead assisting with the task: "${task.title}" 
+within project: "${project?.name}".
+
+**Context**:
+- Objective: ${task.objective || 'Not set'}
+- Description: ${task.description || 'Not set'}
+- Status: ${task.status}
+- Current Hours: ${task.hours || 0}
+
+**Current Subtasks**:
+${subtasksSummary}
+
+**Documents**:
+${docsSummary}
+
+**Your Responsibilities**:
+1. Clarify requirements and help refine the implementation plan.
+2. Break down the task into subtasks if it's too large.
+3. Identify technical risks or blockers.
+4. Update the task status and hours based on user progress.
+
+Use your tools to persist any changes to the database.
+Keep your answers strategic, professional, and concise.`;
+
+        // Define tools
+        const tools = [
+            {
+                name: "update_plan",
+                description: "Update the implementation plan (objective) of the task.",
+                parameters: {
+                    type: "OBJECT",
+                    properties: {
+                        reason: { type: "STRING", description: "Reason for update" },
+                        content: { type: "STRING", description: "New plan content" }
+                    },
+                    required: ["reason", "content"]
+                }
+            },
+            {
+                name: "add_documents",
+                description: "Add documentation links.",
+                parameters: {
+                    type: "OBJECT",
+                    properties: {
+                        links: {
+                            type: "ARRAY",
+                            description: "Array of document links",
+                            items: {
+                                type: "OBJECT",
+                                properties: {
+                                    title: { type: "STRING" },
+                                    url: { type: "STRING" }
+                                },
+                                required: ["title", "url"]
+                            }
+                        }
+                    },
+                    required: ["links"]
+                }
+            },
+            {
+                name: "create_subtasks",
+                description: "Create new subtasks.",
+                parameters: {
+                    type: "OBJECT",
+                    properties: {
+                        titles: {
+                            type: "ARRAY",
+                            description: "Array of subtask titles",
+                            items: { type: "STRING" }
+                        }
+                    },
+                    required: ["titles"]
+                }
+            },
+            {
+                name: "update_hours",
+                description: "Update estimated hours.",
+                parameters: {
+                    type: "OBJECT",
+                    properties: {
+                        hours: { type: "NUMBER", description: "New hour estimate" }
+                    },
+                    required: ["hours"]
+                }
+            },
+            {
+                name: "update_status",
+                description: "Update status.",
+                parameters: {
+                    type: "OBJECT",
+                    properties: {
+                        status: {
+                            type: "STRING",
+                            description: "New status",
+                            enum: ["PENDING", "IN PROGRESS", "WAITING FOR REVIEW", "DONE"]
+                        }
+                    },
+                    required: ["status"]
+                }
+            }
+        ];
+
+        // Initialize Gemini
+        const genAI = new GoogleGenerativeAI(apiKey);
+        const model = genAI.getGenerativeModel({
+            model: "gemini-2.0-flash-exp",
+            tools: [{ functionDeclarations: tools }],
+            systemInstruction: systemPrompt,
+        });
+
+        // Convert messages to Gemini format
+        const history = messages.slice(0, -1).map(m => ({
+            role: m.role === 'user' ? 'user' : 'model',
+            parts: [{ text: m.content }]
+        }));
+
+        const lastMessage = messages[messages.length - 1];
+
+        const chat = model.startChat({ history });
+        const result = await chat.sendMessage(lastMessage.content);
+        const response = await result.response;
+
+        // Handle tool calls
+        const functionCalls = response.functionCalls();
+        if (functionCalls && functionCalls.length > 0) {
+            console.log('Tool calls detected:', functionCalls.map(fc => fc.name));
+
+            for (const fc of functionCalls) {
+                try {
+                    await executeToolCall(fc.name, fc.args, id);
+                } catch (error) {
+                    console.error(`Error executing tool ${fc.name}:`, error);
+                }
+            }
+        }
+
+        // Return streaming response
+        const responseText = response.text() || 'Tools executed successfully.';
+
+        const encoder = new TextEncoder();
+        const stream = new ReadableStream({
+            start(controller) {
+                const words = responseText.split(' ');
+                for (let i = 0; i < words.length; i++) {
+                    const word = words[i] + (i < words.length - 1 ? ' ' : '');
+                    controller.enqueue(encoder.encode(word));
+                }
+                controller.close();
+            }
+        });
+
+        return new Response(stream, {
+            headers: {
+                'Content-Type': 'text/plain; charset=utf-8',
+            }
+        });
+
     } catch (error: any) {
         console.error('Chat API Error:', error);
         return errorResponse(`Failed to process chat: ${error.message || 'Unknown error'}`, 500);
+    }
+}
+
+// Tool execution functions
+async function executeToolCall(toolName: string, args: any, taskId: string) {
+    switch (toolName) {
+        case 'update_plan':
+            await prisma.task.update({ where: { id: taskId }, data: { objective: args.content } });
+            break;
+
+        case 'add_documents':
+            await prisma.taskDocument.createMany({
+                data: args.links.map((d: any) => ({
+                    taskId: taskId,
+                    title: d.title,
+                    url: d.url,
+                    type: 'link'
+                }))
+            });
+            break;
+
+        case 'create_subtasks':
+            const parent = await prisma.task.findUnique({ where: { id: taskId } });
+            if (!parent) return;
+            const count = await prisma.task.count({ where: { parentId: taskId } });
+            await Promise.all(args.titles.map((title: string, idx: number) =>
+                prisma.task.create({
+                    data: {
+                        projectId: parent.projectId,
+                        parentId: taskId,
+                        title,
+                        status: 'PENDING',
+                        order: count + idx,
+                        level: (parent.level || 0) + 1
+                    }
+                })
+            ));
+            break;
+
+        case 'update_hours':
+            await prisma.task.update({ where: { id: taskId }, data: { hours: args.hours } });
+            break;
+
+        case 'update_status':
+            await prisma.task.update({ where: { id: taskId }, data: { status: args.status } });
+            break;
     }
 }

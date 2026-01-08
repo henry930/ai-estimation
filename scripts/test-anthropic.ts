@@ -1,16 +1,17 @@
-import { createAmazonBedrock } from '@ai-sdk/amazon-bedrock';
+import { createAnthropic } from '@ai-sdk/anthropic';
 import { generateText } from 'ai';
 
 async function runTest() {
-    console.log('--- STARTING BEDROCK TOOL TEST ---');
+    console.log('--- STARTING ANTHROPIC TOOL TEST (RAW) ---');
+    const apiKey = process.env.ANTHROPIC_API_KEY;
 
-    const bedrock = createAmazonBedrock({
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
-        region: 'us-east-1',
-    });
+    if (!apiKey) {
+        console.error('ANTHROPIC_API_KEY not found');
+        return;
+    }
 
-    const model = bedrock('us.anthropic.claude-3-5-sonnet-20240620-v1:0');
+    const anthropic = createAnthropic({ apiKey });
+    const model = anthropic('claude-3-haiku-20240307');
 
     const tools = {
         testTool: {
@@ -27,10 +28,10 @@ async function runTest() {
     };
 
     try {
-        console.log('Calling generateText (Bedrock)...');
+        console.log('Calling generateText (Raw Tools)...');
         const result = await generateText({
             model,
-            prompt: 'Call the test tool with "bedrock-is-solid".',
+            prompt: 'Call the test tool with "raw-is-better".',
             tools,
         });
 

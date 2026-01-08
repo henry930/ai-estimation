@@ -34,3 +34,38 @@ export async function GET(
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
+
+export async function PATCH(
+    req: Request,
+    { params }: { params: Promise<{ id: string }> }
+) {
+    const { id } = await params;
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user?.id) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    try {
+        const body = await req.json();
+        const { name, description, objective, status, aiInstructions } = body;
+
+        const updatedProject = await prisma.project.update({
+            where: {
+                id,
+                userId: session.user.id,
+            },
+            data: {
+                name,
+                description,
+                objective,
+                status,
+                aiInstructions,
+            },
+        });
+
+        return NextResponse.json(updatedProject);
+    } catch (error: any) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+}

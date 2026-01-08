@@ -57,10 +57,7 @@ export default function AIEnquiryPanel({ taskId, groupId, taskTitle, onClose, hi
                 body: JSON.stringify({
                     taskId,
                     groupId,
-                    messages: [...messages, userMessage].map(m => ({
-                        role: m.role,
-                        content: m.content
-                    }))
+                    messages: [...messages, userMessage]
                 })
             });
 

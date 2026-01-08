@@ -102,6 +102,10 @@ Backend API (68 hours):
 - **[PROJECT_PLAN.md](PROJECT_PLAN.md)** - Comprehensive project plan with detailed task breakdown and estimations (312 hours total)
 - **[TASKS.md](TASKS.md)** - Concise task checklist for tracking progress (67 tasks across 6 phases)
 - **[UPDATING_PLAN.md](UPDATING_PLAN.md)** - Guide for maintaining PROJECT_PLAN.md as a living document
+- **[API Documentation](docs/API_DOCUMENTATION.md)** - Complete API reference for all 38 endpoints
+  - [Quick Reference](docs/API_QUICK_REFERENCE.md) - Common endpoints and examples
+  - [OpenAPI Spec](docs/openapi.yaml) - Machine-readable API specification
+  - [Postman Collection](docs/postman_collection.json) - Ready-to-import API tests
 
 > [!NOTE]
 > PROJECT_PLAN.md is a **living document** that gets updated when:
@@ -110,6 +114,7 @@ Backend API (68 hours):
 > - User requests changes
 > - Scope changes occur
 > - Blockers are encountered
+
 
 ---
 
