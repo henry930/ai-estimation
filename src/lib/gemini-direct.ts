@@ -3,7 +3,7 @@
  * This is a workaround for AI SDK 6.0.20 tool calling schema issues
  */
 
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenerativeAI, SchemaType } from "@google/generative-ai";
 
 
 export interface GeminiTool {
@@ -31,7 +31,7 @@ export async function callGeminiWithTools(
         name: tool.name,
         description: tool.description,
         parameters: {
-            type: "OBJECT" as const,
+            type: SchemaType.OBJECT,
             properties: tool.parameters.properties,
             required: tool.parameters.required,
         },

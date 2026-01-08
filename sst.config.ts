@@ -39,6 +39,12 @@ export default $config({
 
                 NODE_ENV: "production",
                 AUTH_TRUST_HOST: "true",
+
+                // GitHub Webhook
+                GITHUB_WEBHOOK_SECRET: process.env.GITHUB_WEBHOOK_SECRET || "",
+
+                // Google Gemini
+                GOOGLE_GENERATIVE_AI_API_KEY: process.env.GOOGLE_GENERATIVE_AI_API_KEY || "",
             },
         });
 
